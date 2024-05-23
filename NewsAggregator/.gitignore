@@ -1,0 +1,39 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# Output of the go coverage tool, specifically when used with LiteIDE
+*.out
+
+# Dependency directories (remove the comment below if you want to keep vendor/)
+# vendor/
+
+# Output directory (comment this out if you intend to keep the output directory)
+/out/
+
+# IDE directories
+.idea/
+.vscode/
+
+# Generated files
+*.log
+*.log.*
+*.log/*
+*.db
+*.sqlite
+
+# OS-specific files
+._*
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Icon?
+
+# Go build cache and other generated files
+*.cache
