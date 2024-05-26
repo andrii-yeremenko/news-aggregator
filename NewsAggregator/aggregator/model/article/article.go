@@ -1,6 +1,7 @@
 package article
 
 import (
+	"NewsAggregator/aggregator/model/resource"
 	"errors"
 	"time"
 )
@@ -10,7 +11,7 @@ type Article struct {
 	title        Title
 	description  Description
 	creationDate CreationDate
-	source       Source
+	source       resource.Source
 	author       Author
 }
 
@@ -26,7 +27,7 @@ func (a *Article) Date() CreationDate {
 	return a.creationDate
 }
 
-func (a *Article) Source() Source {
+func (a *Article) Source() resource.Source {
 	return a.source
 }
 
@@ -57,7 +58,7 @@ func (builder *Builder) SetDate(creationDate CreationDate) *Builder {
 	return builder
 }
 
-func (builder *Builder) SetSource(source Source) *Builder {
+func (builder *Builder) SetSource(source resource.Source) *Builder {
 	builder.article.source = source
 	return builder
 }

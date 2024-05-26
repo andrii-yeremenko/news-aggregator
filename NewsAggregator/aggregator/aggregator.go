@@ -43,12 +43,13 @@ func (agr *Aggregator) GetAllArticles() []article.Article {
 
 // Aggregate fetches articles from a resource and parses them.
 func (agr *Aggregator) Aggregate(resource resource.Resource) ([]article.Article, error) {
-	processor, err := agr.parserFactory.GetParser(resource.Format(), resource.Publisher())
+
+	articlesParser, err := agr.parserFactory.GetParser(resource.Format(), resource.Source())
 	if err != nil {
 		return nil, err
 	}
 
-	return processor.Parse(resource.Content())
+	return articlesParser.Parse(resource)
 }
 
 // FilterByKeywords filters articles by keywords.

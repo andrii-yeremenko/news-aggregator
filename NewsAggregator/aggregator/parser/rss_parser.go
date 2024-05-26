@@ -32,9 +32,12 @@ type rssChannel struct {
 }
 
 // Parse parses the RSS feed from the provided content and returns a list of articles.
-func (p *RSSParser) Parse(content resource.Content) ([]article.Article, error) {
+func (p *RSSParser) Parse(resource resource.Resource) ([]article.Article, error) {
 	var rssChannel rssChannel
-	err := xml.Unmarshal([]byte(content), &rssChannel)
+
+	byteContent := []byte(string(resource.Content()))
+
+	err := xml.Unmarshal(byteContent, &rssChannel)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +45,9 @@ func (p *RSSParser) Parse(content resource.Content) ([]article.Article, error) {
 	articles := make([]article.Article, 0, len(rssChannel.Items))
 
 	for _, item := range rssChannel.Items {
+
 		creationDate, err := NewDateParser().Parse(item.PubDate)
+
 		if err != nil {
 			return nil, err
 		}
@@ -51,9 +56,10 @@ func (p *RSSParser) Parse(content resource.Content) ([]article.Article, error) {
 			SetTitle(article.Title(strings.TrimSpace(item.Title))).
 			SetDescription(article.Description(strings.TrimSpace(item.Description))).
 			SetDate(article.CreationDate(creationDate)).
-			SetSource(article.Source(strings.TrimSpace(item.Link)))
+			SetSource(resource.Source())
 
 		art, err := builder.Build()
+
 		if err != nil {
 			return nil, err
 		}

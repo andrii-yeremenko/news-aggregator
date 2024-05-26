@@ -1,19 +1,21 @@
 package resource
 
-import "errors"
+import (
+	"errors"
+)
 
 // Resource a data supply containing a news report.
 type Resource struct {
-	publisher Publisher
+	publisher Source
 	format    Format
 	content   Content
 }
 
 // NewResource is a constructor function for creating a new Resource.
-func NewResource(publisher Publisher, format Format, content Content) (*Resource, error) {
+func NewResource(source Source, format Format, content Content) (*Resource, error) {
 
-	if publisher == "" {
-		return nil, errors.New("publisher cannot be empty")
+	if source == "" {
+		return nil, errors.New("source cannot be empty")
 	}
 
 	if format == "" {
@@ -25,14 +27,14 @@ func NewResource(publisher Publisher, format Format, content Content) (*Resource
 	}
 
 	return &Resource{
-		publisher: publisher,
+		publisher: source,
 		format:    format,
 		content:   content,
 	}, nil
 }
 
-// Publisher returns the publisher of the resource.
-func (r *Resource) Publisher() Publisher {
+// Source returns the publisher of the resource.
+func (r *Resource) Source() Source {
 	return r.publisher
 }
 

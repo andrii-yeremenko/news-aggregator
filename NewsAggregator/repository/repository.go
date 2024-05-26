@@ -7,18 +7,18 @@ import (
 	"os"
 )
 
-// InMemoryRepository is a simple in-memory repository for resources.
-type InMemoryRepository struct {
+// NewsRepository is a simple in-memory repository for resources.
+type NewsRepository struct {
 	resources []resource.Resource
 }
 
-// NewInMemoryRepository creates a new InMemoryRepository.
-func NewInMemoryRepository() *InMemoryRepository {
-	return &InMemoryRepository{}
+// NewRepository creates a new NewsRepository.
+func NewRepository() *NewsRepository {
+	return &NewsRepository{}
 }
 
 // ReadFile reads a file and returns a resource.
-func (r *InMemoryRepository) ReadFile(publisher resource.Publisher, format resource.Format, filename string) (resource.Resource, error) {
+func (r *NewsRepository) ReadFile(publisher resource.Source, format resource.Format, filename string) (resource.Resource, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("error opening file: %v", err)

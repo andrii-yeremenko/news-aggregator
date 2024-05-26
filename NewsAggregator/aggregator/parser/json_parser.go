@@ -11,7 +11,7 @@ import (
 type JSONParser struct{}
 
 // Parse parses the JSON content into a list of articles.
-func (p *JSONParser) Parse(content resource.Content) ([]article.Article, error) {
+func (p *JSONParser) Parse(resource resource.Resource) ([]article.Article, error) {
 	var jsonResponse struct {
 		Articles []struct {
 			Source struct {
@@ -24,7 +24,9 @@ func (p *JSONParser) Parse(content resource.Content) ([]article.Article, error) 
 		} `json:"articles"`
 	}
 
-	if err := json.Unmarshal([]byte(content), &jsonResponse); err != nil {
+	byteContent := []byte(resource.Content())
+
+	if err := json.Unmarshal(byteContent, &jsonResponse); err != nil {
 		return nil, err
 	}
 
@@ -39,7 +41,7 @@ func (p *JSONParser) Parse(content resource.Content) ([]article.Article, error) 
 			SetTitle(article.Title(strings.TrimSpace(a.Title))).
 			SetDescription(article.Description(strings.TrimSpace(a.Description))).
 			SetDate(article.CreationDate(publishedAt)).
-			SetSource(article.Source(strings.TrimSpace(a.Source.Name))).
+			SetSource(resource.Source()).
 			SetAuthor(article.Author(strings.TrimSpace(a.Author))).
 			Build()
 

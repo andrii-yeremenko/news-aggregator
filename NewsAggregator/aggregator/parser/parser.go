@@ -7,5 +7,5 @@ import (
 
 // Parser is an interface for parsing news articles.
 type Parser interface {
-	Parse(content resource.Content) ([]article.Article, error)
+	Parse(content resource.Resource) ([]article.Article, error)
 }

@@ -11,10 +11,14 @@ import (
 // USATodayHTMLParser is a parser for HTML pages from USA Today.
 type USATodayHTMLParser struct{}
 
-func (p *USATodayHTMLParser) Parse(content resource.Content) ([]article.Article, error) {
+func (p *USATodayHTMLParser) Parse(resource resource.Resource) ([]article.Article, error) {
 	var articles []article.Article
 
-	doc, err := goquery.NewDocumentFromReader(strings.NewReader(string(content)))
+	contentStr := string(resource.Content())
+	resourceReader := strings.NewReader(contentStr)
+
+	doc, err := goquery.NewDocumentFromReader(resourceReader)
+
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +36,7 @@ func (p *USATodayHTMLParser) Parse(content resource.Content) ([]article.Article,
 			SetTitle(article.Title(strings.TrimSpace(title))).
 			SetDescription(article.Description(strings.TrimSpace(description))).
 			SetDate(article.CreationDate(creationDate)).
-			SetSource("USA Today")
+			SetSource(resource.Source())
 
 		newArticle, err := builder.Build()
 		if err != nil {
