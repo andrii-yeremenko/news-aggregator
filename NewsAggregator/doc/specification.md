@@ -1,5 +1,5 @@
-- Project Name: NewsAggregator API
-- Engineer name: Yeremenko Andrii
+## Project Name: NewsAggregator API
+## Engineer name: `Yeremenko Andrii`
 
 # Summary
 The News Aggregator API is a tool designed to aggregate news articles from various sources. It offers functionality to filter articles by sources, keywords, and date ranges, providing users with a curated selection of relevant news content. The project utilizes parsers for different formats (such as JSON, RSS, and HTML) to extract article data, which is then stored and filtered based on user-defined criteria. This API aims to simplify the process of accessing and organizing news articles from diverse sources, enhancing the efficiency of news consumption and research.
