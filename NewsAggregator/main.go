@@ -2,6 +2,7 @@ package main
 
 import (
 	"NewsAggregator/aggregator"
+	"NewsAggregator/aggregator/model/article"
 	"NewsAggregator/aggregator/parser"
 	"NewsAggregator/repository"
 	"flag"
@@ -37,6 +38,12 @@ func main() {
 		return
 	}
 
+	if flagCount == 0 {
+		resourceLoader.LoadAllResources()
+		printArticles(newsAggregator.GetAllArticles())
+		return
+	}
+
 	filterBuilder := aggregator.NewFilterBuilder()
 
 	if sourceArgument == "" {
@@ -64,12 +71,16 @@ func main() {
 
 	filteredArticles := filter.Apply(newsAggregator.GetAllArticles())
 
-	for _, filteredArticle := range filteredArticles {
+	printArticles(filteredArticles)
+}
+
+func printArticles(articles []article.Article) {
+	for _, art := range articles {
 		fmt.Printf("----------------------------------------\n")
-		fmt.Printf("Title: %s\n", filteredArticle.Title())
-		fmt.Printf("Description: %s\n", filteredArticle.Description())
-		fmt.Printf("Date: %s\n", filteredArticle.Date().HumanReadableString())
-		fmt.Printf("Source: %s\n", filteredArticle.Source())
-		fmt.Printf("Author: %s\n", filteredArticle.Author())
+		fmt.Printf("Title: %s\n", art.Title())
+		fmt.Printf("Description: %s\n", art.Description())
+		fmt.Printf("Date: %s\n", art.Date().HumanReadableString())
+		fmt.Printf("Source: %s\n", art.Source())
+		fmt.Printf("Author: %s\n", art.Author())
 	}
 }
