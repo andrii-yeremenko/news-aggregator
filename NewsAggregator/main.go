@@ -2,7 +2,6 @@ package main
 
 import (
 	"NewsAggregator/aggregator"
-	"NewsAggregator/aggregator/model/article"
 	"NewsAggregator/aggregator/parser"
 	"NewsAggregator/repository"
 	"flag"
@@ -23,7 +22,8 @@ func main() {
 		flagCount++
 	})
 
-	if flagCount > 2 || flagCount < 1 {
+	// Check if the user has provided the correct number of flags
+	if flagCount > 4 {
 		flag.Usage()
 		return
 	}
@@ -34,27 +34,32 @@ func main() {
 
 	resourceLoader := repository.NewResourceLoader(newsAggregator)
 
-	var filteredArticles []article.Article
+	filterBuilder := aggregator.NewFilterBuilder()
 
 	if sourceArgument == "" {
 		resourceLoader.LoadAllResources()
 	} else {
 		sources := strings.Split(sourceArgument, ",")
 		resourceLoader.LoadSelectedResources(sources)
+		filterBuilder.WithSources(sources)
 	}
 
-	if startDateArgument == "" && endDateArgument == "" {
-		filteredArticles = newsAggregator.GetAllArticles()
-	} else {
-		filteredArticles = newsAggregator.FilterByDateRange(startDateArgument, endDateArgument)
+	if startDateArgument != "" {
+		filterBuilder.WithStartDate(startDateArgument)
 	}
 
-	if keywordsArgument == "" {
-		filteredArticles = newsAggregator.GetAllArticles()
-	} else {
+	if endDateArgument != "" {
+		filterBuilder.WithEndDate(endDateArgument)
+	}
+
+	if keywordsArgument != "" {
 		keywords := strings.Split(keywordsArgument, ",")
-		filteredArticles = newsAggregator.FilterByKeywords(keywords)
+		filterBuilder.WithKeywords(keywords)
 	}
+
+	filter := filterBuilder.Build()
+
+	filteredArticles := filter.Apply(newsAggregator.GetAllArticles())
 
 	for _, filteredArticle := range filteredArticles {
 		fmt.Printf("----------------------------------------\n")
