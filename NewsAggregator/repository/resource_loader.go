@@ -33,6 +33,15 @@ func NewResourceLoader(newsAggregator *aggregator.Aggregator) *ResourceLoader {
 	}
 }
 
+// GetAvailableSources returns the available sources.
+func (loader *ResourceLoader) GetAvailableSources() string {
+	var sources string
+	for source := range loader.resourceDetails {
+		sources += string(source) + ", "
+	}
+	return sources
+}
+
 // RegisterResource adds a resource to be loaded.
 func (loader *ResourceLoader) RegisterResource(source resource.Source, format resource.Format, path string) {
 	loader.resourceDetails[source] = resourceDetail{format: format, path: path}

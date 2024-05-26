@@ -11,10 +11,19 @@ import (
 
 func main() {
 	var sourceArgument, keywordsArgument, startDateArgument, endDateArgument string
-	flag.StringVar(&sourceArgument, "sources", "", "Comma-separated list of news sourceArgument")
-	flag.StringVar(&keywordsArgument, "keywords", "", "Comma-separated list of keywordsArgument")
-	flag.StringVar(&startDateArgument, "date-start", "", "Start date for filtering news articles")
-	flag.StringVar(&endDateArgument, "date-end", "", "End date for filtering news articles")
+
+	parserSelector := parser.NewParserFactory()
+	newsAggregator := aggregator.NewAggregator(parserSelector)
+	resourceLoader := repository.NewResourceLoader(newsAggregator)
+
+	flag.StringVar(&sourceArgument, "sources", "", "Comma-separated list of news sourceArgument\n"+
+		"Available sources: "+resourceLoader.GetAvailableSources())
+	flag.StringVar(&keywordsArgument, "keywords", "", "Comma-separated list of keywordsArgument"+
+		" to filter news articles")
+	flag.StringVar(&startDateArgument, "date-start", "", "Start date for filtering news articles"+
+		" (format: yyyy-mm-dd)")
+	flag.StringVar(&endDateArgument, "date-end", "", "End date for filtering news articles"+
+		" (format: yyyy-mm-dd)")
 	flag.Parse()
 
 	flagCount := 0
@@ -27,12 +36,6 @@ func main() {
 		flag.Usage()
 		return
 	}
-
-	parserSelector := parser.NewParserFactory()
-
-	newsAggregator := aggregator.NewAggregator(parserSelector)
-
-	resourceLoader := repository.NewResourceLoader(newsAggregator)
 
 	filterBuilder := aggregator.NewFilterBuilder()
 
