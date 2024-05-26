@@ -15,7 +15,7 @@ Also it has a error handling mechanism, which allows to handle errors in a way t
 #### Example:
 ```
 newsRepository := repository.NewInMemoryRepository()
-nbc, _ := newsRepository.ReadFile("nbc-news.com", "json", "repository/news-resources/nbc-news.json")
+nbc, repositoryError := newsRepository.ReadFile("nbc-news.com", "json", "repository/news-resources/nbc-news.json")
 ```
 ### Parser Factory:
 The parser factory API manages the registration and instantiation of parser objects based on the data format and source. It allows dynamic selection of parsers according to the source's format (e.g., JSON, RSS, HTML) and facilitates the extraction of structured data from raw sources. Input arguments typically include the data format and source URL. The output is an instantiated parser object capable of parsing articles from the specified source in the designated format.
@@ -29,12 +29,29 @@ parserSelector.RegisterParser("rss", "xml-news.com", &parser.RSSParser{})
 
 ### Aggregator:
 The aggregator API orchestrates the aggregation and filtering of news articles from multiple sources. It leverages the registered parsers to extract article data from raw sources and aggregates them into a unified collection. Input arguments include the loaded news resources and optional filtering parameters such as sources, keywords, and date ranges. The output is a curated selection of news articles that meet the specified criteria.
-Also it has a error handling mechanism, which allows to handle errors in a way that is convenient for the user.
+Also, it has a error handling mechanism, which allows to handle errors in a way that is convenient for the user.
 
 #### Example:
 ```
 newsAggregator := aggregator.NewAggregator(parserSelector)
-_ = newsAggregator.LoadResource(nbc)
+loadErr = newsAggregator.LoadResource(nbc)
+articles, fetchError := newsAggregator.GetArticles()
+```
+
+### Filter:
+The filter API provides functionality to filter news articles based on user-defined criteria such as sources, keywords, and date ranges. It accepts a collection of articles and filtering parameters as input and returns a subset of articles that match the specified criteria. This API enables users to customize their news feed according to their preferences and interests, enhancing the relevance and quality of the curated content.
+Also, it has a builder pattern, which allows to create complex filters in a convenient way. 
+
+#### Example:
+```
+filterBuilder := filter.NewFilterBuilder()
+filterBuilder.SetSources([]string{"nbc-news.com", "cnn.com"})
+filterBuilder.SetKeywords([]string{"politics", "economy"})
+filterBuilder.SetDateRange("2022-01-01", "2022-01-31")
+filter := filterBuilder.Build()
+
+filteredArticles := filter.Filter(articles) # filteredArticles is a subset of given news articles that meet  
+                                            # the specified criteria.
 ```
 
 # Resume
