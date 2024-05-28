@@ -2,6 +2,7 @@ package main
 
 import (
 	"NewsAggregator/aggregator"
+	"NewsAggregator/aggregator/filter"
 	"NewsAggregator/aggregator/model/article"
 	"NewsAggregator/aggregator/parser"
 	"NewsAggregator/repository"
@@ -44,32 +45,28 @@ func main() {
 		return
 	}
 
-	filterBuilder := aggregator.NewFilterBuilder()
-
 	if sourceArgument == "" {
 		resourceLoader.LoadAllResources()
 	} else {
 		sources := strings.Split(sourceArgument, ",")
 		resourceLoader.LoadSelectedResources(sources)
-		filterBuilder.WithSources(sources)
+		newsAggregator.AddFilter(filter.NewSourceFilter(sources))
 	}
 
 	if startDateArgument != "" {
-		filterBuilder.WithStartDate(startDateArgument)
+		newsAggregator.AddFilter(filter.NewStartDateFilter(startDateArgument))
 	}
 
 	if endDateArgument != "" {
-		filterBuilder.WithEndDate(endDateArgument)
+		newsAggregator.AddFilter(filter.NewEndDateFilter(endDateArgument))
 	}
 
 	if keywordsArgument != "" {
 		keywords := strings.Split(keywordsArgument, ",")
-		filterBuilder.WithKeywords(keywords)
+		newsAggregator.AddFilter(filter.NewKeywordFilter(keywords))
 	}
 
-	filter := filterBuilder.Build()
-
-	filteredArticles := filter.Apply(newsAggregator.GetAllArticles())
+	filteredArticles := newsAggregator.GetFilteredArticles()
 
 	printArticles(filteredArticles)
 }

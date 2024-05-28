@@ -1,6 +1,7 @@
 package aggregator
 
 import (
+	"NewsAggregator/aggregator/filter"
 	"NewsAggregator/aggregator/model/article"
 	"NewsAggregator/aggregator/model/resource"
 	"NewsAggregator/aggregator/parser"
@@ -10,6 +11,7 @@ import (
 type Aggregator struct {
 	articles      []article.Article
 	parserFactory *parser.Factory
+	filters       []filter.Filter
 }
 
 // NewAggregator creates a new Aggregator instance.
@@ -50,7 +52,23 @@ func (agr *Aggregator) Aggregate(resource resource.Resource) ([]article.Article,
 	return articlesParser.Parse(resource)
 }
 
-// ApplyFilter filters the articles based on the provided filter.
-func (agr *Aggregator) ApplyFilter(filter Filter) []article.Article {
-	return filter.Apply(agr.articles)
+// AddFilter adds a filter to the aggregator.
+func (agr *Aggregator) AddFilter(filter filter.Filter) {
+	agr.filters = append(agr.filters, filter)
+}
+
+// GetFilteredArticles applies all filters to the articles and returns this filtered articles.
+func (agr *Aggregator) GetFilteredArticles() []article.Article {
+
+	if agr.filters == nil {
+		return agr.articles
+	}
+
+	filteredArticles := agr.articles
+
+	for _, selectedFilter := range agr.filters {
+		filteredArticles = selectedFilter.Apply(filteredArticles)
+	}
+
+	return filteredArticles
 }
