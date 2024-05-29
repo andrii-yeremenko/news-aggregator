@@ -72,7 +72,7 @@ e.g., `JSON`, `RSS`, `HTML`).
     * Errors:
         * HTMLParseError: Error occurred while parsing HTML data.
     * Docs:
-    * Description: Parses USA Today HTML data to extract news articles.
+        * Description: Parses USA Today HTML data to extract news articles.
     * Usage:
     ```
     articles, err := usaTodayHTMLParser.Parse(resource)
@@ -255,3 +255,4 @@ aggregation and filtering processes to deliver curated news content to users.
 1. Are there any specific requirements for error handling in the API?
 2. How frequently should the news articles be updated and refreshed in the repository?
 3. Do we need unstage the news articles from aggregator after a certain period of time?
+4. How should the API provide an error response to the user in case of a failure?
