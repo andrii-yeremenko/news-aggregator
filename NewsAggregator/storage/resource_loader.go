@@ -1,4 +1,4 @@
-package repository
+package storage
 
 import (
 	"NewsAggregator/aggregator"
@@ -14,7 +14,7 @@ type resourceDetail struct {
 // ResourceLoader is responsible for loading resources into the aggregator.
 type ResourceLoader struct {
 	newsAggregator  *aggregator.Aggregator
-	newsRepository  *NewsRepository
+	newsRepository  *NewsStorage
 	resourceDetails map[resource.Source]resourceDetail
 }
 
@@ -24,11 +24,11 @@ func NewLoader(a *aggregator.Aggregator) *ResourceLoader {
 		newsAggregator: a,
 		newsRepository: New(),
 		resourceDetails: map[resource.Source]resourceDetail{
-			"nbc-news":         {format: "json", path: "repository/resources/nbc-news.json"},
-			"abc-news":         {format: "rss", path: "repository/resources/abc-news.xml"},
-			"washington-times": {format: "rss", path: "repository/resources/washington-times.xml"},
-			"bbc-world":        {format: "rss", path: "repository/resources/bbc-world.xml"},
-			"usa-today":        {format: "html", path: "repository/resources/usa-today-world-news.html"},
+			"nbc-news":         {format: "json", path: "storage/resources/nbc-news.json"},
+			"abc-news":         {format: "rss", path: "storage/resources/abc-news.xml"},
+			"washington-times": {format: "rss", path: "storage/resources/washington-times.xml"},
+			"bbc-world":        {format: "rss", path: "storage/resources/bbc-world.xml"},
+			"usa-today":        {format: "html", path: "storage/resources/usa-today-world-news.html"},
 		},
 	}
 }

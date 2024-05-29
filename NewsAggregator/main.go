@@ -5,7 +5,7 @@ import (
 	"NewsAggregator/aggregator/filter"
 	"NewsAggregator/aggregator/model/article"
 	"NewsAggregator/aggregator/parser"
-	"NewsAggregator/repository"
+	"NewsAggregator/storage"
 	"flag"
 	"fmt"
 	"strings"
@@ -16,7 +16,7 @@ func main() {
 
 	parserSelector := parser.NewParserFactory()
 	newsAggregator := aggregator.New(parserSelector)
-	resourceLoader := repository.NewLoader(newsAggregator)
+	resourceLoader := storage.NewLoader(newsAggregator)
 
 	flag.StringVar(&sourceArgument, "sources", "", "Comma-separated list of news sourceArgument\n"+
 		"Available sources: "+resourceLoader.GetAvailableSources())

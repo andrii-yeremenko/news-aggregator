@@ -1,4 +1,4 @@
-package repository
+package storage
 
 import (
 	"NewsAggregator/aggregator/model/resource"
@@ -7,18 +7,18 @@ import (
 	"os"
 )
 
-// NewsRepository is a simple in-memory repository for resources.
-type NewsRepository struct {
+// NewsStorage is a simple in-memory repository for resources.
+type NewsStorage struct {
 	resources []resource.Resource
 }
 
-// New creates a new NewsRepository.
-func New() *NewsRepository {
-	return &NewsRepository{}
+// New creates a new NewsStorage.
+func New() *NewsStorage {
+	return &NewsStorage{}
 }
 
 // ReadFile reads a file and returns a resource.
-func (r *NewsRepository) ReadFile(publisher resource.Source, format resource.Format, filename string) (resource.Resource, error) {
+func (r *NewsStorage) ReadFile(publisher resource.Source, format resource.Format, filename string) (resource.Resource, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("error opening file: %v", err)
