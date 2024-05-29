@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"NewsAggregator/aggregator"
 	"NewsAggregator/aggregator/model/resource"
 	"fmt"
 )
@@ -13,13 +14,13 @@ type parserProperties struct {
 
 // Factory is a parser's selector according to the resource format and publisher.
 type Factory struct {
-	parsers map[parserProperties]Parser
+	parsers map[parserProperties]aggregator.Parser
 }
 
 // NewParserFactory creates a new factory with predefined default parsers.
 func NewParserFactory() *Factory {
 	return &Factory{
-		parsers: map[parserProperties]Parser{
+		parsers: map[parserProperties]aggregator.Parser{
 			{format: "json", publisher: "nbc-news"}:        &JSONParser{},
 			{format: "rss", publisher: "abc-news"}:         &RSSParser{},
 			{format: "rss", publisher: "washington-times"}: &RSSParser{},
@@ -30,15 +31,15 @@ func NewParserFactory() *Factory {
 }
 
 // RegisterParser registers a parser with a specific format and publisher.
-func (factory *Factory) RegisterParser(format resource.Format, publisher resource.Source, parser Parser) {
+func (f *Factory) RegisterParser(format resource.Format, publisher resource.Source, parser aggregator.Parser) {
 	key := parserProperties{format: format, publisher: publisher}
-	factory.parsers[key] = parser
+	f.parsers[key] = parser
 }
 
 // GetParser returns a parser for the given resource.
-func (factory *Factory) GetParser(format resource.Format, publisher resource.Source) (Parser, error) {
+func (f *Factory) GetParser(format resource.Format, publisher resource.Source) (aggregator.Parser, error) {
 	key := parserProperties{format: format, publisher: publisher}
-	parser, exists := factory.parsers[key]
+	parser, exists := f.parsers[key]
 	if !exists {
 		return nil, fmt.Errorf("no parser found for format: %s and publisher: %s", format, publisher)
 	}

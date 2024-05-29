@@ -15,8 +15,8 @@ func main() {
 	var sourceArgument, keywordsArgument, startDateArgument, endDateArgument string
 
 	parserSelector := parser.NewParserFactory()
-	newsAggregator := aggregator.NewAggregator(parserSelector)
-	resourceLoader := repository.NewResourceLoader(newsAggregator)
+	newsAggregator := aggregator.New(parserSelector)
+	resourceLoader := repository.NewLoader(newsAggregator)
 
 	flag.StringVar(&sourceArgument, "sources", "", "Comma-separated list of news sourceArgument\n"+
 		"Available sources: "+resourceLoader.GetAvailableSources())

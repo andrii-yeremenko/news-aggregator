@@ -1,4 +1,4 @@
-package filter
+package aggregator
 
 import "NewsAggregator/aggregator/model/article"
 

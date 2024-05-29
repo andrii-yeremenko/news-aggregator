@@ -43,48 +43,48 @@ func NewArticleBuilder() *Builder {
 	return &Builder{article: &Article{}}
 }
 
-func (builder *Builder) SetTitle(title Title) *Builder {
-	builder.article.title = title
-	return builder
+func (b *Builder) SetTitle(title Title) *Builder {
+	b.article.title = title
+	return b
 }
 
-func (builder *Builder) SetDescription(description Description) *Builder {
-	builder.article.description = description
-	return builder
+func (b *Builder) SetDescription(description Description) *Builder {
+	b.article.description = description
+	return b
 }
 
-func (builder *Builder) SetDate(creationDate CreationDate) *Builder {
-	builder.article.creationDate = creationDate
-	return builder
+func (b *Builder) SetDate(creationDate CreationDate) *Builder {
+	b.article.creationDate = creationDate
+	return b
 }
 
-func (builder *Builder) SetSource(source resource.Source) *Builder {
-	builder.article.source = source
-	return builder
+func (b *Builder) SetSource(source resource.Source) *Builder {
+	b.article.source = source
+	return b
 }
 
-func (builder *Builder) SetAuthor(author Author) *Builder {
-	builder.article.author = author
-	return builder
+func (b *Builder) SetAuthor(author Author) *Builder {
+	b.article.author = author
+	return b
 }
 
 // Build validates the article and returns the final Article instance.
 // Checks all required fields are set. If not, returns an error.
 // If all fields are set, returns the Article instance.
-func (builder *Builder) Build() (*Article, error) {
+func (b *Builder) Build() (*Article, error) {
 
-	if builder.article.title == "" {
+	if b.article.title == "" {
 		return nil, errors.New("title cannot be empty")
 	}
-	if builder.article.description == "" {
+	if b.article.description == "" {
 		return nil, errors.New("description cannot be empty")
 	}
-	if time.Time(builder.article.creationDate).IsZero() {
+	if time.Time(b.article.creationDate).IsZero() {
 		return nil, errors.New("creationDate cannot be empty")
 	}
-	if builder.article.source == "" {
+	if b.article.source == "" {
 		return nil, errors.New("source cannot be empty")
 	}
 
-	return builder.article, nil
+	return b.article, nil
 }

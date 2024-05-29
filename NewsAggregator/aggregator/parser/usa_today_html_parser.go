@@ -14,10 +14,10 @@ type USATodayHTMLParser struct{}
 func (p *USATodayHTMLParser) Parse(resource resource.Resource) ([]article.Article, error) {
 	var articles []article.Article
 
-	contentStr := string(resource.Content())
-	resourceReader := strings.NewReader(contentStr)
+	content := string(resource.Content())
+	reader := strings.NewReader(content)
 
-	doc, err := goquery.NewDocumentFromReader(resourceReader)
+	doc, err := goquery.NewDocumentFromReader(reader)
 
 	if err != nil {
 		return nil, err

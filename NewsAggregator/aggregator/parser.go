@@ -1,4 +1,4 @@
-package parser
+package aggregator
 
 import (
 	"NewsAggregator/aggregator/model/article"

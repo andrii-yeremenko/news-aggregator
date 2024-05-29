@@ -8,7 +8,7 @@ type SourceFilter struct {
 	sources map[string]struct{}
 }
 
-// NewSourceFilter creates a new SourceFilter instance.
+// NewSourceFilter creates a new SourceFilter instance with the given sources.
 func NewSourceFilter(sources []string) *SourceFilter {
 
 	sourceSet := make(map[string]struct{})
@@ -21,12 +21,12 @@ func NewSourceFilter(sources []string) *SourceFilter {
 }
 
 // Apply filters the data and returns a subset of articles.
-func (filter *SourceFilter) Apply(articles []article.Article) []article.Article {
+func (f *SourceFilter) Apply(articles []article.Article) []article.Article {
 
 	var filteredArticles []article.Article
 
 	for _, selectedArticle := range articles {
-		if filter.matchSources(selectedArticle) {
+		if f.matchSources(selectedArticle) {
 			filteredArticles = append(filteredArticles, selectedArticle)
 		}
 	}
@@ -34,10 +34,11 @@ func (filter *SourceFilter) Apply(articles []article.Article) []article.Article 
 	return filteredArticles
 }
 
-func (filter *SourceFilter) matchSources(art article.Article) bool {
-	if len(filter.sources) == 0 {
+func (f *SourceFilter) matchSources(a article.Article) bool {
+
+	if len(f.sources) == 0 {
 		return true
 	}
-	_, exists := filter.sources[string(art.Source())]
+	_, exists := f.sources[string(a.Source())]
 	return exists
 }

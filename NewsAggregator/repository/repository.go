@@ -12,8 +12,8 @@ type NewsRepository struct {
 	resources []resource.Resource
 }
 
-// NewRepository creates a new NewsRepository.
-func NewRepository() *NewsRepository {
+// New creates a new NewsRepository.
+func New() *NewsRepository {
 	return &NewsRepository{}
 }
 
@@ -40,7 +40,7 @@ func (r *NewsRepository) ReadFile(publisher resource.Source, format resource.For
 		return resource.Resource{}, fmt.Errorf("error scanning file: %v", err)
 	}
 
-	res, err := resource.NewResource(publisher, format, resource.Content(content))
+	res, err := resource.New(publisher, format, resource.Content(content))
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("error creating resource: %v", err)
 	}

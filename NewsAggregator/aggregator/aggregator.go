@@ -1,7 +1,6 @@
 package aggregator
 
 import (
-	"NewsAggregator/aggregator/filter"
 	"NewsAggregator/aggregator/model/article"
 	"NewsAggregator/aggregator/model/resource"
 	"NewsAggregator/aggregator/parser"
@@ -11,11 +10,11 @@ import (
 type Aggregator struct {
 	articles      []article.Article
 	parserFactory *parser.Factory
-	filters       []filter.Filter
+	filters       []Filter
 }
 
-// NewAggregator creates a new Aggregator instance.
-func NewAggregator(factory *parser.Factory) *Aggregator {
+// New creates a new Aggregator instance.
+func New(factory *parser.Factory) *Aggregator {
 	if factory == nil {
 		panic("factory is nil")
 	}
@@ -53,7 +52,7 @@ func (agr *Aggregator) Aggregate(resource resource.Resource) ([]article.Article,
 }
 
 // AddFilter adds a filter to the aggregator.
-func (agr *Aggregator) AddFilter(filter filter.Filter) {
+func (agr *Aggregator) AddFilter(filter Filter) {
 	agr.filters = append(agr.filters, filter)
 }
 

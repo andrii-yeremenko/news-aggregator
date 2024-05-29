@@ -11,8 +11,8 @@ type Resource struct {
 	content   Content
 }
 
-// NewResource is a constructor function for creating a new Resource.
-func NewResource(source Source, format Format, content Content) (*Resource, error) {
+// New is a constructor function for creating a new Resource.
+func New(source Source, format Format, content Content) (*Resource, error) {
 
 	if source == "" {
 		return nil, errors.New("source cannot be empty")

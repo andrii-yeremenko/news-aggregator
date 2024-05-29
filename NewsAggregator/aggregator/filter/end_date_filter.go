@@ -12,7 +12,7 @@ type EndDateFilter struct {
 	endDate *time.Time
 }
 
-// NewEndDateFilter creates a new EndDateFilter instance.
+// NewEndDateFilter creates a new EndDateFilter instance with the given end date.
 func NewEndDateFilter(endDateStr string) *EndDateFilter {
 
 	dateParser := parser.NewDateParser()
@@ -26,12 +26,12 @@ func NewEndDateFilter(endDateStr string) *EndDateFilter {
 }
 
 // Apply filters the data and returns a subset of articles.
-func (filter *EndDateFilter) Apply(articles []article.Article) []article.Article {
+func (f *EndDateFilter) Apply(articles []article.Article) []article.Article {
 
 	var filteredArticles []article.Article
 
 	for _, selectedArticle := range articles {
-		if filter.matchEndDate(selectedArticle) {
+		if f.matchEndDate(selectedArticle) {
 			filteredArticles = append(filteredArticles, selectedArticle)
 		}
 	}
@@ -39,11 +39,11 @@ func (filter *EndDateFilter) Apply(articles []article.Article) []article.Article
 	return filteredArticles
 }
 
-func (filter *EndDateFilter) matchEndDate(selectedArticle article.Article) bool {
+func (f *EndDateFilter) matchEndDate(a article.Article) bool {
 
-	articleDate := time.Time(selectedArticle.Date())
+	articleDate := time.Time(a.Date())
 
-	if filter.endDate != nil && articleDate.After(*filter.endDate) {
+	if f.endDate != nil && articleDate.After(*f.endDate) {
 		return false
 	}
 

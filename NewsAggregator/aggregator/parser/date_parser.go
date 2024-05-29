@@ -26,8 +26,8 @@ func NewDateParser() *DateParser {
 }
 
 // Parse parses the given string into a time.Time value using predefined supported date formats.
-func (dateParser *DateParser) Parse(dateStr string) (time.Time, error) {
-	for _, layout := range dateParser.dateFormats {
+func (p *DateParser) Parse(dateStr string) (time.Time, error) {
+	for _, layout := range p.dateFormats {
 		creationDate, err := time.Parse(layout, dateStr)
 		if err == nil {
 			if creationDate.Year() == 0 {
@@ -43,6 +43,6 @@ func (dateParser *DateParser) Parse(dateStr string) (time.Time, error) {
 }
 
 // ParseDefaultDateFormat parses the given string into a time.Time value using the default project date format.
-func (dateParser *DateParser) ParseDefaultDateFormat(dateStr string) (time.Time, error) {
-	return time.Parse(dateParser.defaultDateFormat, dateStr)
+func (p *DateParser) ParseDefaultDateFormat(dateStr string) (time.Time, error) {
+	return time.Parse(p.defaultDateFormat, dateStr)
 }

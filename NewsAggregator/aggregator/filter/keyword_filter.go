@@ -12,18 +12,18 @@ type KeywordFilter struct {
 	keywords []string
 }
 
-// NewKeywordFilter creates a new KeywordFilter instance.
+// NewKeywordFilter creates a new KeywordFilter instance with the given keywords.
 func NewKeywordFilter(keywords []string) *KeywordFilter {
 	return &KeywordFilter{keywords: keywords}
 }
 
 // Apply filters the data and returns a subset of articles.
-func (filter *KeywordFilter) Apply(articles []article.Article) []article.Article {
+func (f *KeywordFilter) Apply(articles []article.Article) []article.Article {
 
 	var filteredArticles []article.Article
 
 	for _, selectedArticle := range articles {
-		if filter.matchKeywords(selectedArticle) {
+		if f.matchKeywords(selectedArticle) {
 			filteredArticles = append(filteredArticles)
 		}
 	}
@@ -31,13 +31,15 @@ func (filter *KeywordFilter) Apply(articles []article.Article) []article.Article
 	return filteredArticles
 }
 
-func (filter *KeywordFilter) matchKeywords(art article.Article) bool {
-	if len(filter.keywords) == 0 {
+func (f *KeywordFilter) matchKeywords(a article.Article) bool {
+
+	if len(f.keywords) == 0 {
 		return true
 	}
-	title := strings.ToLower(string(art.Title()))
-	description := strings.ToLower(string(art.Description()))
-	for _, keyword := range filter.keywords {
+
+	title := strings.ToLower(string(a.Title()))
+	description := strings.ToLower(string(a.Description()))
+	for _, keyword := range f.keywords {
 		keyword = strings.ToLower(keyword)
 		stemmedKeyword := porterstemmer.StemString(keyword)
 		if strings.Contains(title, stemmedKeyword) || strings.Contains(description, stemmedKeyword) {

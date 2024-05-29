@@ -18,59 +18,59 @@ type ResourceLoader struct {
 	resourceDetails map[resource.Source]resourceDetail
 }
 
-// NewResourceLoader creates a new ResourceLoader.
-func NewResourceLoader(newsAggregator *aggregator.Aggregator) *ResourceLoader {
+// NewLoader creates a new ResourceLoader.
+func NewLoader(a *aggregator.Aggregator) *ResourceLoader {
 	return &ResourceLoader{
-		newsAggregator: newsAggregator,
-		newsRepository: NewRepository(),
+		newsAggregator: a,
+		newsRepository: New(),
 		resourceDetails: map[resource.Source]resourceDetail{
-			"nbc-news":         {format: "json", path: "repository/news-resources/nbc-news.json"},
-			"abc-news":         {format: "rss", path: "repository/news-resources/abc-news.xml"},
-			"washington-times": {format: "rss", path: "repository/news-resources/washington-times.xml"},
-			"bbc-world":        {format: "rss", path: "repository/news-resources/bbc-world.xml"},
-			"usa-today":        {format: "html", path: "repository/news-resources/usa-today-world-news.html"},
+			"nbc-news":         {format: "json", path: "repository/resources/nbc-news.json"},
+			"abc-news":         {format: "rss", path: "repository/resources/abc-news.xml"},
+			"washington-times": {format: "rss", path: "repository/resources/washington-times.xml"},
+			"bbc-world":        {format: "rss", path: "repository/resources/bbc-world.xml"},
+			"usa-today":        {format: "html", path: "repository/resources/usa-today-world-news.html"},
 		},
 	}
 }
 
 // GetAvailableSources returns the available sources.
-func (loader *ResourceLoader) GetAvailableSources() string {
+func (l *ResourceLoader) GetAvailableSources() string {
 	var sources string
-	for source := range loader.resourceDetails {
+	for source := range l.resourceDetails {
 		sources += string(source) + ", "
 	}
 	return sources
 }
 
 // RegisterResource adds a resource to be loaded.
-func (loader *ResourceLoader) RegisterResource(source resource.Source, format resource.Format, path string) {
-	loader.resourceDetails[source] = resourceDetail{format: format, path: path}
+func (l *ResourceLoader) RegisterResource(source resource.Source, format resource.Format, path string) {
+	l.resourceDetails[source] = resourceDetail{format: format, path: path}
 }
 
 // LoadAllResources loads all resources into the aggregator.
-func (loader *ResourceLoader) LoadAllResources() {
-	for source, detail := range loader.resourceDetails {
-		loader.loadResource(source, detail)
+func (l *ResourceLoader) LoadAllResources() {
+	for source, detail := range l.resourceDetails {
+		l.loadResource(source, detail)
 	}
 }
 
 // LoadSelectedResources loads the specified and registered resources into the aggregator.
-func (loader *ResourceLoader) LoadSelectedResources(sourceNames []string) {
+func (l *ResourceLoader) LoadSelectedResources(sourceNames []string) {
 	for _, sourceName := range sourceNames {
 		source := resource.Source(sourceName)
-		if detail, exists := loader.resourceDetails[source]; exists {
-			loader.loadResource(source, detail)
+		if detail, exists := l.resourceDetails[source]; exists {
+			l.loadResource(source, detail)
 		}
 	}
 }
 
 // loadResource is a helper function to load a single resource into the aggregator.
-func (loader *ResourceLoader) loadResource(source resource.Source, detail resourceDetail) {
-	res, err := loader.newsRepository.ReadFile(source, detail.format, detail.path)
+func (l *ResourceLoader) loadResource(source resource.Source, detail resourceDetail) {
+	res, err := l.newsRepository.ReadFile(source, detail.format, detail.path)
 	if err != nil {
 		panic(err)
 	}
-	err = loader.newsAggregator.LoadResource(res)
+	err = l.newsAggregator.LoadResource(res)
 	if err != nil {
 		panic(err)
 	}
