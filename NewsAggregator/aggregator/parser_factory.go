@@ -39,9 +39,9 @@ func (f *Factory) RegisterParser(format resource.Format, publisher resource.Sour
 // GetParser returns a parser for the given resource.
 func (f *Factory) GetParser(format resource.Format, publisher resource.Source) (Parser, error) {
 	key := parserProperties{format: format, publisher: publisher}
-	parser, exists := f.parsers[key]
+	p, exists := f.parsers[key]
 	if !exists {
-		return nil, fmt.Errorf("no parser found for format: %s and publisher: %s", format, publisher)
+		return nil, fmt.Errorf("no p found for format: %s and publisher: %s", format, publisher)
 	}
-	return parser, nil
+	return p, nil
 }
