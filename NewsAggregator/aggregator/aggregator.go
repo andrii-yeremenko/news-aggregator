@@ -3,18 +3,17 @@ package aggregator
 import (
 	"NewsAggregator/aggregator/model/article"
 	"NewsAggregator/aggregator/model/resource"
-	"NewsAggregator/aggregator/parser"
 )
 
 // Aggregator is responsible for aggregating news articles.
 type Aggregator struct {
 	articles      []article.Article
-	parserFactory *parser.Factory
+	parserFactory *Factory
 	filters       []Filter
 }
 
 // New creates a new Aggregator instance.
-func New(factory *parser.Factory) *Aggregator {
+func New(factory *Factory) *Aggregator {
 	if factory == nil {
 		panic("factory is nil")
 	}

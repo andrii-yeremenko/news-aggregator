@@ -4,7 +4,6 @@ import (
 	"NewsAggregator/aggregator"
 	"NewsAggregator/aggregator/filter"
 	"NewsAggregator/aggregator/model/article"
-	"NewsAggregator/aggregator/parser"
 	"NewsAggregator/storage"
 	"flag"
 	"fmt"
@@ -14,7 +13,7 @@ import (
 func main() {
 	var sourceArgument, keywordsArgument, startDateArgument, endDateArgument string
 
-	parserSelector := parser.NewParserFactory()
+	parserSelector := aggregator.NewParserFactory()
 	newsAggregator := aggregator.New(parserSelector)
 	resourceLoader := storage.NewLoader(newsAggregator)
 
