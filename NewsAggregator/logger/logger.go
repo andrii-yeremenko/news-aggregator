@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// Logger is a tool that records actions, measurements, print program output or other information.
 type Logger struct {
 }
 
