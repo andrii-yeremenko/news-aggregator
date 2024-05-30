@@ -243,6 +243,53 @@ method with a slice of article.Article objects.
    This example demonstrates how to create and use both KeywordFilter and SourceFilter to filter articles based on
    specified criteria.
 
+## Logger:
+
+The logger API provides a simple logging mechanism for the News Aggregator API. It allows developers to log messages
+with different levels of severity (e.g., INFO, ERROR, DEBUG) to the console.
+
+### Methods
+
+1. PrintArticle: Logs an article to the console.
+    * Args:
+        * article (Article): The article to log.
+    * Returns:
+        * None
+    * Docs:
+        * Description: Logs the article to the console.
+
+   #### Usage:
+    ```
+    logger := logger.NewLogger()
+    logger.PrintArticle(article)
+    ```
+
+## Command Line Interface (CLI):
+
+The CLI API provides a command-line interface for interacting with the News Aggregator API. It allows users to load
+news resources, aggregate articles, and apply filters via the command line.
+
+### Argument flags:
+
+* `--sources` - sets the sources that will be used for aggregation.
+* `--keywords` - sets the keywords that will be used for filtering.
+* `--date-start` - sets the start date for filtering articles.
+* `--date-end` - sets the end date for filtering articles.
+
+### Usage:
+
+#### Load a news resource:
+
+   ```
+     go run main.go --sources=nbc-news,abc-news
+   ```
+
+#### Filter articles by sources and keywords:
+
+   ```
+     go run main.go --sources=TechCrunch,Wired --keywords=technology,science
+   ```
+
 # Resume
 
 These APIs interact seamlessly to fetch, parse, and filter news articles according to user-defined criteria, providing a

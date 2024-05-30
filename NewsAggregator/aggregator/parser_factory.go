@@ -41,7 +41,7 @@ func (f *Factory) GetParser(format resource.Format, publisher resource.Source) (
 	key := parserProperties{format: format, publisher: publisher}
 	p, exists := f.parsers[key]
 	if !exists {
-		return nil, fmt.Errorf("no p found for format: %s and publisher: %s", format, publisher)
+		return nil, fmt.Errorf("no parser found for format: %s and publisher: %s", format, publisher)
 	}
 	return p, nil
 }

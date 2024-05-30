@@ -4,12 +4,13 @@ import (
 	"NewsAggregator/aggregator"
 	"NewsAggregator/aggregator/filter"
 	"NewsAggregator/aggregator/model/article"
+	"NewsAggregator/logger"
 	"NewsAggregator/storage"
 	"flag"
-	"fmt"
 	"strings"
 )
 
+// CLI is the command line interface for the news aggregator.
 type CLI struct {
 	sourceArg     string
 	keywordsArg   string
@@ -20,7 +21,8 @@ type CLI struct {
 	loader        *storage.ResourceLoader
 }
 
-func NewCLI() *CLI {
+// New creates a new CLI instance.
+func New() *CLI {
 	fact := aggregator.NewParserFactory()
 	agr := aggregator.New(fact)
 	loader := storage.NewLoader(agr)
@@ -32,6 +34,7 @@ func NewCLI() *CLI {
 	}
 }
 
+// ParseFlags parses the command line flags.
 func (cli *CLI) ParseFlags() {
 	flag.StringVar(&cli.sourceArg, "sources", "", "Comma-separated list of news sources\n"+
 		"Available sources: "+cli.loader.GetAvailableSources())
@@ -44,7 +47,13 @@ func (cli *CLI) ParseFlags() {
 	flag.Parse()
 }
 
+// Run runs the CLI.
 func (cli *CLI) Run() {
+
+	if cli.loader.GetAvailableSources() == "" {
+		logger.New().Warn("No sources available")
+		return
+	}
 
 	flagCount := 0
 	flag.Visit(func(f *flag.Flag) {
@@ -88,12 +97,11 @@ func (cli *CLI) Run() {
 }
 
 func (cli *CLI) printArticles(articles []article.Article) {
+
+	log := logger.New()
+	log.Log("Printing articles")
+
 	for _, art := range articles {
-		fmt.Printf("----------------------------------------\n")
-		fmt.Printf("Title: %s\n", art.Title())
-		fmt.Printf("Description: %s\n", art.Description())
-		fmt.Printf("Date: %s\n", art.Date().HumanReadableString())
-		fmt.Printf("Source: %s\n", art.Source())
-		fmt.Printf("Author: %s\n", art.Author())
+		log.PrintArticle(art)
 	}
 }
