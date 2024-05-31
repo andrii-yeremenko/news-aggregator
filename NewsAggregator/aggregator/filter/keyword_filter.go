@@ -24,13 +24,14 @@ func (f *KeywordFilter) Apply(articles []article.Article) []article.Article {
 
 	for _, selectedArticle := range articles {
 		if f.matchKeywords(selectedArticle) {
-			filteredArticles = append(filteredArticles)
+			filteredArticles = append(filteredArticles, selectedArticle)
 		}
 	}
 
 	return filteredArticles
 }
 
+// matchKeywords checks if the given article contains any of the keywords.
 func (f *KeywordFilter) matchKeywords(a article.Article) bool {
 
 	if len(f.keywords) == 0 {

@@ -41,9 +41,9 @@ func (cli *CLI) ParseFlags() {
 	flag.StringVar(&cli.keywordsArg, "keywords", "",
 		"Comma-separated list of keywords to filter news articles")
 	flag.StringVar(&cli.startDateArg, "date-start", "",
-		"Start date for filtering news articles (format: yyyy-mm-dd)")
+		"Start date for filtering news articles (format: yyyy-dd-mm)")
 	flag.StringVar(&cli.endDateArg, "date-end", "",
-		"End date for filtering news articles (format: yyyy-mm-dd)")
+		"End date for filtering news articles (format: yyyy-dd-mm)")
 	flag.Parse()
 }
 
