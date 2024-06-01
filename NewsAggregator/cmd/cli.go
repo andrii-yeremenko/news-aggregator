@@ -7,6 +7,7 @@ import (
 	"NewsAggregator/logger"
 	"NewsAggregator/storage"
 	"flag"
+	"fmt"
 	"strings"
 )
 
@@ -44,6 +45,17 @@ func (cli *CLI) ParseFlags() {
 		"Start date for filtering news articles (format: yyyy-dd-mm)")
 	flag.StringVar(&cli.endDateArg, "date-end", "",
 		"End date for filtering news articles (format: yyyy-dd-mm)")
+	flag.Usage = func() {
+		fmt.Println("Usage: NewsAggregator [options]")
+		fmt.Println("If no options are provided, all available articles will be printed.")
+		fmt.Println("If any option is provided, only filtered articles will be printed.")
+		fmt.Println("\nOptions:")
+		flag.PrintDefaults()
+		fmt.Println("\nYou can use multiple flags in any order. Example usage:")
+		fmt.Println("  NewsAggregator -sources=source1,source2 -keywords=keyword1,keyword2 -date-start=2024-01-01")
+		fmt.Println("  NewsAggregator -keywords=keyword1,keyword2")
+		fmt.Println("  NewsAggregator -date-start=2024-01-01 -date-end=2024-12-31")
+	}
 	flag.Parse()
 }
 
