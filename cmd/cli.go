@@ -116,4 +116,6 @@ func (cli *CLI) printArticles(articles []article.Article) {
 	for _, art := range articles {
 		log.PrintArticle(art)
 	}
+
+	log.Log(fmt.Sprint(len(articles)) + " news articles were shown")
 }
