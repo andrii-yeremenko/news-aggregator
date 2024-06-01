@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// JSONParser is a parser for JSON data.
+// JSONParser is a aggregator.Parser that parses JSON data.
 type JSONParser struct{}
 
 // Parse parses the JSON content into a list of articles.

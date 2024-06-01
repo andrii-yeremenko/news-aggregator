@@ -184,8 +184,8 @@ Also, it has a error handling mechanism, which allows to handle errors in a way 
 
    #### Usage:
     ```
-    newsAggregator := aggregator.NewAggregator(parserSelector)
-    loadErr = newsAggregator.LoadResource(nbc)
+    newsAggregator := aggregator.NewAggregator()
+    loadErr = newsAggregator.LoadResource(nbc, newsAggregator)
     ```    
 
 2. GetArticles: Retrieves aggregated articles.

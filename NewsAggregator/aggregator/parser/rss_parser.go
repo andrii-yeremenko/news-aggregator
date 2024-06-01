@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// RSSParser implements the Parser interface for parsing RSS 2.0 feeds.
+// RSSParser is the aggregator.Parser for parsing RSS 2.0 feeds.
 type RSSParser struct{}
 
 type mediaThumbnail struct {

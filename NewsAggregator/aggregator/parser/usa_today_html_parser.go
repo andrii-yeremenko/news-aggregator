@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-// USATodayHTMLParser is a parser for HTML pages from USA Today.
+// USATodayHTMLParser is a aggregator.Parser for HTML pages from USA Today.
 type USATodayHTMLParser struct{}
 
 func (p *USATodayHTMLParser) Parse(resource resource.Resource) ([]article.Article, error) {
