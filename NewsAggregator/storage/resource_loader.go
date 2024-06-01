@@ -13,15 +13,13 @@ type resourceDetail struct {
 
 // ResourceLoader is responsible for loading resources into the aggregator.
 type ResourceLoader struct {
-	newsAggregator  *aggregator.Aggregator
 	newsRepository  *NewsStorage
 	resourceDetails map[resource.Source]resourceDetail
 }
 
 // NewLoader creates a new ResourceLoader.
-func NewLoader(a *aggregator.Aggregator) *ResourceLoader {
+func NewLoader() *ResourceLoader {
 	return &ResourceLoader{
-		newsAggregator: a,
 		newsRepository: New(),
 		resourceDetails: map[resource.Source]resourceDetail{
 			"nbc-news":         {format: "json", path: "storage/resources/nbc-news.json"},
@@ -47,30 +45,30 @@ func (l *ResourceLoader) RegisterResource(source resource.Source, format resourc
 	l.resourceDetails[source] = resourceDetail{format: format, path: path}
 }
 
-// LoadAllResources loads all resources into the aggregator.
-func (l *ResourceLoader) LoadAllResources() {
+// LoadAllResources loads all resource.Resource's into the given aggregator.Aggregator.
+func (l *ResourceLoader) LoadAllResources(agr *aggregator.Aggregator) {
 	for source, detail := range l.resourceDetails {
-		l.loadResource(source, detail)
+		l.LoadResource(source, detail, agr)
 	}
 }
 
-// LoadSelectedResources loads the specified and registered resources into the aggregator.
-func (l *ResourceLoader) LoadSelectedResources(sourceNames []string) {
+// LoadSelectedResources loads the specified and registered resource.Resource's into the given aggregator.Aggregator.
+func (l *ResourceLoader) LoadSelectedResources(sourceNames []string, agr *aggregator.Aggregator) {
 	for _, sourceName := range sourceNames {
 		source := resource.Source(sourceName)
 		if detail, exists := l.resourceDetails[source]; exists {
-			l.loadResource(source, detail)
+			l.LoadResource(source, detail, agr)
 		}
 	}
 }
 
-// loadResource is a helper function to load a single resource into the aggregator.
-func (l *ResourceLoader) loadResource(source resource.Source, detail resourceDetail) {
+// LoadResource is a helper function to load a single resource.Resource into the given aggregator.Aggregator.
+func (l *ResourceLoader) LoadResource(source resource.Source, detail resourceDetail, agr *aggregator.Aggregator) {
 	res, err := l.newsRepository.ReadFile(source, detail.format, detail.path)
 	if err != nil {
 		panic(err)
 	}
-	err = l.newsAggregator.LoadResource(res)
+	err = agr.LoadResource(res)
 	if err != nil {
 		panic(err)
 	}

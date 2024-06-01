@@ -25,7 +25,7 @@ type CLI struct {
 func New() *CLI {
 	fact := aggregator.NewParserFactory()
 	agr := aggregator.New(fact)
-	loader := storage.NewLoader(agr)
+	loader := storage.NewLoader()
 
 	return &CLI{
 		parserFactory: fact,
@@ -66,16 +66,16 @@ func (cli *CLI) Run() {
 	}
 
 	if flagCount == 0 {
-		cli.loader.LoadAllResources()
+		cli.loader.LoadAllResources(cli.aggregator)
 		cli.printArticles(cli.aggregator.GetAllArticles())
 		return
 	}
 
 	if cli.sourceArg == "" {
-		cli.loader.LoadAllResources()
+		cli.loader.LoadAllResources(cli.aggregator)
 	} else {
 		sources := strings.Split(cli.sourceArg, ",")
-		cli.loader.LoadSelectedResources(sources)
+		cli.loader.LoadSelectedResources(sources, cli.aggregator)
 		cli.aggregator.AddFilter(filter.NewSourceFilter(sources))
 	}
 
