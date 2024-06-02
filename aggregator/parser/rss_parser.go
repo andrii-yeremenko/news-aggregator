@@ -33,39 +33,60 @@ type rssChannel struct {
 
 // Parse parses the RSS feed from the provided content and returns a list of articles.
 func (p *RSSParser) Parse(resource resource.Resource) ([]article.Article, error) {
-	var rssChannel rssChannel
-
 	byteContent := []byte(string(resource.Content()))
 
-	err := xml.Unmarshal(byteContent, &rssChannel)
+	rssChannel, err := p.unmarshalRSS(byteContent)
 	if err != nil {
 		return nil, err
 	}
 
-	articles := make([]article.Article, 0, len(rssChannel.Items))
-
-	for _, item := range rssChannel.Items {
-
-		creationDate, err := NewDateParser().Parse(item.PubDate)
-
-		if err != nil {
-			return nil, err
-		}
-
-		builder := article.NewArticleBuilder().
-			SetTitle(article.Title(strings.TrimSpace(item.Title))).
-			SetDescription(article.Description(strings.TrimSpace(item.Description))).
-			SetDate(article.CreationDate(creationDate)).
-			SetSource(resource.Source())
-
-		art, err := builder.Build()
-
-		if err != nil {
-			return nil, err
-		}
-
-		articles = append(articles, *art)
+	articles, err := p.extractArticles(rssChannel, resource)
+	if err != nil {
+		return nil, err
 	}
 
 	return articles, nil
+}
+
+func (p *RSSParser) unmarshalRSS(content []byte) (*rssChannel, error) {
+	var channel rssChannel
+	err := xml.Unmarshal(content, &channel)
+	if err != nil {
+		return nil, err
+	}
+	return &channel, nil
+}
+
+func (p *RSSParser) extractArticles(channel *rssChannel, resource resource.Resource) ([]article.Article, error) {
+	var articles []article.Article
+
+	for _, item := range channel.Items {
+		art, err := p.parseArticle(item, resource)
+		if err != nil {
+			return nil, err
+		}
+		articles = append(articles, art)
+	}
+
+	return articles, nil
+}
+
+func (p *RSSParser) parseArticle(item rssItem, resource resource.Resource) (article.Article, error) {
+	creationDate, err := NewDateParser().Parse(item.PubDate)
+	if err != nil {
+		return article.Article{}, err
+	}
+
+	builder := article.NewArticleBuilder().
+		SetTitle(article.Title(strings.TrimSpace(item.Title))).
+		SetDescription(article.Description(strings.TrimSpace(item.Description))).
+		SetDate(article.CreationDate(creationDate)).
+		SetSource(resource.Source())
+
+	newArticle, err := builder.Build()
+	if err != nil {
+		return article.Article{}, err
+	}
+
+	return *newArticle, nil
 }
