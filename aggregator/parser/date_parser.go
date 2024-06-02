@@ -7,14 +7,14 @@ import (
 
 // DateParser is a parser for date strings.
 type DateParser struct {
-	dateFormats       []string
+	supportedFormats  []string
 	defaultDateFormat string
 }
 
 // NewDateParser creates a new DateParser instance with predefined date formats.
 func NewDateParser() *DateParser {
 	return &DateParser{
-		dateFormats: []string{
+		supportedFormats: []string{
 			time.RFC1123Z,
 			time.RFC3339,
 			"3:04 p.m. ET January 2",
@@ -27,7 +27,7 @@ func NewDateParser() *DateParser {
 
 // Parse parses the given string into a time.Time value using predefined supported date formats.
 func (p *DateParser) Parse(dateStr string) (time.Time, error) {
-	for _, layout := range p.dateFormats {
+	for _, layout := range p.supportedFormats {
 		creationDate, err := time.Parse(layout, dateStr)
 		if err == nil {
 			if creationDate.Year() == 0 {

@@ -6,7 +6,7 @@ import "time"
 type CreationDate time.Time
 
 // HumanReadableString converts CreationDate to a human-readable string.
-// The date format is RFC822 chosen as a most common date format.
+// The date format is RFC822 chosen as the most common date format.
 func (cd CreationDate) HumanReadableString() string {
 	t := time.Time(cd)
 	localTime := t.Local()

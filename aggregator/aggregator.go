@@ -5,7 +5,8 @@ import (
 	"NewsAggregator/aggregator/model/resource"
 )
 
-// Aggregator is responsible for aggregating news articles.
+// Aggregator is a processor that collects specific information from resource.Resource
+// and turns it into a collection of article.Article.
 type Aggregator struct {
 	articles      []article.Article
 	parserFactory *Factory
@@ -24,9 +25,14 @@ func New(factory *Factory) *Aggregator {
 	}
 }
 
+// AddFilter adds a filter to the aggregator.
+func (agr *Aggregator) AddFilter(filter Filter) {
+	agr.filters = append(agr.filters, filter)
+}
+
 // LoadResource loads articles from a resource and aggregates them.
 func (agr *Aggregator) LoadResource(resource resource.Resource) error {
-	newArticles, err := agr.Aggregate(resource)
+	newArticles, err := agr.aggregate(resource)
 	if err != nil {
 		return err
 	}
@@ -39,8 +45,8 @@ func (agr *Aggregator) GetAllArticles() []article.Article {
 	return agr.articles
 }
 
-// Aggregate fetches articles from a resource and parses them.
-func (agr *Aggregator) Aggregate(resource resource.Resource) ([]article.Article, error) {
+// aggregate fetches articles from a resource and parses them.
+func (agr *Aggregator) aggregate(resource resource.Resource) ([]article.Article, error) {
 
 	articlesParser, err := agr.parserFactory.GetParser(resource.Format(), resource.Source())
 	if err != nil {
@@ -48,11 +54,6 @@ func (agr *Aggregator) Aggregate(resource resource.Resource) ([]article.Article,
 	}
 
 	return articlesParser.Parse(resource)
-}
-
-// AddFilter adds a filter to the aggregator.
-func (agr *Aggregator) AddFilter(filter Filter) {
-	agr.filters = append(agr.filters, filter)
 }
 
 // GetFilteredArticles applies all filters to the articles and returns this filtered articles.

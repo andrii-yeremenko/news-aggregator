@@ -2,7 +2,7 @@ package filter
 
 import "NewsAggregator/aggregator/model/article"
 
-// SourceFilter is a Filter that creates a subset from a given set of article.Article's
+// SourceFilter is an aggregator.Filter that creates a subset from a given set of article.Article's
 // corresponding to a given sources set.
 type SourceFilter struct {
 	sources map[string]struct{}
@@ -20,7 +20,7 @@ func NewSourceFilter(sources []string) *SourceFilter {
 	return &SourceFilter{sources: sourceSet}
 }
 
-// Apply filters the data and returns a subset of articles.
+// Apply filters the article.Article's and returns a subset of article.Article's containing the specified sources.
 func (f *SourceFilter) Apply(articles []article.Article) []article.Article {
 
 	var filteredArticles []article.Article

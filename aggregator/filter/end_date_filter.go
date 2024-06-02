@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-// EndDateFilter is a Filter that creates a subset from a given set of article.Article's
-// corresponding to a given end date.
+// EndDateFilter is an aggregator.Filter that creates a subset from a given set of article.Article's
+// corresponding to a given end date string.
 type EndDateFilter struct {
 	endDate *time.Time
 }
@@ -25,7 +25,7 @@ func NewEndDateFilter(endDateStr string) *EndDateFilter {
 	return &EndDateFilter{endDate: &endDate}
 }
 
-// Apply filters the data and returns a subset of articles.
+// Apply filters the article.Article's and returns a subset that meets predefined end date.
 func (f *EndDateFilter) Apply(articles []article.Article) []article.Article {
 
 	var filteredArticles []article.Article

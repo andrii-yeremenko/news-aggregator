@@ -2,7 +2,8 @@ package aggregator
 
 import "NewsAggregator/aggregator/model/article"
 
-// Filter is a tool that produces from a given set of data a specific subset of data that meets certain condition.
+// Filter is a construct that processes a collection of article.Article's and returns
+// a new collection containing only those article.Article's that meet specific criteria.
 type Filter interface {
 
 	// Apply filters the data and returns a subset of articles.

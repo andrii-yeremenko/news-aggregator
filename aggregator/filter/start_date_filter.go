@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// StartDateFilter is a Filter that creates a subset from a given set of article.Article's
+// StartDateFilter is an aggregator.Filter that creates a subset from a given set of article.Article's
 // corresponding to a given start date.
 type StartDateFilter struct {
 	startDate *time.Time
@@ -25,7 +25,7 @@ func NewStartDateFilter(startDateStr string) *StartDateFilter {
 	return &StartDateFilter{startDate: &startDate}
 }
 
-// Apply filters the data and returns a subset of articles.
+// Apply filters the article.Article's and returns a subset that meets predefined start date.
 func (f *StartDateFilter) Apply(articles []article.Article) []article.Article {
 
 	var filteredArticles []article.Article

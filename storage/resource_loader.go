@@ -11,7 +11,7 @@ type resourceDetail struct {
 	path   string
 }
 
-// ResourceLoader is responsible for loading resources into the aggregator.
+// ResourceLoader is a tool for loading structured resources into the aggregator.Aggregator.
 type ResourceLoader struct {
 	newsRepository  *NewsStorage
 	resourceDetails map[resource.Source]resourceDetail

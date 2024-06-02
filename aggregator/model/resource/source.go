@@ -1,4 +1,4 @@
 package resource
 
-// Source the organization that supplies this resource.
+// Source the organization or person that supplies this resource.
 type Source string

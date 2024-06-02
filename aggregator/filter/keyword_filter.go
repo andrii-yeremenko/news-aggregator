@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// KeywordFilter is a Filter that creates a subset from a given set of article.Article's
+// KeywordFilter is an aggregator.Filter that creates a subset from a given set of article.Article's
 // corresponding to a given keywords set.
 type KeywordFilter struct {
 	keywords []string
@@ -17,7 +17,7 @@ func NewKeywordFilter(keywords []string) *KeywordFilter {
 	return &KeywordFilter{keywords: keywords}
 }
 
-// Apply filters the data and returns a subset of articles.
+// Apply filters the article.Article's and returns a subset of article.Article's containing the specified keywords.
 func (f *KeywordFilter) Apply(articles []article.Article) []article.Article {
 
 	var filteredArticles []article.Article

@@ -4,11 +4,12 @@ import (
 	"errors"
 )
 
-// Resource a data supply containing a news report.
+// Resource a structured data supply containing a news report content with information about its parameters required
+// for future processing.
 type Resource struct {
-	publisher Source
-	format    Format
-	content   Content
+	source  Source
+	format  Format
+	content Content
 }
 
 // New is a constructor function for creating a new Resource.
@@ -27,15 +28,15 @@ func New(source Source, format Format, content Content) (*Resource, error) {
 	}
 
 	return &Resource{
-		publisher: source,
-		format:    format,
-		content:   content,
+		source:  source,
+		format:  format,
+		content: content,
 	}, nil
 }
 
-// Source returns the publisher of the resource.
+// Source returns the source of the resource.
 func (r *Resource) Source() Source {
-	return r.publisher
+	return r.source
 }
 
 // Format returns the format of the resource file.

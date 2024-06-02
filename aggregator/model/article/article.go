@@ -6,7 +6,8 @@ import (
 	"time"
 )
 
-// Article is a piece of writing about a particular subject.
+// The Article is a structured piece of writing about a particular subject.
+// It consists of a title, description, creation date, source, and optionally author and link.
 type Article struct {
 	title        Title
 	description  Description
@@ -70,7 +71,7 @@ func (b *Builder) SetAuthor(author Author) *Builder {
 
 // Build validates the article and returns the final Article instance.
 // Checks all required fields are set. If not, returns an error.
-// If all fields are set, returns the Article instance.
+// If all fields are set, return the Article instance.
 func (b *Builder) Build() (*Article, error) {
 
 	if b.article.title == "" {

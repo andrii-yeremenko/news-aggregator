@@ -6,7 +6,7 @@
 
 The `News Aggregator` API is a tool designed to aggregate news articles from various sources. It offers functionality to
 filter articles by sources, keywords, and date ranges, providing users with a curated selection of relevant news
-content. The project utilizes parsers for different formats (such as `JSON`, `RSS`, and `HTML`) to extract article data,
+content. The project uses parsers for different formats (such as `JSON`, `RSS`, and `HTML`) to extract article data,
 which
 is then stored and filtered based on user-defined criteria. This API aims to simplify the process of accessing and
 organizing news articles from diverse sources, enhancing the efficiency of news consumption and research.
@@ -19,7 +19,7 @@ digital landscape. By consolidating articles from multiple sources and offering 
 various use cases such as news monitoring, research, and content curation. Users can leverage the API to stay updated on
 specific topics or events, track trends, and gather insights from diverse perspectives. The expected outcome is to
 empower users with a convenient and efficient tool for accessing curated news content, thereby enhancing their ability
-to stay informed and up-to-date with current events.
+to stay informed and up to date with current events.
 
 # APIs design
 
@@ -97,7 +97,7 @@ output is an instantiated parser object capable of parsing articles from the spe
     * Errors:
         * DuplicateParserError: A parser is already registered for the specified format and source.
     * Docs:
-        * Description: Registers a new parser for the given format and source.
+        * Description: Register a new parser for the given format and source.
 
    #### Usage:
 
@@ -116,7 +116,7 @@ output is an instantiated parser object capable of parsing articles from the spe
     * Errors:
         * ParserNotFoundError: No parser is registered for the specified format and source.
     * Docs:
-        * Description: Retrieves the parser for the given format and source.
+        * Description: Retrieve the parser for the given format and source.
 
    #### Usage:
 
@@ -132,7 +132,7 @@ The storage API is responsible for managing the storage and retrieval of news ar
 details of data storage implementation, allowing flexibility in choosing storage mediums (e.g., file system, database,
 in-memory storage). Input arguments for this API typically include the source name, format/type of data (e.g., `JSON`,
 `RSS`, `HTML`), and file path or resource location. The output is a Resource object.
-Also, it has an error handling mechanism, which allows to handle errors in a way that is convenient for the user.
+Also, it has an error handling mechanism, which allows handling errors in a way that is convenient for the user.
 
 ### Methods
 
@@ -167,7 +167,7 @@ The aggregator API orchestrates the aggregation and filtering of news articles f
 registered parsers to extract article data from raw sources and aggregates them into a unified collection. Input
 arguments include the loaded news resources and optional filtering parameters such as sources, keywords, and date
 ranges. The output is a curated selection of news articles that meet the specified criteria.
-Also, it has a error handling mechanism, which allows to handle errors in a way that is convenient for the user.
+Also, it has an error handling mechanism, which allows you to handle errors in a way that is convenient for the user.
 
 ### Methods
 
@@ -217,7 +217,7 @@ method with a slice of article.Article objects.
 
 ### Methods
 
-1. Apply: Applies the filter to a list of articles.
+1. Apply: Apply the filter to a list of articles.
 
     * Args:
         * articles ([]Article): List of articles to be filtered.
@@ -301,5 +301,5 @@ aggregation and filtering processes to deliver curated news content to users.
 
 1. Are there any specific requirements for error handling in the API?
 2. How frequently should the news articles be updated and refreshed in the repository?
-3. Do we need unstage the news articles from aggregator after a certain period of time?
+3. Do we need to unstage the news articles from aggregator after a certain period of time?
 4. How should the API provide an error response to the user in case of a failure?

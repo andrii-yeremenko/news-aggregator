@@ -12,7 +12,7 @@ type parserProperties struct {
 	publisher resource.Source
 }
 
-// Factory is a parser's selector according to the resource format and publisher.
+// Factory is a parser's selector, according to the resource format and publisher.
 type Factory struct {
 	parsers map[parserProperties]Parser
 }
