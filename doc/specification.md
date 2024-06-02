@@ -169,6 +169,8 @@ arguments include the loaded news resources and optional filtering parameters su
 ranges. The output is a curated selection of news articles that meet the specified criteria.
 Also, it has an error handling mechanism, which allows you to handle errors in a way that is convenient for the user.
 
+_Warn that the aggregator is mutable and can be used to load multiple resources and apply filters multiple times!_
+
 ### Methods
 
 1. LoadResource: Loads a news resource into the aggregator.
@@ -289,6 +291,40 @@ news resources, aggregate articles, and apply filters via the command line.
    ```
      go run main.go --sources=TechCrunch,Wired --keywords=technology,science
    ```
+
+# Entities
+
+### Article:
+
+The Article entity represents a news article with attributes such as title, description, author, published date, and
+source.
+It encapsulates the structured data extracted from raw news sources and serves as the primary unit of
+information in the News Aggregator API.
+
+#### Attributes
+
+* Title: The title of the article.
+* Description: A brief description or summary of the article.
+* CreationDate: The date when the article was published.
+* Source (resource.Source): The source or publication from which the article originated.
+* (Optional) Author: The author or contributor of the article.
+* (Optional) Link: The URL of the article for further reading.
+
+_Optional attributes can be included based on the availability of data in the raw sources. They are not mandatory for
+creating an article object._
+
+### Resource:
+
+The Resource entity represents a data source containing news articles in a specific format (e.g., `JSON`, `RSS`, `HTML`).
+It encapsulates the raw data retrieved from news sources and serves as an input to the parser for extracting structured.
+
+#### Attributes
+
+* Format: The format of the data (e.g., `JSON`, `RSS`, `HTML`).
+* Content: The raw data content of the resource.
+* Source: The source or publication from which the data originated.
+
+_All resource attributes are mandatory for creating a resource object._
 
 # Resume
 
