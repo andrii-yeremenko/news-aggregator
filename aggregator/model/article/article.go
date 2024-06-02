@@ -14,6 +14,7 @@ type Article struct {
 	creationDate CreationDate
 	source       resource.Source
 	author       Author
+	link         Link
 }
 
 func (a *Article) Title() Title {
@@ -34,6 +35,10 @@ func (a *Article) Source() resource.Source {
 
 func (a *Article) Author() Author {
 	return a.author
+}
+
+func (a *Article) Link() Link {
+	return a.link
 }
 
 type Builder struct {
@@ -66,6 +71,11 @@ func (b *Builder) SetSource(source resource.Source) *Builder {
 
 func (b *Builder) SetAuthor(author Author) *Builder {
 	b.article.author = author
+	return b
+}
+
+func (b *Builder) SetLink(link Link) *Builder {
+	b.article.link = link
 	return b
 }
 

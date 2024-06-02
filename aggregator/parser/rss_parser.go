@@ -25,6 +25,7 @@ type rssItem struct {
 	Keywords    string           `xml:"keywords"`
 	LinkedVideo string           `xml:"LinkedVideo"`
 	Category    string           `xml:"category"`
+	Creator     string           `xml:"creator" xml:"http://purl.org/dc/elements/1.1/creator"`
 }
 
 type rssChannel struct {
@@ -81,7 +82,9 @@ func (p *RSSParser) parseArticle(item rssItem, resource resource.Resource) (arti
 		SetTitle(article.Title(strings.TrimSpace(item.Title))).
 		SetDescription(article.Description(strings.TrimSpace(item.Description))).
 		SetDate(article.CreationDate(creationDate)).
-		SetSource(resource.Source())
+		SetSource(resource.Source()).
+		SetAuthor(article.Author(strings.TrimSpace(item.Creator))).
+		SetLink(article.Link(strings.TrimSpace(item.Link)))
 
 	newArticle, err := builder.Build()
 	if err != nil {

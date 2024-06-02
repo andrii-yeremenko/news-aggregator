@@ -52,6 +52,7 @@ func (p *USATodayHTMLParser) extractArticles(doc *goquery.Document, resource res
 func (p *USATodayHTMLParser) parseArticle(s *goquery.Selection, resource resource.Resource) (article.Article, error) {
 	title := strings.TrimSpace(s.Text())
 	description := p.getAttribute(s, "data-c-br")
+	link := "https://usatoday.com" + p.getAttribute(s, "href")
 	dateAttr := p.getChildAttribute(s, "div.gnt_m_flm_sbt", "data-c-dt")
 	creationDate, err := NewDateParser().Parse(dateAttr)
 	if err != nil {
@@ -62,7 +63,8 @@ func (p *USATodayHTMLParser) parseArticle(s *goquery.Selection, resource resourc
 		SetTitle(article.Title(title)).
 		SetDescription(article.Description(description)).
 		SetDate(article.CreationDate(creationDate)).
-		SetSource(resource.Source())
+		SetSource(resource.Source()).
+		SetLink(article.Link(link))
 
 	newArticle, err := builder.Build()
 	if err != nil {

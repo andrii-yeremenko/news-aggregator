@@ -18,6 +18,7 @@ type jsonArticle struct {
 	Title       string `json:"title"`
 	Description string `json:"description"`
 	PublishedAt string `json:"publishedAt"`
+	Link        string `json:"url"`
 }
 
 type jsonResponse struct {
@@ -75,7 +76,8 @@ func (p *JSONParser) parseArticle(a jsonArticle, resource resource.Resource) (ar
 		SetDescription(article.Description(strings.TrimSpace(a.Description))).
 		SetDate(article.CreationDate(publishedAt)).
 		SetSource(resource.Source()).
-		SetAuthor(article.Author(strings.TrimSpace(a.Author)))
+		SetAuthor(article.Author(strings.TrimSpace(a.Author))).
+		SetLink(article.Link(strings.TrimSpace(a.Link)))
 
 	newArticle, err := builder.Build()
 	if err != nil {

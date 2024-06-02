@@ -22,6 +22,7 @@ func (l *Logger) PrintArticle(art article.Article) {
 	fmt.Printf("Date: %s\n", art.Date().HumanReadableString())
 	fmt.Printf("Source: %s\n", art.Source())
 	fmt.Printf("Author: %s\n", art.Author())
+	fmt.Printf("Link: %s\n", art.Link())
 }
 
 // Log logs the given message.
