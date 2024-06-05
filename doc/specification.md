@@ -315,7 +315,8 @@ creating an article object._
 
 ### Resource:
 
-The Resource entity represents a data source containing news articles in a specific format (e.g., `JSON`, `RSS`, `HTML`).
+The Resource entity represents a data source containing news articles in a specific format (
+e.g., `JSON`, `RSS`, `HTML`).
 It encapsulates the raw data retrieved from news sources and serves as an input to the parser for extracting structured.
 
 #### Attributes
