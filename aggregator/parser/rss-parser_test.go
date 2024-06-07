@@ -8,19 +8,19 @@ import (
 	"testing"
 )
 
-func TestJSONParser_Parse(t *testing.T) {
-	path := filepath.Join("testdata", "test.json")
+func TestRSSParser_Parse(t *testing.T) {
+	path := filepath.Join("testdata", "test.xml")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "json", resource.Content(content))
+	mockResource, err := resource.New("Test Source", "rss", resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}
 
-	parser := &JSONParser{}
+	parser := &RSSParser{}
 
 	articles, err := parser.Parse(*mockResource)
 	assert.NoError(t, err, "Parser should not return an error")
