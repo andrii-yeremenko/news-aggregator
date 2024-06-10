@@ -3,26 +3,28 @@ package aggregator
 import (
 	"NewsAggregator/aggregator/model/article"
 	"NewsAggregator/aggregator/model/resource"
+	"errors"
 )
 
 // Aggregator is a processor that collects specific information from resource.Resource
 // and turns it into a collection of article.Article.
 type Aggregator struct {
 	articles      []article.Article
-	parserFactory *Factory
+	parserFactory Factory
 	filters       []Filter
 }
 
 // New creates a new Aggregator instance.
-func New(factory *Factory) *Aggregator {
+func New(factory Factory) (*Aggregator, error) {
 	if factory == nil {
-		panic("factory is nil")
+		err := errors.New("factory cannot be nil")
+		return nil, err
 	}
 
 	return &Aggregator{
 		articles:      []article.Article{},
 		parserFactory: factory,
-	}
+	}, nil
 }
 
 // AddFilter adds a filter to the aggregator.

@@ -17,7 +17,7 @@ type CLI struct {
 	keywordsArg   string
 	startDateArg  string
 	endDateArg    string
-	parserFactory *aggregator.Factory
+	parserFactory *aggregator.ParserFactory
 	aggregator    *aggregator.Aggregator
 	loader        *storage.ResourceLoader
 }
@@ -25,7 +25,10 @@ type CLI struct {
 // New creates a new CLI instance.
 func New() *CLI {
 	fact := aggregator.NewParserFactory()
-	agr := aggregator.New(fact)
+	agr, err := aggregator.New(fact)
+	if err != nil {
+		logger.New().Error(err.Error())
+	}
 	loader := storage.NewLoader()
 
 	return &CLI{

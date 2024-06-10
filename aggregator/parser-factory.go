@@ -6,20 +6,25 @@ import (
 	"fmt"
 )
 
+type Factory interface {
+	RegisterParser(format resource.Format, publisher resource.Source, parser Parser)
+	GetParser(format resource.Format, source resource.Source) (Parser, error)
+}
+
 // parserProperties represents a composite key for the parser map.
 type parserProperties struct {
 	format    resource.Format
 	publisher resource.Source
 }
 
-// Factory is a parser's selector, according to the resource format and publisher.
-type Factory struct {
+// ParserFactory is a parser's selector, according to the resource format and publisher.
+type ParserFactory struct {
 	parsers map[parserProperties]Parser
 }
 
 // NewParserFactory creates a new factory with predefined default parsers.
-func NewParserFactory() *Factory {
-	return &Factory{
+func NewParserFactory() *ParserFactory {
+	return &ParserFactory{
 		parsers: map[parserProperties]Parser{
 			{format: "json", publisher: "nbc-news"}:        &parser.JSONParser{},
 			{format: "rss", publisher: "abc-news"}:         &parser.RSSParser{},
@@ -31,13 +36,13 @@ func NewParserFactory() *Factory {
 }
 
 // RegisterParser registers a parser with a specific format and publisher.
-func (f *Factory) RegisterParser(format resource.Format, publisher resource.Source, parser Parser) {
+func (f *ParserFactory) RegisterParser(format resource.Format, publisher resource.Source, parser Parser) {
 	key := parserProperties{format: format, publisher: publisher}
 	f.parsers[key] = parser
 }
 
 // GetParser returns a parser for the given resource.
-func (f *Factory) GetParser(format resource.Format, publisher resource.Source) (Parser, error) {
+func (f *ParserFactory) GetParser(format resource.Format, publisher resource.Source) (Parser, error) {
 	key := parserProperties{format: format, publisher: publisher}
 	p, exists := f.parsers[key]
 	if !exists {
