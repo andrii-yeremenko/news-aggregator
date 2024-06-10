@@ -3,14 +3,14 @@ package parser
 import (
 	"NewsAggregator/aggregator/model/resource"
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 )
 
 func TestJSONParser_Parse(t *testing.T) {
 	path := filepath.Join("../testdata", "test.json")
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("Failed to read test data: %v", err)
 	}

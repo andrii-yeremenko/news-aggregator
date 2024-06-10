@@ -2,7 +2,7 @@ package parser
 
 import (
 	"NewsAggregator/aggregator/model/resource"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -11,7 +11,7 @@ import (
 
 func TestUSATodayHTMLParser_Parse(t *testing.T) {
 	path := filepath.Join("../testdata", "usa-today_test.html")
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
