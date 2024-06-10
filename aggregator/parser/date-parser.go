@@ -31,7 +31,6 @@ func (p *DateParser) Parse(dateStr string) (time.Time, error) {
 		creationDate, err := time.Parse(layout, dateStr)
 		if err == nil {
 			if creationDate.Year() == 0 {
-				// Set the year to the current year if not provided in the date string.
 				creationDate = creationDate.AddDate(time.Now().Year(), 0, 0)
 			}
 			return creationDate, nil

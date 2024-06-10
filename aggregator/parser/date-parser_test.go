@@ -24,9 +24,18 @@ func TestDateParser_Parse(t *testing.T) {
 		expected time.Time
 		hasError bool
 	}{
-		{"Valid RFC1123Z format", "Thu, 28 May 2020 14:15:22 +0000", time.Date(2020, 5, 28, 14, 15, 22, 0, time.UTC), false},
-		{"Valid RFC3339 format", "2020-05-28T14:15:22Z", time.Date(2020, 5, 28, 14, 15, 22, 0, time.UTC), false},
-		{"Valid GMT format", "Mon, 02 Jan 2006 15:04:05 GMT", time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC), false},
+		{"Valid RFC1123Z format", "Thu, 28 May 2020 14:15:22 +0000",
+			time.Date(2020, 5, 28, 14, 15, 22, 0, time.UTC),
+			false},
+		{"Valid RFC3339 format", "2020-05-28T14:15:22Z",
+			time.Date(2020, 5, 28, 14, 15, 22, 0, time.UTC),
+			false},
+		{"Valid GMT format", "Mon, 02 Jan 2006 15:04:05 GMT",
+			time.Date(2006, 1, 2, 15, 4, 5, 0, time.UTC),
+			false},
+		{"Valid custom format without a year", "3:04 p.m. ET January 2",
+			time.Date(time.Now().Year(), 1, 2, 3, 4, 0, 0, time.UTC),
+			false},
 		{"Invalid date format", "invalid date", time.Time{}, true},
 	}
 
