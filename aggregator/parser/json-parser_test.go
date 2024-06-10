@@ -9,7 +9,7 @@ import (
 )
 
 func TestJSONParser_Parse(t *testing.T) {
-	path := filepath.Join("testdata", "test.json")
+	path := filepath.Join("../testdata", "test.json")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		t.Fatalf("Failed to read test data: %v", err)

@@ -9,7 +9,7 @@ import (
 )
 
 func TestRSSParser_Parse(t *testing.T) {
-	path := filepath.Join("testdata", "test.xml")
+	path := filepath.Join("../testdata", "test.xml")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		t.Fatalf("Failed to read test data: %v", err)

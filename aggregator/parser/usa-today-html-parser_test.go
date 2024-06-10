@@ -10,7 +10,7 @@ import (
 )
 
 func TestUSATodayHTMLParser_Parse(t *testing.T) {
-	path := filepath.Join("testdata", "usa-today_test.html")
+	path := filepath.Join("../testdata", "usa-today_test.html")
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		t.Fatalf("Failed to read test data: %v", err)
