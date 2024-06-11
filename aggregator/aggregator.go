@@ -4,12 +4,12 @@ import (
 	"NewsAggregator/aggregator/model/article"
 	"NewsAggregator/aggregator/model/resource"
 	"errors"
+	"fmt"
 )
 
 // Aggregator is a processor that collects specific information from resource.Resource
 // and turns it into a collection of article.Article.
 type Aggregator struct {
-	articles      []article.Article
 	parserFactory Factory
 	filters       []Filter
 }
@@ -22,7 +22,6 @@ func New(factory Factory) (*Aggregator, error) {
 	}
 
 	return &Aggregator{
-		articles:      []article.Article{},
 		parserFactory: factory,
 	}, nil
 }
@@ -32,40 +31,47 @@ func (agr *Aggregator) AddFilter(filter Filter) {
 	agr.filters = append(agr.filters, filter)
 }
 
-// LoadResource loads articles from a resource and aggregates them.
-func (agr *Aggregator) LoadResource(resource resource.Resource) error {
-	newArticles, err := agr.aggregate(resource)
-	if err != nil {
-		return err
-	}
-	agr.articles = append(agr.articles, newArticles...)
-	return nil
-}
-
-// GetAllArticles returns all articles from the aggregator.
-func (agr *Aggregator) GetAllArticles() []article.Article {
-	return agr.articles
-}
-
-// aggregate fetches articles from a resource and parses them.
-func (agr *Aggregator) aggregate(resource resource.Resource) ([]article.Article, error) {
+// Aggregate fetches articles from a resource and parses them.
+func (agr *Aggregator) Aggregate(resource resource.Resource) ([]article.Article, error) {
 
 	articlesParser, err := agr.parserFactory.GetParser(resource.Format(), resource.Source())
 	if err != nil {
 		return nil, err
 	}
 
-	return articlesParser.Parse(resource)
+	articles, err := articlesParser.Parse(resource)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse articles: %w", err)
+	}
+
+	if agr.filters == nil {
+		return agr.getFilteredArticles(articles), nil
+	}
+
+	return articles, nil
+}
+
+// AggregateMultiple fetches articles from a multiple resources and parses them.
+func (agr *Aggregator) AggregateMultiple(resources []resource.Resource) ([]article.Article, error) {
+
+	var articles []article.Article
+
+	for _, res := range resources {
+		art, err := agr.Aggregate(res)
+		if err != nil {
+			return nil, fmt.Errorf("failed to aggregate articles: %w", err)
+		}
+		articles = append(articles, art...)
+	}
+
+	return articles, nil
 }
 
 // GetFilteredArticles applies all filters to the articles and returns this filtered articles.
-func (agr *Aggregator) GetFilteredArticles() []article.Article {
+func (agr *Aggregator) getFilteredArticles(parsedArticles []article.Article) []article.Article {
 
-	if agr.filters == nil {
-		return agr.articles
-	}
-
-	filteredArticles := agr.articles
+	filteredArticles := parsedArticles
 
 	for _, selectedFilter := range agr.filters {
 		filteredArticles = selectedFilter.Apply(filteredArticles)
