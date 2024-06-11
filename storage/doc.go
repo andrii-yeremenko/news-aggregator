@@ -1,2 +1,2 @@
-// Package storage provides an API for supplying structured resources to the aggregator.Aggregator.
+// Package storage provides an API for supplying structured resources.
 package storage
