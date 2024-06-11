@@ -11,18 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type MockFactory struct{}
-
-func (m *MockFactory) GetParser(format resource.Format, source resource.Source) (aggregator.Parser, error) {
-	return &MockParser{}, nil
-}
-
-func (m *MockFactory) RegisterParser(format resource.Format, source resource.Source, parser aggregator.Parser) {
-
-}
-
-type MockParser struct{}
-
 func (m *MockParser) Parse(res resource.Resource) ([]article.Article, error) {
 	var articles []article.Article
 
@@ -108,6 +96,18 @@ type MockFactoryWithError struct{}
 func (m *MockFactoryWithError) GetParser(format resource.Format, source resource.Source) (aggregator.Parser, error) {
 	return nil, errors.New("parser not found")
 }
+
+type MockFactory struct{}
+
+func (m *MockFactory) GetParser(format resource.Format, source resource.Source) (aggregator.Parser, error) {
+	return &MockParser{}, nil
+}
+
+func (m *MockFactory) RegisterParser(format resource.Format, source resource.Source, parser aggregator.Parser) {
+
+}
+
+type MockParser struct{}
 
 func (m *MockFactoryWithError) RegisterParser(format resource.Format, source resource.Source, parser aggregator.Parser) {
 
