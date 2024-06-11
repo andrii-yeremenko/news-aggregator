@@ -45,7 +45,7 @@ func (agr *Aggregator) Aggregate(resource resource.Resource) ([]article.Article,
 		return nil, fmt.Errorf("failed to parse articles: %w", err)
 	}
 
-	if agr.filters == nil {
+	if agr.filters != nil {
 		return agr.getFilteredArticles(articles), nil
 	}
 
