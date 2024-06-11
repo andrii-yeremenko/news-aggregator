@@ -87,7 +87,7 @@ output is an instantiated parser object capable of parsing articles from the spe
 
 ### Methods
 
-1. RegisterParser: Registers a parser for a specific format and source.
+1. AddNewParser: Registers a parser for a specific format and source.
     * Args:
         * format (string): Format of the data (e.g., "json", "rss").
         * source (string): Source URL or identifier.
@@ -103,8 +103,8 @@ output is an instantiated parser object capable of parsing articles from the spe
 
     ```
     pf := parser.NewParserFactory()
-    pf.RegisterParser("json", "json-news.com", &parser.JSONParser{})
-    pf.RegisterParser("rss", "xml-news.com", &parser.RSSParser{})
+    pf.AddNewParser("json", "json-news.com", &parser.JSONParser{})
+    pf.AddNewParser("rss", "xml-news.com", &parser.RSSParser{})
     ```
 2. GetParser: Retrieves a parser for a specific format and source.
     * Args:
@@ -128,83 +128,151 @@ output is an instantiated parser object capable of parsing articles from the spe
 
 ## Storage:
 
-The storage API is responsible for managing the storage and retrieval of news article data. It abstracts away the
-details of data storage implementation, allowing flexibility in choosing storage mediums (e.g., file system, database,
-in-memory storage). Input arguments for this API typically include the source name, format/type of data (e.g., `JSON`,
-`RSS`, `HTML`), and file path or resource location. The output is a Resource object.
-Also, it has an error handling mechanism, which allows handling errors in a way that is convenient for the user.
+The Storage API is responsible for managing the storage and retrieval of news article data.
+The API also includes an error handling
+mechanism, which allows handling errors in a way that is convenient for the user.
 
 ### Methods
 
-1. ReadFile: Reads and loads articles from a file into the storage system.
+1. New: Creates a new instance of the Storage API.
 
     * Args:
-        * sourceName (string): Name of the news source.
-        * format (string): Format of the data (e.g., "json", "rss", "html").
-        * filePath (string): Path to the file containing the news data.
+       * basePath (string): Base path for the storage system.
 
     * Returns:
-        * Resource object containing the loaded data.
+       * Storage object.
+
+2. GetAvailableSources: Retrieves a list of available sources.
+
+   * Returns:
+      * []string: A list of available sources.
         * error: Error object in case of failure.
-
     * Errors:
-        * FileNotFoundError: The specified file does not exist.
-        * FormatError: The data format is not supported.
-
+       * SourceLoadError: Error occurred while loading the sources.
     * Docs:
-        * Description: Reads a file from the given path and loads the data into the repository.
+       * Description: Retrieves a list of available sources from the storage system.
 
    #### Usage:
 
     ```
-    newsStorage := storage.New()
-    nbc, err := newsStorage.ReadFile("nbc-news.com", "json", "storage/resources/nbc-news.json")
+    sources, err := storage.GetAvailableSources()
+    fmt.Println("Available sources:", sources)
+    ```
+
+3. GetAllResources: Retrieves all resources from the storage system.
+
+   * Returns:
+      * []resource.Resource: Slice of Resource objects.
+      * error: Error object in case of failure.
+   * Docs:
+      * Description: Retrieves all resources from the storage system.
+
+   #### Usage:
+
+    ```
+    resources, err := storage.GetAllResources()
+    if err != nil {
+        log.Fatalf("Error fetching all resources: %v", err)
+    }
+    ```
+
+4. GetSelectedResources: Retrieves selected resources from the storage system.
+
+   * Args:
+      * sources []string: List of sources to retrieve.
+   * Returns:
+      * []resource.Resource: Slice of Resource objects.
+      * error: Error object in case of failure.
+   * Docs:
+      * Description: Retrieves selected resources from the storage system based on the provided sources.
+
+   #### Usage:
+
+    ```
+    sources := []string{"nbc-news", "abc-news"}
+    selectedResources, err := storage.GetSelectedResources(sources)
+    if err != nil {
+        log.Fatalf("Error fetching selected resources: %v", err)
+    }
     ```
 
 ## Aggregator:
 
-The aggregator API orchestrates the aggregation and filtering of news articles from multiple sources. It leverages the
-registered parsers to extract article data from raw sources and aggregates them into a unified collection. Input
-arguments include the loaded news resources and optional filtering parameters such as sources, keywords, and date
-ranges. The output is a curated selection of news articles that meet the specified criteria.
-Also, it has an error handling mechanism, which allows you to handle errors in a way that is convenient for the user.
-
-_Warn that the aggregator is mutable and can be used to load multiple resources and apply filters multiple times!_
+The Aggregator API is a processor that is responsible for collecting specific information from resources and
+turning it into a collection of articles. It provides functionality to parse resources, apply filters to the
+parsed articles, and aggregate articles from multiple resources.
 
 ### Methods
 
-1. LoadResource: Loads a news resource into the aggregator.
+1. New: Creates a new Aggregator instance.
 
     * Args:
-        * resource (Resource): Resource object containing the news data.
+       * factory (Factory): A factory for creating parsers.
     * Returns:
-        * error: Error object in case of failure.
+       * (*Aggregator, error): A new Aggregator instance or an error if the factory is nil.
     * Errors:
-        * ResourceLoadError: Error occurred while loading the resource.
-    * Docs:
-        * Description: Loads a given resource into the aggregator for processing.
+       * Returns an error if the factory is nil.
 
    #### Usage:
     ```
-    newsAggregator := aggregator.NewAggregator()
-    loadErr = newsAggregator.LoadResource(nbc, newsAggregator)
+    factory := NewFactory()
+    aggregator, err := aggregator.New(factory)
+    if err != nil {
+        log.Fatalf("Error creating aggregator: %v", err)
+    }
     ```    
 
-2. GetArticles: Retrieves aggregated articles.
+2. AddFilter: Adds a filter to the aggregator.
 
-    * Returns:
-        * []Article: A list of aggregated articles matching the filters.
-        * error: Error object in case of failure.
-    * Errors:
-        * FetchError: Error occurred while fetching the articles.
-    * Docs:
-        * Description: Fetches and returns a list of aggregated articles based on specified filters.
+   * Args:
+      * filter (Filter): A filter to be added to the aggregator.
 
    #### Usage:
     ```
-    newsAggregator := aggregator.NewAggregator(parserSelector)
-    articles, fetchError := newsAggregator.GetArticles()
+    filter := NewFilter()
+    aggregator.AddFilter(filter)
     ```
+
+3. Aggregate: Fetches articles from a resource, parses them using the appropriate parser, and applies filters to the
+   parsed articles if any filters are added.
+
+   * Args:
+      * resource (resource.Resource): The resource to aggregate.
+   * Returns:
+      * ([]article.Article, error): A list of articles or an error if aggregation fails.
+   * Errors:
+      * AggregationError: Error occurred during aggregation.
+
+   #### Usage:
+    ```
+    articles, err := aggregator.Aggregate(resource)
+    if err != nil {
+        log.Fatalf("Error aggregating articles: %v", err)
+    }
+    ```
+
+4. AggregateAll: Fetches articles from all resources, parses them using the appropriate parser, and applies filters to
+   the parsed articles if any filters are added.
+
+   * Args:
+      * resources ([]resource.Resource): The resources to aggregate.
+   * Returns:
+      * ([]article.Article, error): A list of articles or an error if aggregation fails.
+   * Errors:
+      * AggregationError: Error occurred during aggregation.
+
+   #### Usage:
+    ```
+    articles, err := aggregator.AggregateAll([]resource.Resource{*res1, *res2})
+    if err != nil {
+        log.Fatalf("Error aggregating articles: %v", err)
+    }
+    ```
+
+### Best usage practices
+
+Set up the aggregator with a parser factory and add filters to it. Then, use the aggregator to aggregate articles from
+resources and apply filters to the parsed articles automatically.
 
 ## Filter:
 
@@ -336,7 +404,6 @@ aggregation and filtering processes to deliver curated news content to users.
 
 # Unresolved questions
 
-1. Are there any specific requirements for error handling in the API?
-2. How frequently should the news articles be updated and refreshed in the repository?
-3. Do we need to unstage the news articles from aggregator after a certain period of time?
-4. How should the API provide an error response to the user in case of a failure?
+1. How frequently should the news articles be updated and refreshed in the repository?
+2. Do we need to unstage the news articles from aggregator after a certain period of time?
+3. How should the API provide an error response to the user in case of a failure?
