@@ -28,7 +28,7 @@ func (m *MockFactory) GetParser(format resource.Format, source resource.Source) 
 	return &MockParser{}, nil
 }
 
-func (m *MockFactory) RegisterParser(format resource.Format, source resource.Source, parser aggregator.Parser) {
+func (m *MockFactory) AddNewParser(format resource.Format, source resource.Source, parser aggregator.Parser) {
 
 }
 

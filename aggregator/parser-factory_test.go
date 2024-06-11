@@ -39,10 +39,10 @@ func TestNewParserFactory(t *testing.T) {
 	}
 }
 
-func TestRegisterParser(t *testing.T) {
+func TestAddNewParser(t *testing.T) {
 	factory := NewParserFactory()
 	mockParser := &mockParser{}
-	factory.RegisterParser("xml", "new-publisher", mockParser)
+	factory.AddNewParser("xml", "new-publisher", mockParser)
 
 	key := parserProperties{format: "xml", publisher: "new-publisher"}
 	p, exists := factory.parsers[key]

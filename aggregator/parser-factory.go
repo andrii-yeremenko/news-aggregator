@@ -7,7 +7,7 @@ import (
 )
 
 type Factory interface {
-	RegisterParser(format resource.Format, publisher resource.Source, parser Parser)
+	AddNewParser(format resource.Format, publisher resource.Source, parser Parser)
 	GetParser(format resource.Format, source resource.Source) (Parser, error)
 }
 
@@ -35,8 +35,8 @@ func NewParserFactory() *ParserFactory {
 	}
 }
 
-// RegisterParser registers a parser with a specific format and publisher.
-func (f *ParserFactory) RegisterParser(format resource.Format, publisher resource.Source, parser Parser) {
+// AddNewParser registers a parser with a specific format and publisher.
+func (f *ParserFactory) AddNewParser(format resource.Format, publisher resource.Source, parser Parser) {
 	key := parserProperties{format: format, publisher: publisher}
 	f.parsers[key] = parser
 }

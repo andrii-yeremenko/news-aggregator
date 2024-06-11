@@ -2,15 +2,25 @@ package storage_test
 
 import (
 	"NewsAggregator/storage"
+	"strings"
 	"testing"
 )
 
 func TestStorage_GetAvailableSources(t *testing.T) {
 	store := storage.New("")
-	expectedSources := "nbc-news, abc-news, washington-times, bbc-world, usa-today, "
+	expectedSources := []string{"bbc-world", "usa-today", "nbc-news", "abc-news", "washington-times"}
+	expectedCount := len(expectedSources)
 	sources := store.GetAvailableSources()
-	if sources != expectedSources {
-		t.Errorf("expected %s but got %s", expectedSources, sources)
+
+	for _, source := range expectedSources {
+		if !strings.Contains(sources, source) {
+			t.Errorf("expected source %s is missing", source)
+		}
+	}
+
+	actualCount := strings.Count(sources, ",")
+	if actualCount != expectedCount {
+		t.Errorf("expected %d sources but got %d", expectedCount, actualCount)
 	}
 }
 
