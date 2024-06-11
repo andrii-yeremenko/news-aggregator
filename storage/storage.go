@@ -5,21 +5,93 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
-// NewsStorage is a simple in-memory repository for resources.
-type NewsStorage struct {
-	resources []resource.Resource
+// ResourceDetail holds the details of a resource to be loaded.
+type ResourceDetail struct {
+	format resource.Format
+	path   string
 }
 
-// New creates a new NewsStorage.
-func New() *NewsStorage {
-	return &NewsStorage{}
+// Storage is a tool for loading structured resources into the aggregator.Aggregator.
+type Storage struct {
+	resourceDetails map[resource.Source]ResourceDetail
+	basePath        string
 }
 
-// ReadFile reads a file and returns a resource.
-func (r *NewsStorage) ReadFile(publisher resource.Source, format resource.Format, filename string) (resource.Resource, error) {
-	content, err := r.readFileContent(filename)
+// New creates a new Storage.
+func New(basePath string) *Storage {
+	return &Storage{
+		resourceDetails: map[resource.Source]ResourceDetail{
+			"nbc-news":         {format: "json", path: "resources/nbc-news.json"},
+			"abc-news":         {format: "rss", path: "resources/abc-news.xml"},
+			"washington-times": {format: "rss", path: "resources/washington-times.xml"},
+			"bbc-world":        {format: "rss", path: "resources/bbc-world.xml"},
+			"usa-today":        {format: "html", path: "resources/usa-today-world-news.html"},
+		},
+		basePath: basePath,
+	}
+}
+
+// GetAvailableSources returns the available sources.
+func (l *Storage) GetAvailableSources() string {
+	var sources string
+	for source := range l.resourceDetails {
+		sources += string(source) + ", "
+	}
+	return sources
+}
+
+// GetAllResources returns all known resource.Resource's from a file system.
+func (l *Storage) GetAllResources() ([]resource.Resource, error) {
+
+	fetchedResources := make([]resource.Resource, 0)
+
+	for s, detail := range l.resourceDetails {
+		res, err := l.getResource(s, detail)
+		if err != nil {
+			return nil, fmt.Errorf("error getting resource : %v", err)
+		}
+
+		fetchedResources = append(fetchedResources, res)
+	}
+
+	return fetchedResources, nil
+
+}
+
+// GetSelectedResources returns the specified and known resource.Resource's from a file system.
+func (l *Storage) GetSelectedResources(sourceNames []string) ([]resource.Resource, error) {
+
+	fetchedResources := make([]resource.Resource, 0)
+
+	for _, name := range sourceNames {
+		s := resource.Source(name)
+		if detail, exists := l.resourceDetails[s]; exists {
+			res, err := l.getResource(s, detail)
+			if err != nil {
+				return nil, fmt.Errorf("error getting resource from source \"%s\" : %v", name, err)
+			}
+
+			fetchedResources = append(fetchedResources, res)
+		}
+	}
+
+	return fetchedResources, nil
+}
+
+func (l *Storage) getResource(source resource.Source, detail ResourceDetail) (resource.Resource, error) {
+	res, err := l.readFile(source, detail.format, detail.path)
+	if err != nil {
+		return resource.Resource{}, fmt.Errorf("error reading file: %v", err)
+	}
+
+	return res, nil
+}
+
+func (l *Storage) readFile(publisher resource.Source, format resource.Format, filename string) (resource.Resource, error) {
+	content, err := l.readFileContent(filename)
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("error reading file content: %v", err)
 	}
@@ -32,9 +104,9 @@ func (r *NewsStorage) ReadFile(publisher resource.Source, format resource.Format
 	return *res, nil
 }
 
-// readFileContent reads the content of the given file.
-func (r *NewsStorage) readFileContent(filename string) (string, error) {
-	file, err := os.Open(filename)
+func (l *Storage) readFileContent(filename string) (string, error) {
+	absPath := filepath.Join(l.basePath, filename)
+	file, err := os.Open(absPath)
 	if err != nil {
 		return "", fmt.Errorf("error opening file: %v", err)
 	}
@@ -46,11 +118,10 @@ func (r *NewsStorage) readFileContent(filename string) (string, error) {
 		}
 	}(file)
 
-	return r.scanFile(file)
+	return l.scanFile(file)
 }
 
-// scanFile scans the content of the provided file.
-func (r *NewsStorage) scanFile(file *os.File) (string, error) {
+func (l *Storage) scanFile(file *os.File) (string, error) {
 	scanner := bufio.NewScanner(file)
 	var content string
 	for scanner.Scan() {

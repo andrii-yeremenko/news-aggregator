@@ -8,6 +8,7 @@ import (
 	"NewsAggregator/storage"
 	"flag"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -19,29 +20,38 @@ type CLI struct {
 	endDateArg    string
 	parserFactory *aggregator.ParserFactory
 	aggregator    *aggregator.Aggregator
-	loader        *storage.ResourceLoader
+	storage       *storage.Storage
 }
 
 // New creates a new CLI instance.
 func New() *CLI {
+
 	fact := aggregator.NewParserFactory()
 	agr, err := aggregator.New(fact)
+
 	if err != nil {
 		logger.New().Error(err.Error())
 	}
-	loader := storage.NewLoader()
+
+	basePath, err := os.Getwd()
+
+	if err != nil {
+		logger.New().Error(err.Error())
+	}
+
+	stg := storage.New(basePath + "/storage")
 
 	return &CLI{
 		parserFactory: fact,
 		aggregator:    agr,
-		loader:        loader,
+		storage:       stg,
 	}
 }
 
 // ParseFlags parses the command line flags.
 func (cli *CLI) ParseFlags() {
 	flag.StringVar(&cli.sourceArg, "sources", "", "Comma-separated list of news sources\n"+
-		"Available sources: "+cli.loader.GetAvailableSources())
+		"Available sources: "+cli.storage.GetAvailableSources())
 	flag.StringVar(&cli.keywordsArg, "keywords", "",
 		"Comma-separated list of keywords to filter news articles")
 	flag.StringVar(&cli.startDateArg, "date-start", "",
@@ -65,7 +75,7 @@ func (cli *CLI) ParseFlags() {
 // Run runs the CLI.
 func (cli *CLI) Run() {
 
-	if cli.loader.GetAvailableSources() == "" {
+	if cli.storage.GetAvailableSources() == "" {
 		logger.New().Warn("No sources available")
 		return
 	}
@@ -81,16 +91,40 @@ func (cli *CLI) Run() {
 	}
 
 	if flagCount == 0 {
-		cli.loader.LoadAllResources(cli.aggregator)
+		resources, err := cli.storage.GetAllResources()
+
+		if err != nil {
+			logger.New().Error(err.Error())
+			return
+		}
+
+		for _, res := range resources {
+			cli.aggregator.LoadResource(res)
+		}
+
 		cli.printArticles(cli.aggregator.GetAllArticles())
 		return
 	}
 
 	if cli.sourceArg == "" {
-		cli.loader.LoadAllResources(cli.aggregator)
+		resources, err := cli.storage.GetAllResources()
+		if err != nil {
+			logger.New().Error(err.Error())
+			return
+		}
+		for _, res := range resources {
+			cli.aggregator.LoadResource(res)
+		}
 	} else {
 		sources := strings.Split(cli.sourceArg, ",")
-		cli.loader.LoadSelectedResources(sources, cli.aggregator)
+		resources, err := cli.storage.GetSelectedResources(sources)
+		if err != nil {
+			logger.New().Error(err.Error())
+			return
+		}
+		for _, res := range resources {
+			cli.aggregator.LoadResource(res)
+		}
 		cli.aggregator.AddFilter(filter.NewSourceFilter(sources))
 	}
 
