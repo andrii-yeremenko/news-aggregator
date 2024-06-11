@@ -95,11 +95,22 @@ func (cli *CLI) Run() {
 	}
 
 	if cli.startDateArg != "" {
-		cli.aggregator.AddFilter(filter.NewStartDateFilter(cli.startDateArg))
+		f, err := filter.NewStartDateFilter(cli.startDateArg)
+		if err != nil {
+			logger.New().Error(err.Error())
+		} else {
+			cli.aggregator.AddFilter(f)
+		}
 	}
 
 	if cli.endDateArg != "" {
-		cli.aggregator.AddFilter(filter.NewEndDateFilter(cli.endDateArg))
+		f, err := filter.NewEndDateFilter(cli.endDateArg)
+
+		if err != nil {
+			logger.New().Error(err.Error())
+		} else {
+			cli.aggregator.AddFilter(f)
+		}
 	}
 
 	if cli.keywordsArg != "" {

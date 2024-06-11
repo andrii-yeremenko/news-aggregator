@@ -25,7 +25,7 @@ func TestStartDateFilter_Apply(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			dateFilter := filter.NewStartDateFilter(test.endDate)
+			dateFilter, _ := filter.NewStartDateFilter(test.endDate)
 			filteredArticles := dateFilter.Apply(articles)
 			if len(filteredArticles) != test.expected {
 				t.Errorf("Expected %d articles, got %d", test.expected, len(filteredArticles))
@@ -35,11 +35,9 @@ func TestStartDateFilter_Apply(t *testing.T) {
 }
 
 func TestStartDateFilter_Error(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("The code did not panic as expected")
-		}
-	}()
+	_, err := filter.NewStartDateFilter("invalid date!")
 
-	_ = filter.NewStartDateFilter("invalid date!")
+	if err == nil {
+		t.Errorf("Start date filter should return an error for an invalid date")
+	}
 }

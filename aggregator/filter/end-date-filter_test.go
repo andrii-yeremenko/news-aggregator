@@ -26,7 +26,7 @@ func TestEndDateFilter_Apply(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			dateFilter := filter.NewEndDateFilter(test.endDate)
+			dateFilter, _ := filter.NewEndDateFilter(test.endDate)
 			filteredArticles := dateFilter.Apply(articles)
 			if len(filteredArticles) != test.expected {
 				t.Errorf("Expected %d articles, got %d", test.expected, len(filteredArticles))
@@ -36,13 +36,11 @@ func TestEndDateFilter_Apply(t *testing.T) {
 }
 
 func TestEndDateFilter_Error(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("The code did not panic as expected")
-		}
-	}()
+	_, err := filter.NewEndDateFilter("invalid date!")
 
-	_ = filter.NewEndDateFilter("invalid date!")
+	if err == nil {
+		t.Errorf("End date filter should return an error for an invalid date")
+	}
 }
 
 func createArticleWithDate(dateStr string) article.Article {
