@@ -13,16 +13,16 @@ type EndDateFilter struct {
 }
 
 // NewEndDateFilter creates a new EndDateFilter instance with the given end date.
-func NewEndDateFilter(endDateStr string) *EndDateFilter {
+func NewEndDateFilter(endDateStr string) (*EndDateFilter, error) {
 
 	dateParser := parser.NewDateParser()
 
 	endDate, err := dateParser.ParseDefaultDateFormat(endDateStr)
 	if err != nil {
-		panic("invalid end date")
+		return nil, err
 	}
 
-	return &EndDateFilter{endDate: &endDate}
+	return &EndDateFilter{endDate: &endDate}, nil
 }
 
 // Apply filters the article.Article's and returns a subset that meets predefined end date.

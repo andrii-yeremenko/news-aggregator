@@ -37,7 +37,6 @@ func (p *DateParser) Parse(dateStr string) (time.Time, error) {
 		}
 	}
 
-	// Return a meaningful error message if unable to parse date.
 	return time.Time{}, errors.New("unable to parse date")
 }
 

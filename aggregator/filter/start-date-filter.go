@@ -13,16 +13,16 @@ type StartDateFilter struct {
 }
 
 // NewStartDateFilter creates a new StartDateFilter instance with the given start date.
-func NewStartDateFilter(startDateStr string) *StartDateFilter {
+func NewStartDateFilter(startDateStr string) (*StartDateFilter, error) {
 
 	dateParser := parser.NewDateParser()
 
 	startDate, err := dateParser.ParseDefaultDateFormat(startDateStr)
 	if err != nil {
-		panic("invalid start date")
+		return nil, err
 	}
 
-	return &StartDateFilter{startDate: &startDate}
+	return &StartDateFilter{startDate: &startDate}, nil
 }
 
 // Apply filters the article.Article's and returns a subset that meets predefined start date.
