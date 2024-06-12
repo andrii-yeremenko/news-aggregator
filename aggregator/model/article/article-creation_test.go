@@ -48,6 +48,12 @@ func TestArticleCreation(t *testing.T) {
 	if art.Link() != link {
 		t.Errorf("Expected link: %s, Got: %s", link, art.Link())
 	}
+	if art.TitleStr() != string(title) {
+		t.Errorf("Expected title string: %s, Got: %s", string(title), art.TitleStr())
+	}
+	if art.DescriptionStr() != string(description) {
+		t.Errorf("Expected description string: %s, Got: %s", string(description), art.DescriptionStr())
+	}
 }
 
 func TestEmptyTitle(t *testing.T) {

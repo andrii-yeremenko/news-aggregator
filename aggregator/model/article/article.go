@@ -21,8 +21,16 @@ func (a *Article) Title() Title {
 	return a.title
 }
 
+func (a *Article) TitleStr() string {
+	return string(a.title)
+}
+
 func (a *Article) Description() Description {
 	return a.description
+}
+
+func (a *Article) DescriptionStr() string {
+	return string(a.description)
 }
 
 func (a *Article) Date() CreationDate {

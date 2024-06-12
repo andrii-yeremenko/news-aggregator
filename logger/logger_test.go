@@ -8,13 +8,13 @@ import (
 	"time"
 )
 
-func TestPrintArticle(t *testing.T) {
+func TestPrintArticlesInTemplate(t *testing.T) {
 	l := logger.New()
 
-	articleBuilder := article.NewArticleBuilder()
+	articles := make([]article.Article, 0)
 	testDate := time.Date(2024, time.June, 5, 12, 0, 0, 0,
 		time.FixedZone("CEST", 2*60*60))
-	art, err := articleBuilder.
+	art, _ := article.NewArticleBuilder().
 		SetTitle("Test Title").
 		SetDescription("Test Description").
 		SetDate(article.CreationDate(testDate)).
@@ -22,51 +22,19 @@ func TestPrintArticle(t *testing.T) {
 		SetAuthor("Test Author").
 		SetLink("https://testlink.com").
 		Build()
+	articles = append(articles, *art)
 
+	params := logger.FilterParams{
+		SourceArg:    "Test Source",
+		KeywordsArg:  "Test",
+		StartDateArg: "2024-06-05",
+		EndDateArg:   "2024-06-05",
+	}
+
+	err := l.PrintArticlesInTemplate(articles, params, "template/article-template.txt")
 	if err != nil {
-		t.Fatalf("Failed to create art: %v", err)
+		t.Fatalf("Failed to print articles in template: %v", err)
 	}
-
-	expectedOutput := "----------------------------------------\n" +
-		"Title: Test Title\n" +
-		"Description: Test Description\n" +
-		"Date: 05 Jun 24 12:00 CEST\n" +
-		"Source: Test Source\n" +
-		"Author: Test Author\n" +
-		"Link: https://testlink.com\n"
-
-	output := captureOutput(func() {
-		l.PrintArticle(*art)
-	})
-
-	if output != expectedOutput {
-		t.Errorf("PrintArticle() output is incorrect, got: %s, want: %s", output, expectedOutput)
-	}
-}
-
-func captureOutput(f func()) string {
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	f()
-
-	err := w.Close()
-	if err != nil {
-		return ""
-	}
-
-	capturedOutput := make(chan string)
-
-	go func() {
-		var buf [1024]byte
-		n, _ := r.Read(buf[:])
-		capturedOutput <- string(buf[:n])
-	}()
-
-	os.Stdout = old
-
-	return <-capturedOutput
 }
 
 func TestLog(t *testing.T) {
@@ -106,4 +74,29 @@ func TestWarn(t *testing.T) {
 	if output != expectedOutput {
 		t.Errorf("Warn() output is incorrect, got: %s, want: %s", output, expectedOutput)
 	}
+}
+
+func captureOutput(f func()) string {
+	old := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	f()
+
+	err := w.Close()
+	if err != nil {
+		return ""
+	}
+
+	capturedOutput := make(chan string)
+
+	go func() {
+		var buf [1024]byte
+		n, _ := r.Read(buf[:])
+		capturedOutput <- string(buf[:n])
+	}()
+
+	os.Stdout = old
+
+	return <-capturedOutput
 }

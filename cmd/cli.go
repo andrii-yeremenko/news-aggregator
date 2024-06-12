@@ -144,14 +144,20 @@ func (cli *CLI) applyFilters() {
 }
 
 func (cli *CLI) printArticles(articles []article.Article) {
-	log := logger.New()
-	log.Log("Printing articles")
 
-	for _, art := range articles {
-		log.PrintArticle(art)
+	params := logger.FilterParams{
+		SourceArg:    cli.sourceArg,
+		KeywordsArg:  cli.keywordsArg,
+		StartDateArg: cli.startDateArg,
+		EndDateArg:   cli.endDateArg,
 	}
 
-	log.Log(fmt.Sprintf("%d news articles were shown", len(articles)))
+	err := logger.New().PrintArticlesInTemplate(articles, params, "logger/template/article-template.txt")
+
+	if err != nil {
+		logger.New().Error(err.Error())
+		return
+	}
 }
 
 func (cli *CLI) printUsage() {

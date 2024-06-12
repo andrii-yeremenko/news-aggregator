@@ -3,10 +3,23 @@ package logger
 import (
 	"NewsAggregator/aggregator/model/article"
 	"fmt"
+	"github.com/fatih/color"
+	"os"
+	"regexp"
+	"strings"
+	"text/template"
 )
 
 // Logger is a tool that records actions, measurements, print program output or other information.
 type Logger struct {
+}
+
+// FilterParams is a struct that holds the parameters for filtering articles.
+type FilterParams struct {
+	SourceArg    string
+	KeywordsArg  string
+	StartDateArg string
+	EndDateArg   string
 }
 
 // New creates a new Logger instance.
@@ -14,15 +27,43 @@ func New() *Logger {
 	return &Logger{}
 }
 
-// PrintArticle prints article.Article to the console.
-func (l *Logger) PrintArticle(art article.Article) {
-	fmt.Printf("----------------------------------------\n")
-	fmt.Printf("Title: %s\n", art.Title())
-	fmt.Printf("Description: %s\n", art.Description())
-	fmt.Printf("Date: %s\n", art.Date().HumanReadableString())
-	fmt.Printf("Source: %s\n", art.Source())
-	fmt.Printf("Author: %s\n", art.Author())
-	fmt.Printf("Link: %s\n", art.Link())
+func highlightKeywords(text string, keywordsArg string) string {
+	keywords := strings.Split(keywordsArg, ",")
+	for _, keyword := range keywords {
+		pattern := `\b` + regexp.QuoteMeta(keyword) + `\b`
+		re := regexp.MustCompile(pattern)
+		highlighted := color.New(color.Underline).SprintFunc()(keyword)
+		text = re.ReplaceAllString(text, highlighted)
+	}
+	return text
+}
+
+// PrintArticlesInTemplate prints a slice of article.Article to the console in predefined template.
+func (l *Logger) PrintArticlesInTemplate(articles []article.Article, params FilterParams, templatePath string) error {
+
+	data := struct {
+		Articles []article.Article
+		Params   FilterParams
+	}{
+		Articles: articles,
+		Params:   params,
+	}
+
+	funcMap := template.FuncMap{
+		"highlight": highlightKeywords,
+	}
+
+	tmpl, err := template.New("main").Funcs(funcMap).ParseFiles(templatePath)
+	if err != nil {
+		return err
+	}
+
+	err = tmpl.ExecuteTemplate(os.Stdout, "main", data)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Log logs the given message.
