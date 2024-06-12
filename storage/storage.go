@@ -75,6 +75,8 @@ func (l *Storage) GetSelectedResources(sourceNames []string) ([]resource.Resourc
 			}
 
 			fetchedResources = append(fetchedResources, res)
+		} else {
+			return nil, fmt.Errorf("source \"%s\" is not available", name)
 		}
 	}
 

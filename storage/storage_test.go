@@ -55,3 +55,13 @@ func TestStorage_GetSelectedResources(t *testing.T) {
 		}
 	}
 }
+
+func TestStorage_GetSelectedResources_InvalidSource(t *testing.T) {
+	store := storage.New("")
+
+	selectedSources := []string{"nbc-news", "abc-news", "invalid-source"}
+	_, err := store.GetSelectedResources(selectedSources)
+	if err == nil {
+		t.Errorf("expected error but got nil")
+	}
+}
