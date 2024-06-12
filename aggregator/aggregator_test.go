@@ -25,6 +25,9 @@ func (m *MockFilter) Apply(articles []article.Article) []article.Article {
 type MockFactory struct{}
 
 func (m *MockFactory) GetParser(format resource.Format, source resource.Source) (aggregator.Parser, error) {
+	if format == "invalid" || source == "invalid" {
+		return nil, assert.AnError
+	}
 	return &MockParser{}, nil
 }
 
@@ -89,5 +92,12 @@ func TestAggregator(t *testing.T) {
 		articles, err := agg.AggregateMultiple([]resource.Resource{*res1, *res2})
 		assert.Equal(t, 1, len(articles))
 		assert.Equal(t, "source2", string(articles[0].Source()))
+	})
+
+	t.Run("Aggregate incorrect resource", func(t *testing.T) {
+		res, err := resource.New("invalid", "invalid", "invalid")
+		assert.NoError(t, err)
+		_, err = agg.Aggregate(*res)
+		assert.Error(t, err)
 	})
 }
