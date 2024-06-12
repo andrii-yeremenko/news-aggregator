@@ -152,7 +152,7 @@ func (cli *CLI) printArticles(articles []article.Article) {
 		EndDateArg:   cli.endDateArg,
 	}
 
-	err := logger.New().PrintArticlesInTemplate(articles, params, "logger/template/article-template.txt")
+	err := logger.New().PrintArticlesInTemplate(articles, params, "logger/template/article_template.txt")
 
 	if err != nil {
 		logger.New().Error(err.Error())

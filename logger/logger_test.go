@@ -31,10 +31,11 @@ func TestPrintArticlesInTemplate(t *testing.T) {
 		EndDateArg:   "2024-06-05",
 	}
 
-	err := l.PrintArticlesInTemplate(articles, params, "template/article-template.txt")
+	err := l.PrintArticlesInTemplate(articles, params, "template/article_template.txt")
 	if err != nil {
 		t.Fatalf("Failed to print articles in template: %v", err)
 	}
+
 }
 
 func TestLog(t *testing.T) {
