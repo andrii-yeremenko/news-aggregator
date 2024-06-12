@@ -55,12 +55,12 @@ func (l *Logger) PrintArticlesInTemplate(articles []article.Article, params Filt
 
 	tmpl, err := template.New("main").Funcs(funcMap).ParseFiles(templatePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to parse template: %v", err)
 	}
 
 	err = tmpl.ExecuteTemplate(os.Stdout, "main", data)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to execute template: %v", err)
 	}
 
 	return nil

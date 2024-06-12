@@ -1,0 +1,31 @@
+{{define "header"}}
+Filters Applied:
+{{if ne .Params.SourceArg ""}}║    * Sources: "{{.Params.SourceArg}}"{{else}}║    - Source: Not Applied{{end}}
+{{if ne .Params.KeywordsArg ""}}║    * Keywords: "{{.Params.KeywordsArg}}"{{else}}║    - Keywords: Not Applied{{end}}
+{{if ne .Params.StartDateArg ""}}║    * Start Date: "{{.Params.StartDateArg}}"{{else}}║    - Start Date: Not Applied{{end}}
+{{if ne .Params.EndDateArg ""}}║    * End Date: "{{.Params.EndDateArg}}"{{else}}║    - End Date: Not Applied{{end}}
+╠═══════════════════════════════════════════════════════════════════════════╣
+{{end}}
+
+{{define "footer"}}
+╠═══════════════════════════════════════════════════════════════════════════╣
+║   Developed by: @andrii-yeremenko
+╚═══════════════════════════════════════════════════════════════════════════╝
+{{end}}
+
+{{define "article"}}
+{{range .Articles}}
+<-----------------{{highlight .TitleStr $.Params.KeywordsArg}}-------------------->
+Description: {{highlight .DescriptionStr $.Params.KeywordsArg}}
+Date: {{.Date.HumanReadableString}}
+Author: {{.Author}}
+Link: {{.Link}}
+>-----------------By {{.Source}}--------------------<
+{{end}}
+{{end}}
+
+{{define "main"}}
+{{template "header" .}}
+{{template "article" .}}
+{{template "footer" .}}
+{{end}}
