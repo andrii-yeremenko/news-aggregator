@@ -1,7 +1,7 @@
 package parser
 
 import (
-	"NewsAggregator/aggregator/model/resource"
+	"news-aggregator/aggregator/model/resource"
 	"os"
 	"path/filepath"
 	"testing"

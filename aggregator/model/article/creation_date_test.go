@@ -1,7 +1,7 @@
 package article_test
 
 import (
-	"NewsAggregator/aggregator/model/article"
+	"news-aggregator/aggregator/model/article"
 	"testing"
 
 	"time"

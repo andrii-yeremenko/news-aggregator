@@ -1,7 +1,7 @@
 package main
 
 import (
-	"NewsAggregator/cmd"
+	"news-aggregator/cmd"
 )
 
 // the main is the entry point of the application.

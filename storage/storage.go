@@ -1,9 +1,9 @@
 package storage
 
 import (
-	"NewsAggregator/aggregator/model/resource"
 	"bufio"
 	"fmt"
+	"news-aggregator/aggregator/model/resource"
 	"os"
 	"path/filepath"
 )

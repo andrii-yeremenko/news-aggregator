@@ -1,9 +1,9 @@
 package logger
 
 import (
-	"NewsAggregator/aggregator/model/article"
 	"fmt"
 	"github.com/fatih/color"
+	"news-aggregator/aggregator/model/article"
 	"os"
 	"regexp"
 	"strings"

@@ -1,10 +1,10 @@
 package parser
 
 import (
-	"NewsAggregator/aggregator/model/article"
-	"NewsAggregator/aggregator/model/resource"
 	"errors"
 	"github.com/PuerkitoBio/goquery"
+	"news-aggregator/aggregator/model/article"
+	"news-aggregator/aggregator/model/resource"
 	"strings"
 )
 

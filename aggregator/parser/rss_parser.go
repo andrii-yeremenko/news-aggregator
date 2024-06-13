@@ -1,9 +1,9 @@
 package parser
 
 import (
-	"NewsAggregator/aggregator/model/article"
-	"NewsAggregator/aggregator/model/resource"
 	"encoding/xml"
+	"news-aggregator/aggregator/model/article"
+	"news-aggregator/aggregator/model/resource"
 	"strings"
 )
 

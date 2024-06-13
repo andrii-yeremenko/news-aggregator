@@ -1,8 +1,8 @@
 package filter
 
 import (
-	"NewsAggregator/aggregator/model/article"
-	"NewsAggregator/aggregator/parser"
+	"news-aggregator/aggregator/model/article"
+	"news-aggregator/aggregator/parser"
 	"time"
 )
 

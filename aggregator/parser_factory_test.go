@@ -1,10 +1,10 @@
 package aggregator
 
 import (
-	"NewsAggregator/aggregator/model/article"
-	"NewsAggregator/aggregator/model/resource"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"news-aggregator/aggregator/model/article"
+	"news-aggregator/aggregator/model/resource"
 	"testing"
 )
 

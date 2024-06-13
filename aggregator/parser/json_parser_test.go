@@ -1,8 +1,8 @@
 package parser
 
 import (
-	"NewsAggregator/aggregator/model/resource"
 	"github.com/stretchr/testify/assert"
+	"news-aggregator/aggregator/model/resource"
 	"os"
 	"path/filepath"
 	"testing"

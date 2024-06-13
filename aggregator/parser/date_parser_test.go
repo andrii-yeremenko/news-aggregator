@@ -1,7 +1,7 @@
 package parser_test
 
 import (
-	"NewsAggregator/aggregator/parser"
+	"news-aggregator/aggregator/parser"
 	"testing"
 	"time"
 )

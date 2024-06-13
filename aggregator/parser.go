@@ -1,8 +1,8 @@
 package aggregator
 
 import (
-	"NewsAggregator/aggregator/model/article"
-	"NewsAggregator/aggregator/model/resource"
+	"news-aggregator/aggregator/model/article"
+	"news-aggregator/aggregator/model/resource"
 )
 
 // Parser is a component that takes input resource.Resource and converts it into a structured and unified

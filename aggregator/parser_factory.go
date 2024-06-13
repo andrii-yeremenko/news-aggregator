@@ -1,9 +1,9 @@
 package aggregator
 
 import (
-	"NewsAggregator/aggregator/model/resource"
-	"NewsAggregator/aggregator/parser"
 	"fmt"
+	"news-aggregator/aggregator/model/resource"
+	"news-aggregator/aggregator/parser"
 )
 
 type Factory interface {

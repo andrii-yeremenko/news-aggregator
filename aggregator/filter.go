@@ -1,6 +1,6 @@
 package aggregator
 
-import "NewsAggregator/aggregator/model/article"
+import "news-aggregator/aggregator/model/article"
 
 // Filter is a construct that processes a collection of article.Article's and returns
 // a new collection containing only those article.Article's that meet specific criteria.

@@ -1,8 +1,8 @@
 package logger_test
 
 import (
-	"NewsAggregator/aggregator/model/article"
-	"NewsAggregator/logger"
+	"news-aggregator/aggregator/model/article"
+	"news-aggregator/logger"
 	"os"
 	"testing"
 	"time"

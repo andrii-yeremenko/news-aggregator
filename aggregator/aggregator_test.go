@@ -1,9 +1,9 @@
 package aggregator_test
 
 import (
-	"NewsAggregator/aggregator"
-	"NewsAggregator/aggregator/model/article"
-	"NewsAggregator/aggregator/model/resource"
+	"news-aggregator/aggregator"
+	"news-aggregator/aggregator/model/article"
+	"news-aggregator/aggregator/model/resource"
 	"testing"
 	"time"
 

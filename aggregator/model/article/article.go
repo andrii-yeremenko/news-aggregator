@@ -1,8 +1,8 @@
 package article
 
 import (
-	"NewsAggregator/aggregator/model/resource"
 	"errors"
+	"news-aggregator/aggregator/model/resource"
 	"time"
 )
 

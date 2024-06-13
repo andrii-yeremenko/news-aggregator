@@ -1,7 +1,7 @@
 package storage_test
 
 import (
-	"NewsAggregator/storage"
+	"news-aggregator/storage"
 	"strings"
 	"testing"
 )

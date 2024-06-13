@@ -1,8 +1,8 @@
 package filter_test
 
 import (
-	"NewsAggregator/aggregator/filter"
-	"NewsAggregator/aggregator/model/article"
+	"news-aggregator/aggregator/filter"
+	"news-aggregator/aggregator/model/article"
 	"testing"
 	"time"
 )

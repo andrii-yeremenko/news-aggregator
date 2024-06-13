@@ -1,6 +1,6 @@
 package filter
 
-import "NewsAggregator/aggregator/model/article"
+import "news-aggregator/aggregator/model/article"
 
 // SourceFilter is an aggregator.Filter that creates a subset from a given set of article.Article's
 // corresponding to a given sources set.

@@ -1,10 +1,10 @@
 package aggregator
 
 import (
-	"NewsAggregator/aggregator/model/article"
-	"NewsAggregator/aggregator/model/resource"
 	"errors"
 	"fmt"
+	"news-aggregator/aggregator/model/article"
+	"news-aggregator/aggregator/model/resource"
 )
 
 // Aggregator is a processor that collects specific information from resource.Resource

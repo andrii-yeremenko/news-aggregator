@@ -1,8 +1,8 @@
 package resource_test
 
 import (
-	"NewsAggregator/aggregator/model/resource"
 	"errors"
+	"news-aggregator/aggregator/model/resource"
 	"testing"
 )
 

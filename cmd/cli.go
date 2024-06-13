@@ -1,14 +1,14 @@
 package cmd
 
 import (
-	"NewsAggregator/aggregator"
-	"NewsAggregator/aggregator/filter"
-	"NewsAggregator/aggregator/model/article"
-	"NewsAggregator/aggregator/model/resource"
-	"NewsAggregator/logger"
-	"NewsAggregator/storage"
 	"flag"
 	"fmt"
+	"news-aggregator/aggregator"
+	"news-aggregator/aggregator/filter"
+	"news-aggregator/aggregator/model/article"
+	"news-aggregator/aggregator/model/resource"
+	"news-aggregator/logger"
+	"news-aggregator/storage"
 	"os"
 	"strings"
 )
@@ -27,7 +27,7 @@ type CLI struct {
 // New creates a new CLI instance.
 func New() *CLI {
 	fact := aggregator.NewParserFactory()
-	agg, err := aggregator.New(fact)
+	a, err := aggregator.New(fact)
 	handleError(err)
 
 	basePath, err := os.Getwd()
@@ -37,7 +37,7 @@ func New() *CLI {
 
 	return &CLI{
 		parserFactory: fact,
-		aggregator:    agg,
+		aggregator:    a,
 		storage:       store,
 	}
 }
