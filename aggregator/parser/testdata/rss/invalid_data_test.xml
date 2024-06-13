@@ -1,0 +1,12 @@
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <item>
+            <title></title>
+            <link></link>
+            <pubDate>Mon, 01 Jan 2022 00:00:00 +0000</pubDate>
+            <description>Test Description</description>
+            <media:thumbnail url="http://example.com/thumbnail.jpg" width="100" height="100"/>
+            <dc:creator>John Doe</dc:creator>
+        </item>
+    </channel>
+</rss>

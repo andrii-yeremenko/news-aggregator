@@ -1,0 +1,12 @@
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <channel>
+        <item>
+            <title>Test Title</title>
+            <link>http://example.com</link>
+            <pubDate>Mon, incorrect format +0000</pubDate>
+            <description>Test Description</description>
+            <media:thumbnail url="http://example.com/thumbnail.jpg" width="100" height="100"/>
+            <dc:creator>John Doe</dc:creator>
+        </item>
+    </channel>
+</rss>

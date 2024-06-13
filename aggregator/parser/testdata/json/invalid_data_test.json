@@ -1,0 +1,14 @@
+{
+  "articles": [
+    {
+      "source": {
+        "name": "Test Source"
+      },
+      "author": "",
+      "title": "",
+      "description": "",
+      "publishedAt": "2022-01-01T00:00:00Z",
+      "url": ""
+    }
+  ]
+}
