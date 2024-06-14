@@ -115,12 +115,17 @@ func (cli *CLI) showAllArticles() {
 func (cli *CLI) showFilteredArticles() {
 	resources := cli.getResources()
 
-	cli.applyFilters()
+	err := cli.applyFilters()
+	if err != nil {
+		logger.New().Error(err.Error())
+		return
+	}
 
 	filteredArticles, err := cli.aggregator.AggregateMultiple(resources)
 
 	if err != nil {
 		logger.New().Error(err.Error())
+		return
 	}
 
 	cli.printArticles(filteredArticles)
@@ -132,6 +137,7 @@ func (cli *CLI) getResources() []resource.Resource {
 		if err != nil {
 			logger.New().Error(err.Error())
 		}
+
 		return resources
 	}
 
@@ -144,12 +150,12 @@ func (cli *CLI) getResources() []resource.Resource {
 	return resources
 }
 
-func (cli *CLI) applyFilters() {
+func (cli *CLI) applyFilters() error {
 	if cli.startDateArg != "" {
 		startDateFilter, err := filter.NewStartDateFilter(cli.startDateArg)
 
 		if err != nil {
-			logger.New().Error(err.Error())
+			return err
 		}
 
 		cli.aggregator.AddFilter(startDateFilter)
@@ -159,7 +165,7 @@ func (cli *CLI) applyFilters() {
 		endDateFilter, err := filter.NewEndDateFilter(cli.endDateArg)
 
 		if err != nil {
-			logger.New().Error(err.Error())
+			return err
 		}
 
 		cli.aggregator.AddFilter(endDateFilter)
@@ -169,6 +175,8 @@ func (cli *CLI) applyFilters() {
 		keywords := strings.Split(cli.keywordsArg, ",")
 		cli.aggregator.AddFilter(filter.NewKeywordFilter(keywords))
 	}
+
+	return nil
 }
 
 func (cli *CLI) printArticles(articles []article.Article) {
