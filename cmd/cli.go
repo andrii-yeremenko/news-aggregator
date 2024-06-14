@@ -10,6 +10,7 @@ import (
 	"news-aggregator/logger"
 	"news-aggregator/storage"
 	"os"
+	"path"
 	"strings"
 )
 
@@ -25,24 +26,30 @@ type CLI struct {
 }
 
 // New creates a new CLI instance.
-func New() *CLI {
-	fact := aggregator.NewParserFactory()
-	a, err := aggregator.New(fact)
-	handleError(err)
+func New() (*CLI, error) {
+	parserPool := aggregator.NewParserFactory()
+	a, err := aggregator.New(parserPool)
+	if err != nil {
+		return nil, err
+	}
 
 	basePath, err := os.Getwd()
-	handleError(err)
+	if err != nil {
+		return nil, err
+	}
 
-	store := storage.New(basePath + "/storage")
+	store := storage.New(path.Join(basePath, "/storage"))
 
 	return &CLI{
-		parserFactory: fact,
+		parserFactory: parserPool,
 		aggregator:    a,
 		storage:       store,
-	}
+	}, nil
 }
 
-// ParseFlags parses the command line flags.
+// ParseFlags parses the command line flags for sources, keywords, and date ranges.
+// Use cases include filtering news by specific sources, topics, or timeframes.
+// Errors may occur due to incorrect date formats, unrecognized sources, or unknown arguments.
 func (cli *CLI) ParseFlags() {
 	flag.StringVar(&cli.sourceArg, "sources", "", "Comma-separated list of news sources\n"+
 		"Available sources: "+cli.storage.GetAvailableSources())
@@ -53,16 +60,17 @@ func (cli *CLI) ParseFlags() {
 	flag.Parse()
 }
 
-// Run runs the CLI.
-func (cli *CLI) Run() {
-	if cli.noSourcesAvailable() {
-		return
+// Run executes the CLI application.
+// This CLI will print the articles to the console based on the provided flags.
+func (cli *CLI) Run() error {
+	if cli.checkAvailableSources() {
+		return fmt.Errorf("no sources available")
 	}
 
 	flagCount := cli.countFlags()
 	if flagCount > 4 {
 		cli.printUsage()
-		return
+		return fmt.Errorf("too many flags provided")
 	}
 
 	if flagCount == 0 {
@@ -70,9 +78,11 @@ func (cli *CLI) Run() {
 	} else {
 		cli.showFilteredArticles()
 	}
+
+	return nil
 }
 
-func (cli *CLI) noSourcesAvailable() bool {
+func (cli *CLI) checkAvailableSources() bool {
 	if cli.storage.GetAvailableSources() == "" {
 		logger.New().Warn("No sources available")
 		return true
@@ -90,10 +100,14 @@ func (cli *CLI) countFlags() int {
 
 func (cli *CLI) showAllArticles() {
 	resources, err := cli.storage.GetAllResources()
-	handleError(err)
+	if err != nil {
+		logger.New().Error(err.Error())
+	}
 
 	articles, err := cli.aggregator.AggregateMultiple(resources)
-	handleError(err)
+	if err != nil {
+		logger.New().Error(err.Error())
+	}
 
 	cli.printArticles(articles)
 }
@@ -104,7 +118,10 @@ func (cli *CLI) showFilteredArticles() {
 	cli.applyFilters()
 
 	filteredArticles, err := cli.aggregator.AggregateMultiple(resources)
-	handleError(err)
+
+	if err != nil {
+		logger.New().Error(err.Error())
+	}
 
 	cli.printArticles(filteredArticles)
 }
@@ -112,14 +129,17 @@ func (cli *CLI) showFilteredArticles() {
 func (cli *CLI) getResources() []resource.Resource {
 	if cli.sourceArg == "" {
 		resources, err := cli.storage.GetAllResources()
-		handleError(err)
+		if err != nil {
+			logger.New().Error(err.Error())
+		}
 		return resources
 	}
 
 	sources := strings.Split(cli.sourceArg, ",")
 	resources, err := cli.storage.GetSelectedResources(sources)
-	handleError(err)
-
+	if err != nil {
+		logger.New().Error(err.Error())
+	}
 	cli.aggregator.AddFilter(filter.NewSourceFilter(sources))
 	return resources
 }
@@ -127,13 +147,21 @@ func (cli *CLI) getResources() []resource.Resource {
 func (cli *CLI) applyFilters() {
 	if cli.startDateArg != "" {
 		startDateFilter, err := filter.NewStartDateFilter(cli.startDateArg)
-		handleError(err)
+
+		if err != nil {
+			logger.New().Error(err.Error())
+		}
+
 		cli.aggregator.AddFilter(startDateFilter)
 	}
 
 	if cli.endDateArg != "" {
 		endDateFilter, err := filter.NewEndDateFilter(cli.endDateArg)
-		handleError(err)
+
+		if err != nil {
+			logger.New().Error(err.Error())
+		}
+
 		cli.aggregator.AddFilter(endDateFilter)
 	}
 
@@ -170,10 +198,4 @@ func (cli *CLI) printUsage() {
 	fmt.Println("  NewsAggregator -sources=source1,source2 -keywords=keyword1,keyword2 -date-start=2024-01-01")
 	fmt.Println("  NewsAggregator -keywords=keyword1,keyword2")
 	fmt.Println("  NewsAggregator -date-start=2024-01-01 -date-end=2024-12-31")
-}
-
-func handleError(err error) {
-	if err != nil {
-		logger.New().Error(err.Error())
-	}
 }
