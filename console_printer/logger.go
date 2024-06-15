@@ -1,4 +1,4 @@
-package logger
+package console_printer
 
 import (
 	"fmt"

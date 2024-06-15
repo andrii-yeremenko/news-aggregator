@@ -7,7 +7,7 @@ import (
 	"news-aggregator/aggregator/filter"
 	"news-aggregator/aggregator/model/article"
 	"news-aggregator/aggregator/model/resource"
-	"news-aggregator/logger"
+	"news-aggregator/console_printer"
 	"news-aggregator/storage"
 	"os"
 	"path"
@@ -84,7 +84,7 @@ func (cli *CLI) Run() error {
 
 func (cli *CLI) checkAvailableSources() bool {
 	if cli.storage.GetAvailableSources() == "" {
-		logger.New().Warn("No sources available")
+		console_printer.New().Warn("No sources available")
 		return true
 	}
 	return false
@@ -101,12 +101,12 @@ func (cli *CLI) countFlags() int {
 func (cli *CLI) showAllArticles() {
 	resources, err := cli.storage.GetAllResources()
 	if err != nil {
-		logger.New().Error(err.Error())
+		console_printer.New().Error(err.Error())
 	}
 
 	articles, err := cli.aggregator.AggregateMultiple(resources)
 	if err != nil {
-		logger.New().Error(err.Error())
+		console_printer.New().Error(err.Error())
 	}
 
 	cli.printArticles(articles)
@@ -117,14 +117,14 @@ func (cli *CLI) showFilteredArticles() {
 
 	err := cli.applyFilters()
 	if err != nil {
-		logger.New().Error(err.Error())
+		console_printer.New().Error(err.Error())
 		return
 	}
 
 	filteredArticles, err := cli.aggregator.AggregateMultiple(resources)
 
 	if err != nil {
-		logger.New().Error(err.Error())
+		console_printer.New().Error(err.Error())
 		return
 	}
 
@@ -135,7 +135,7 @@ func (cli *CLI) getResources() []resource.Resource {
 	if cli.sourceArg == "" {
 		resources, err := cli.storage.GetAllResources()
 		if err != nil {
-			logger.New().Error(err.Error())
+			console_printer.New().Error(err.Error())
 		}
 
 		return resources
@@ -144,7 +144,7 @@ func (cli *CLI) getResources() []resource.Resource {
 	sources := strings.Split(cli.sourceArg, ",")
 	resources, err := cli.storage.GetSelectedResources(sources)
 	if err != nil {
-		logger.New().Error(err.Error())
+		console_printer.New().Error(err.Error())
 	}
 	cli.aggregator.AddFilter(filter.NewSourceFilter(sources))
 	return resources
@@ -181,17 +181,17 @@ func (cli *CLI) applyFilters() error {
 
 func (cli *CLI) printArticles(articles []article.Article) {
 
-	params := logger.FilterParams{
+	params := console_printer.FilterParams{
 		SourceArg:    cli.sourceArg,
 		KeywordsArg:  cli.keywordsArg,
 		StartDateArg: cli.startDateArg,
 		EndDateArg:   cli.endDateArg,
 	}
 
-	err := logger.New().PrintArticlesInTemplate(articles, params, "logger/template/article_template.txt")
+	err := console_printer.New().PrintArticlesInTemplate(articles, params, "console_printer/template/article_template.txt")
 
 	if err != nil {
-		logger.New().Error(err.Error())
+		console_printer.New().Error(err.Error())
 		return
 	}
 }
