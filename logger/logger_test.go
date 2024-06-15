@@ -80,9 +80,13 @@ func TestPrintArticlesInTemplate_WithIncorrectLocation(t *testing.T) {
 func TestLog(t *testing.T) {
 	l := logger.New()
 
-	output := captureOutput(func() {
+	output, err := captureOutput(func() {
 		l.Log("Test Log Message")
 	})
+
+	if err != nil {
+		t.Fatalf("Failed to capture output: %v", err)
+	}
 
 	expectedOutput := "[Log] Test Log Message\n"
 	if output != expectedOutput {
@@ -93,9 +97,13 @@ func TestLog(t *testing.T) {
 func TestError(t *testing.T) {
 	l := logger.New()
 
-	output := captureOutput(func() {
+	output, err := captureOutput(func() {
 		l.Error("Test Error Message")
 	})
+
+	if err != nil {
+		t.Fatalf("Failed to capture output: %v", err)
+	}
 
 	expectedOutput := "[Error] Test Error Message\n"
 	if output != expectedOutput {
@@ -106,9 +114,13 @@ func TestError(t *testing.T) {
 func TestWarn(t *testing.T) {
 	l := logger.New()
 
-	output := captureOutput(func() {
+	output, err := captureOutput(func() {
 		l.Warn("Test Warning Message")
 	})
+
+	if err != nil {
+		t.Fatalf("Failed to capture output: %v", err)
+	}
 
 	expectedOutput := "[Warning] Test Warning Message\n"
 	if output != expectedOutput {
@@ -116,7 +128,7 @@ func TestWarn(t *testing.T) {
 	}
 }
 
-func captureOutput(f func()) string {
+func captureOutput(f func()) (string, error) {
 	old := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
@@ -125,7 +137,7 @@ func captureOutput(f func()) string {
 
 	err := w.Close()
 	if err != nil {
-		return ""
+		return "", err
 	}
 
 	capturedOutput := make(chan string)
@@ -138,5 +150,5 @@ func captureOutput(f func()) string {
 
 	os.Stdout = old
 
-	return <-capturedOutput
+	return <-capturedOutput, nil
 }
