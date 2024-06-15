@@ -51,7 +51,7 @@ func (l *Storage) GetAllResources() ([]resource.Resource, error) {
 	for s, detail := range l.resourceDetails {
 		res, err := l.getResource(s, detail)
 		if err != nil {
-			return nil, fmt.Errorf("error getting resource : %v", err)
+			return fetchedResources, fmt.Errorf("error getting resource : %v", err)
 		}
 
 		fetchedResources = append(fetchedResources, res)
