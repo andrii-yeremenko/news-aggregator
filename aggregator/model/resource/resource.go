@@ -19,8 +19,8 @@ func New(source Source, format Format, content Content) (*Resource, error) {
 		return nil, errors.New("source cannot be empty")
 	}
 
-	if format == "" {
-		return nil, errors.New("format cannot be empty")
+	if format == 0 {
+		return nil, errors.New("format cannot be unknown")
 	}
 
 	if content == "" {

@@ -15,7 +15,7 @@ func TestRSSParser_Parse(t *testing.T) {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "rss", resource.Content(content))
+	mockResource, err := resource.New("Test Source", resource.RSS, resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}
@@ -47,7 +47,7 @@ func TestRSSParser_Parse_InvalidFormat(t *testing.T) {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "rss", resource.Content(content))
+	mockResource, err := resource.New("Test Source", resource.RSS, resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}
@@ -67,7 +67,7 @@ func TestRSSParser_Parse_InvalidArticles(t *testing.T) {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "rss", resource.Content(content))
+	mockResource, err := resource.New("Test Source", resource.RSS, resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}
@@ -87,7 +87,7 @@ func TestRSSParser_Parse_CorruptedDate(t *testing.T) {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "rss", resource.Content(content))
+	mockResource, err := resource.New("Test Source", resource.RSS, resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}

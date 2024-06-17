@@ -22,16 +22,16 @@ func TestNewParserFactory(t *testing.T) {
 		publisher resource.Source
 		expected  bool
 	}{
-		{"json", "nbc-news", true},
-		{"rss", "abc-news", true},
-		{"rss", "washington-times", true},
-		{"rss", "bbc-world", true},
-		{"html", "usa-today", true},
-		{"xml", "non-existing", false},
+		{resource.JSON, "nbc-news", true},
+		{resource.RSS, "abc-news", true},
+		{resource.RSS, "washington-times", true},
+		{resource.RSS, "bbc-world", true},
+		{resource.HTML, "usa-today", true},
+		{resource.RSS, "non-existing", false},
 	}
 
 	for _, tt := range tests {
-		t.Run(fmt.Sprintf("%s-%s", tt.format, tt.publisher), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d-%s", tt.format, tt.publisher), func(t *testing.T) {
 			key := parserProperties{format: tt.format, publisher: tt.publisher}
 			_, exists := factory.parsers[key]
 			assert.Equal(t, tt.expected, exists)
@@ -42,9 +42,9 @@ func TestNewParserFactory(t *testing.T) {
 func TestAddNewParser(t *testing.T) {
 	factory := NewParserFactory()
 	mockParser := &mockParser{}
-	factory.AddNewParser("xml", "new-publisher", mockParser)
+	factory.AddNewParser(resource.RSS, "new-publisher", mockParser)
 
-	key := parserProperties{format: "xml", publisher: "new-publisher"}
+	key := parserProperties{format: resource.RSS, publisher: "new-publisher"}
 	p, exists := factory.parsers[key]
 
 	assert.True(t, exists)
@@ -59,16 +59,16 @@ func TestGetParser(t *testing.T) {
 		publisher resource.Source
 		expected  bool
 	}{
-		{"json", "nbc-news", true},
-		{"rss", "abc-news", true},
-		{"rss", "washington-times", true},
-		{"rss", "bbc-world", true},
-		{"html", "usa-today", true},
-		{"xml", "non-existing", false},
+		{resource.JSON, "nbc-news", true},
+		{resource.RSS, "abc-news", true},
+		{resource.RSS, "washington-times", true},
+		{resource.RSS, "bbc-world", true},
+		{resource.HTML, "usa-today", true},
+		{resource.RSS, "non-existing", false},
 	}
 
 	for _, tt := range tests {
-		t.Run(fmt.Sprintf("%s-%s", tt.format, tt.publisher), func(t *testing.T) {
+		t.Run(fmt.Sprintf("%d-%s", tt.format, tt.publisher), func(t *testing.T) {
 			_, err := factory.GetParser(tt.format, tt.publisher)
 			if tt.expected {
 				assert.NoError(t, err)

@@ -24,11 +24,11 @@ type Storage struct {
 func New(basePath string) *Storage {
 	return &Storage{
 		resourceDetails: map[resource.Source]ResourceDetail{
-			"nbc-news":         {format: "json", path: "resources/nbc-news.json"},
-			"abc-news":         {format: "rss", path: "resources/abc-news.xml"},
-			"washington-times": {format: "rss", path: "resources/washington-times.xml"},
-			"bbc-world":        {format: "rss", path: "resources/bbc-world.xml"},
-			"usa-today":        {format: "html", path: "resources/usa-today-world-news.html"},
+			"nbc-news":         {format: resource.JSON, path: "resources/nbc-news.json"},
+			"abc-news":         {format: resource.RSS, path: "resources/abc-news.xml"},
+			"washington-times": {format: resource.RSS, path: "resources/washington-times.xml"},
+			"bbc-world":        {format: resource.RSS, path: "resources/bbc-world.xml"},
+			"usa-today":        {format: resource.HTML, path: "resources/usa-today-world-news.html"},
 		},
 		basePath: basePath,
 	}

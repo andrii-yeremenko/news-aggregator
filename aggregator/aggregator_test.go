@@ -25,7 +25,7 @@ func (m *MockFilter) Apply(articles []article.Article) []article.Article {
 type MockFactory struct{}
 
 func (m *MockFactory) GetParser(format resource.Format, source resource.Source) (aggregator.Parser, error) {
-	if format == "invalid" || source == "invalid" {
+	if format == 0 || source == "invalid" {
 		return nil, assert.AnError
 	}
 	return &MockParser{}, nil
@@ -64,7 +64,7 @@ func TestAggregator(t *testing.T) {
 	})
 
 	t.Run("Aggregate single resource without applied filters", func(t *testing.T) {
-		res, err := resource.New("source1", "format1", "content1")
+		res, err := resource.New("source1", resource.JSON, "content1")
 		assert.NoError(t, err)
 		articles, err := agg.Aggregate(*res)
 		assert.Equal(t, 1, len(articles))
@@ -73,9 +73,9 @@ func TestAggregator(t *testing.T) {
 	})
 
 	t.Run("Aggregate multiple resources without applied filters", func(t *testing.T) {
-		res1, err := resource.New("source1", "format1", "content1")
+		res1, err := resource.New("source1", resource.JSON, "content1")
 		assert.NoError(t, err)
-		res2, err := resource.New("source2", "format1", "content1")
+		res2, err := resource.New("source2", resource.JSON, "content1")
 		assert.NoError(t, err)
 		articles, err := agg.AggregateMultiple([]resource.Resource{*res1, *res2})
 		assert.Equal(t, 2, len(articles))
@@ -84,9 +84,9 @@ func TestAggregator(t *testing.T) {
 	})
 
 	t.Run("Aggregate multiple resources with applied filters", func(t *testing.T) {
-		res1, err := resource.New("source1", "format1", "content1")
+		res1, err := resource.New("source1", resource.JSON, "content1")
 		assert.NoError(t, err)
-		res2, err := resource.New("source2", "format1", "content1")
+		res2, err := resource.New("source2", resource.JSON, "content1")
 		assert.NoError(t, err)
 		agg.AddFilter(&MockFilter{})
 		articles, err := agg.AggregateMultiple([]resource.Resource{*res1, *res2})
@@ -95,7 +95,7 @@ func TestAggregator(t *testing.T) {
 	})
 
 	t.Run("Aggregate incorrect resource", func(t *testing.T) {
-		res, err := resource.New("invalid", "invalid", "invalid")
+		res, err := resource.New("invalid", resource.JSON, "invalid")
 		assert.NoError(t, err)
 		_, err = agg.Aggregate(*res)
 		assert.Error(t, err)

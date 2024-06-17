@@ -16,7 +16,7 @@ func TestUSATodayHTMLParser_Parse(t *testing.T) {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "html", resource.Content(content))
+	mockResource, err := resource.New("Test Source", resource.HTML, resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}
@@ -40,7 +40,7 @@ func TestUSATodayHTMLParser_Parse_CorruptedDate(t *testing.T) {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "html", resource.Content(content))
+	mockResource, err := resource.New("Test Source", resource.HTML, resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}

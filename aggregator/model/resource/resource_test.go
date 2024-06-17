@@ -18,28 +18,21 @@ func TestNewResource(t *testing.T) {
 		{
 			name:        "Valid parameters",
 			source:      "CNN",
-			format:      "json",
+			format:      resource.JSON,
 			content:     "Some news content",
 			expectedErr: nil,
 		},
 		{
 			name:        "Empty source",
 			source:      "",
-			format:      "json",
+			format:      resource.JSON,
 			content:     "Some news content",
 			expectedErr: errors.New("source cannot be empty"),
 		},
 		{
-			name:        "Empty format",
-			source:      "CNN",
-			format:      "",
-			content:     "Some news content",
-			expectedErr: errors.New("format cannot be empty"),
-		},
-		{
 			name:        "Empty content",
 			source:      "CNN",
-			format:      "json",
+			format:      resource.JSON,
 			content:     "",
 			expectedErr: errors.New("content cannot be empty"),
 		},
@@ -63,7 +56,7 @@ func TestNewResource(t *testing.T) {
 
 func TestResourceMethods(t *testing.T) {
 
-	r, err := resource.New("BBC", "xml", "Some news content")
+	r, err := resource.New("BBC", resource.RSS, "Some news content")
 	if err != nil {
 		t.Fatalf("Error creating r: %v", err)
 	}
@@ -73,9 +66,9 @@ func TestResourceMethods(t *testing.T) {
 		t.Errorf("Expected source: %s, but got: %s", expectedSource, source)
 	}
 
-	expectedFormat := resource.Format("xml")
+	expectedFormat := resource.Format(resource.RSS)
 	if format := r.Format(); format != expectedFormat {
-		t.Errorf("Expected format: %s, but got: %s", expectedFormat, format)
+		t.Errorf("Expected format: %d, but got: %d", expectedFormat, format)
 	}
 
 	expectedContent := resource.Content("Some news content")

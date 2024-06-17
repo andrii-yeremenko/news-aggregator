@@ -15,7 +15,7 @@ func TestJSONParser_Parse(t *testing.T) {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "json", resource.Content(content))
+	mockResource, err := resource.New("Test Source", resource.JSON, resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestJSONParser_Parse_EmptyArticles(t *testing.T) {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "json", resource.Content(content))
+	mockResource, err := resource.New("Test Source", resource.JSON, resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}
@@ -65,7 +65,7 @@ func TestJSONParser_Parse_InvalidDate(t *testing.T) {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "json", resource.Content(content))
+	mockResource, err := resource.New("Test Source", resource.JSON, resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestJSONParser_Parse_InvalidFormat(t *testing.T) {
 		t.Fatalf("Failed to read test data: %v", err)
 	}
 
-	mockResource, err := resource.New("Test Source", "json", resource.Content(content))
+	mockResource, err := resource.New("Test Source", resource.JSON, resource.Content(content))
 	if err != nil {
 		t.Fatalf("Failed to create resource: %v", err)
 	}

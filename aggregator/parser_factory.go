@@ -26,11 +26,11 @@ type ParserFactory struct {
 func NewParserFactory() *ParserFactory {
 	return &ParserFactory{
 		parsers: map[parserProperties]Parser{
-			{format: "json", publisher: "nbc-news"}:        &parser.JSONParser{},
-			{format: "rss", publisher: "abc-news"}:         &parser.RSSParser{},
-			{format: "rss", publisher: "washington-times"}: &parser.RSSParser{},
-			{format: "rss", publisher: "bbc-world"}:        &parser.RSSParser{},
-			{format: "html", publisher: "usa-today"}:       &parser.USATodayHTMLParser{},
+			{format: resource.JSON, publisher: "nbc-news"}:        &parser.JSONParser{},
+			{format: resource.RSS, publisher: "abc-news"}:         &parser.RSSParser{},
+			{format: resource.RSS, publisher: "washington-times"}: &parser.RSSParser{},
+			{format: resource.RSS, publisher: "bbc-world"}:        &parser.RSSParser{},
+			{format: resource.HTML, publisher: "usa-today"}:       &parser.USATodayHTMLParser{},
 		},
 	}
 }
@@ -46,7 +46,7 @@ func (f *ParserFactory) GetParser(format resource.Format, publisher resource.Sou
 	key := parserProperties{format: format, publisher: publisher}
 	p, exists := f.parsers[key]
 	if !exists {
-		return nil, fmt.Errorf("no parser found for format: %s and publisher: %s", format, publisher)
+		return nil, fmt.Errorf("no parser found for format: %d and publisher: %s", format, publisher)
 	}
 	return p, nil
 }
