@@ -10,18 +10,18 @@
 ║   ╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╭━╯┣━╯┃╱╱╱╱╭━╯┃
 ║   ╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╰━━┻━━╯╱╱╱╱╰━━╯
 ╠═══════════════════════════════════════════════════════════════════════════╣
-║ Filters Applied:
-{{if ne .Params.SourceArg ""}}║    * Sources: "{{.Params.SourceArg}}"{{else}}║    - Source: Not Applied{{end}}
-{{if ne .Params.KeywordsArg ""}}║    * Keywords: "{{.Params.KeywordsArg}}"{{else}}║    - Keywords: Not Applied{{end}}
-{{if ne .Params.StartDateArg ""}}║    * Start Date: "{{.Params.StartDateArg}}"{{else}}║    - Start Date: Not Applied{{end}}
-{{if ne .Params.EndDateArg ""}}║    * End Date: "{{.Params.EndDateArg}}"{{else}}║    - End Date: Not Applied{{end}}
+║{{- indent 2 "" -}}Filters Applied:
+║{{- indent 5 "" -}}{{if ne .Params.SourceArg ""}}* Sources: "{{.Params.SourceArg}}"{{else}}- Source: Not Applied{{end}}
+║{{- indent 5 "" -}}{{if ne .Params.KeywordsArg ""}}* Keywords: "{{.Params.KeywordsArg}}"{{else}}- Keywords: Not Applied{{end}}
+║{{- indent 5 "" -}}{{if ne .Params.StartDateArg ""}}* Start Date: "{{.Params.StartDateArg}}"{{else}}- Start Date: Not Applied{{end}}
+║{{- indent 5 "" -}}{{if ne .Params.EndDateArg ""}}* End Date: "{{.Params.EndDateArg}}"{{else}}- End Date: Not Applied{{end}}
 ╠═══════════════════════════════════════════════════════════════════════════╣
 {{end}}
 
 {{define "footer"}}
 ╠═══════════════════════════════════════════════════════════════════════════╣
-║   Total Articles: {{len .Articles}}{{if lt (len .Articles) 1}}, no articles found.{{end}}
-║   Developed by: @andrii-yeremenko
+║{{- indent 2 " " -}}Total Articles: {{len .Articles}}{{if lt (len .Articles) 1}}, no articles found.{{end}}
+║{{- indent 2 " " -}}Developed by: @andrii-yeremenko
 ╚═══════════════════════════════════════════════════════════════════════════╝
 {{end}}
 

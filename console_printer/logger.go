@@ -2,6 +2,7 @@ package console_printer
 
 import (
 	"fmt"
+	"github.com/Masterminds/sprig/v3"
 	"github.com/fatih/color"
 	"news-aggregator/aggregator/model/article"
 	"os"
@@ -53,7 +54,7 @@ func (l *Logger) PrintArticlesInTemplate(articles []article.Article, params Filt
 		"highlight": highlightKeywords,
 	}
 
-	tmpl, err := template.New("main").Funcs(funcMap).ParseFiles(templatePath)
+	tmpl, err := template.New("main").Funcs(funcMap).Funcs(sprig.FuncMap()).ParseFiles(templatePath)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %v", err)
 	}
