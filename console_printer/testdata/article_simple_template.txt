@@ -24,8 +24,25 @@ Link: {{.Link}}
 {{end}}
 {{end}}
 
+{{define "sourceGroup"}}
+{{- $sources := groupBySource .Articles -}}
+{{range $source, $articles := $sources}}
+{{nindent 3 ""}}╔════════════════════════════════════╗
+{{indent 3 ""}}║  Source: {{$source}} ({{len $articles}} news)
+{{indent 3 ""}}╚════════════════════════════════════╝
+{{- range $articles}}
+{{nindent 5 ""}}<-----------------{{highlight .TitleStr $.Params.KeywordsArg}}-------------------->
+{{indent 5 ""}}Description: {{highlight .DescriptionStr $.Params.KeywordsArg}}
+{{indent 5 ""}}Date: {{.Date.HumanReadableString}}
+{{indent 5 ""}}Author: {{.Author}}
+{{indent 5 ""}}Link: {{.Link}}
+{{- end}}
+{{end}}
+{{end}}
+
 {{define "main"}}
 {{template "header" .}}
 {{template "article" .}}
+{{template "sourceGroup" .}}
 {{template "footer" .}}
 {{end}}

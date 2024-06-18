@@ -48,7 +48,6 @@
 {{indent 5 ""}}Date: {{.Date.HumanReadableString}}
 {{indent 5 ""}}Author: {{.Author}}
 {{indent 5 ""}}Link: {{.Link}}
-
 {{- end}}
 {{end}}
 {{end}}
