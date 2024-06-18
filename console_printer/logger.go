@@ -39,6 +39,14 @@ func highlightKeywords(text string, keywordsArg string) string {
 	return text
 }
 
+func groupBySource(articles []article.Article) map[string][]article.Article {
+	sourceGroups := make(map[string][]article.Article)
+	for _, a := range articles {
+		sourceGroups[string(a.Source())] = append(sourceGroups[string(a.Source())], a)
+	}
+	return sourceGroups
+}
+
 // PrintArticlesInTemplate prints a slice of article.Article to the console in predefined template.
 func (l *Logger) PrintArticlesInTemplate(articles []article.Article, params FilterParams, templatePath string) error {
 
@@ -51,7 +59,8 @@ func (l *Logger) PrintArticlesInTemplate(articles []article.Article, params Filt
 	}
 
 	funcMap := template.FuncMap{
-		"highlight": highlightKeywords,
+		"highlight":     highlightKeywords,
+		"groupBySource": groupBySource,
 	}
 
 	tmpl, err := template.New("main").Funcs(funcMap).Funcs(sprig.FuncMap()).ParseFiles(templatePath)
