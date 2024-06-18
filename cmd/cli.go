@@ -20,6 +20,7 @@ type CLI struct {
 	keywordsArg   string
 	startDateArg  string
 	endDateArg    string
+	sortOrderArg  string
 	parserFactory *aggregator.ParserFactory
 	aggregator    *aggregator.Aggregator
 	storage       *storage.Storage
@@ -56,6 +57,7 @@ func (cli *CLI) ParseFlags() {
 	flag.StringVar(&cli.keywordsArg, "keywords", "", "Comma-separated list of keywords to filter news articles")
 	flag.StringVar(&cli.startDateArg, "date-start", "", "Start date for filtering news articles (format: yyyy-dd-mm)")
 	flag.StringVar(&cli.endDateArg, "date-end", "", "End date for filtering news articles (format: yyyy-dd-mm)")
+	flag.StringVar(&cli.sortOrderArg, "sort-order", "asc", "Sort order for articles by date (asc/desc)")
 	flag.Usage = cli.printUsage
 	flag.Parse()
 }
@@ -109,6 +111,7 @@ func (cli *CLI) showAllArticles() {
 		console_printer.New().Error(err.Error())
 	}
 
+	articles = cli.sortArticles(articles)
 	cli.printArticles(articles)
 }
 
@@ -128,7 +131,20 @@ func (cli *CLI) showFilteredArticles() {
 		return
 	}
 
+	filteredArticles = cli.sortArticles(filteredArticles)
 	cli.printArticles(filteredArticles)
+}
+
+func (cli *CLI) sortArticles(articles []article.Article) []article.Article {
+
+	if cli.sortOrderArg == "asc" {
+		return aggregator.SortArticlesByDateAsc(articles)
+	} else if cli.sortOrderArg == "desc" {
+		return aggregator.SortArticlesByDateDesc(articles)
+	} else {
+		console_printer.New().Error("Unknown sort order")
+		return articles
+	}
 }
 
 func (cli *CLI) getResources() []resource.Resource {
@@ -206,4 +222,5 @@ func (cli *CLI) printUsage() {
 	fmt.Println("  NewsAggregator -sources=source1,source2 -keywords=keyword1,keyword2 -date-start=2024-01-01")
 	fmt.Println("  NewsAggregator -keywords=keyword1,keyword2")
 	fmt.Println("  NewsAggregator -date-start=2024-01-01 -date-end=2024-12-31")
+	fmt.Println("  NewsAggregator -sort-order=asc")
 }
