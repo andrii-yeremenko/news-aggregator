@@ -21,6 +21,7 @@ type FilterParams struct {
 	KeywordsArg  string
 	StartDateArg string
 	EndDateArg   string
+	OrderArg     string
 }
 
 // New creates a new Logger instance.

@@ -202,6 +202,7 @@ func (cli *CLI) printArticles(articles []article.Article) {
 		KeywordsArg:  cli.keywordsArg,
 		StartDateArg: cli.startDateArg,
 		EndDateArg:   cli.endDateArg,
+		OrderArg:     cli.sortOrderArg,
 	}
 
 	err := console_printer.New().PrintArticlesInTemplate(articles, params, "console_printer/template/article_template.txt")

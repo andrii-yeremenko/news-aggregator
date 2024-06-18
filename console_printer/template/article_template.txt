@@ -15,6 +15,14 @@
 ║{{- indent 5 "" -}}{{if ne .Params.KeywordsArg ""}}* Keywords: "{{.Params.KeywordsArg}}"{{else}}- Keywords: Not Applied{{end}}
 ║{{- indent 5 "" -}}{{if ne .Params.StartDateArg ""}}* Start Date: "{{.Params.StartDateArg}}"{{else}}- Start Date: Not Applied{{end}}
 ║{{- indent 5 "" -}}{{if ne .Params.EndDateArg ""}}* End Date: "{{.Params.EndDateArg}}"{{else}}- End Date: Not Applied{{end}}
+║{{- indent 2 "" -}}Sorted by:
+{{- if eq .Params.OrderArg "asc"}}
+{{- indent 2 "" -}}Ascending
+{{- else if eq .Params.OrderArg "desc"}}
+{{- indent 2 "" -}}Descending
+{{- else}}
+{{- indent 2 "" -}}None
+{{- end}}
 ╠═══════════════════════════════════════════════════════════════════════════╣
 {{end}}
 
