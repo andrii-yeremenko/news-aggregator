@@ -1,67 +1,80 @@
-package storage_test
+package storage
 
 import (
-	"news-aggregator/storage"
-	"strings"
+	"github.com/stretchr/testify/assert"
+	"news-aggregator/aggregator/model/resource"
+	"os"
+	"path/filepath"
 	"testing"
 )
 
-func TestStorage_GetAvailableSources(t *testing.T) {
-	store := storage.New("")
-	expectedSources := []string{"bbc-world", "usa-today", "nbc-news", "abc-news", "washington-times"}
-	expectedCount := len(expectedSources)
-	sources := store.GetAvailableSources()
+func TestStorage_FileExists(t *testing.T) {
+	testDir := "testdata"
+	storage := New(testDir)
 
-	for _, source := range expectedSources {
-		if !strings.Contains(sources, source) {
-			t.Errorf("expected source %s is missing", source)
+	// Test existing file
+	exists := storage.fileExists("test.txt")
+	assert.True(t, exists, "expected file to exist")
+
+	// Test non-existent file
+	exists = storage.fileExists("nonexistent.txt")
+	assert.False(t, exists, "expected file to not exist")
+}
+
+func TestStorage_ReadSource(t *testing.T) {
+	testDir := "testdata"
+	storage := New(testDir)
+
+	testFilePath := filepath.Join(testDir, "resources/abc-news.xml")
+	err := os.MkdirAll(filepath.Dir(testFilePath), 0755)
+	assert.NoError(t, err)
+	file, err := os.Create(testFilePath)
+	assert.NoError(t, err)
+	defer func(path string) {
+		err := os.RemoveAll(path)
+		if err != nil {
+			t.Fatalf("error removing test file: %v", err)
 		}
+	}(filepath.Dir(testFilePath))
+	_, _ = file.WriteString("test content\nanother line\n")
+	err = file.Close()
+	if err != nil {
+		t.Fatalf("error closing test file: %v", err)
 	}
 
-	actualCount := strings.Count(sources, ",")
-	if actualCount != expectedCount {
-		t.Errorf("expected %d sources but got %d", expectedCount, actualCount)
-	}
+	expectedContent := "test content\nanother line\n"
+	readContent, err := storage.ReadSource("abc-news")
+	assert.NoError(t, err, "expected no error reading file")
+	assert.Equal(t, expectedContent, readContent, "expected file content to match")
+
+	_, err = storage.ReadSource("unknown-source")
+	assert.Error(t, err, "expected error reading unknown source")
+	assert.Equal(t, "source unknown-source is unknown", err.Error(), "expected specific error message")
 }
 
-func TestStorage_GetAllResources(t *testing.T) {
-	store := storage.New("")
+func TestStorage_AvailableSources(t *testing.T) {
+	testDir := "testdata"
+	storage := New(testDir)
 
-	resources, err := store.GetAllResources()
-	if err != nil {
-		t.Fatalf("expected no error but got %v", err)
-	}
-
-	if len(resources) != 5 {
-		t.Fatalf("expected 5 resources but got %d", len(resources))
-	}
-}
-
-func TestStorage_GetSelectedResources(t *testing.T) {
-	store := storage.New("")
-
-	selectedSources := []string{"nbc-news", "abc-news"}
-	resources, err := store.GetSelectedResources(selectedSources)
-	if err != nil {
-		t.Fatalf("expected no error but got %v", err)
-	}
-	if len(resources) != 2 {
-		t.Fatalf("expected 2 resources but got %d", len(resources))
-	}
-
-	for _, res := range resources {
-		if res.Source() != "nbc-news" && res.Source() != "abc-news" {
-			t.Errorf("expected source to be nbc-news or abc-news but got %s", res.Source())
+	for _, path := range storage.resourcesPath {
+		testFilePath := filepath.Join(testDir, path)
+		err := os.MkdirAll(filepath.Dir(testFilePath), 0755)
+		assert.NoError(t, err)
+		file, err := os.Create(testFilePath)
+		assert.NoError(t, err)
+		err = file.Close()
+		if err != nil {
+			t.Fatalf("error closing test file: %v", err)
 		}
+		defer func(path string) {
+			err := os.RemoveAll(path)
+			if err != nil {
+				t.Fatalf("error removing test file: %v", err)
+			}
+		}(filepath.Dir(testFilePath))
 	}
-}
 
-func TestStorage_GetSelectedResources_InvalidSource(t *testing.T) {
-	store := storage.New("")
-
-	selectedSources := []string{"nbc-news", "abc-news", "invalid-source"}
-	_, err := store.GetSelectedResources(selectedSources)
-	if err == nil {
-		t.Errorf("expected error but got nil")
-	}
+	expectedSources := []resource.Source{"nbc-news", "abc-news", "washington-times", "bbc-world", "usa-today"}
+	availableSources := storage.AvailableSources()
+	assert.ElementsMatch(t, expectedSources, availableSources, "expected available sources to match")
 }

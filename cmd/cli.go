@@ -8,7 +8,7 @@ import (
 	"news-aggregator/aggregator/model/article"
 	"news-aggregator/aggregator/model/resource"
 	"news-aggregator/console_printer"
-	"news-aggregator/storage"
+	"news-aggregator/resource_manager"
 	"os"
 	"path"
 	"strings"
@@ -16,14 +16,14 @@ import (
 
 // CLI is the command line interface for the news aggregator.
 type CLI struct {
-	sourceArg     string
-	keywordsArg   string
-	startDateArg  string
-	endDateArg    string
-	sortOrderArg  string
-	parserFactory *aggregator.ParserFactory
-	aggregator    *aggregator.Aggregator
-	storage       *storage.Storage
+	sourceArg       string
+	keywordsArg     string
+	startDateArg    string
+	endDateArg      string
+	sortOrderArg    string
+	parserFactory   *aggregator.ParserFactory
+	aggregator      *aggregator.Aggregator
+	resourceManager *resource_manager.ResourceManager
 }
 
 // New creates a new CLI instance.
@@ -39,12 +39,12 @@ func New() (*CLI, error) {
 		return nil, err
 	}
 
-	store := storage.New(path.Join(basePath, "/storage"))
+	manager := resource_manager.New(path.Join(basePath, "/storage"))
 
 	return &CLI{
-		parserFactory: parserPool,
-		aggregator:    a,
-		storage:       store,
+		parserFactory:   parserPool,
+		aggregator:      a,
+		resourceManager: manager,
 	}, nil
 }
 
@@ -53,7 +53,7 @@ func New() (*CLI, error) {
 // Errors may occur due to incorrect date formats, unrecognized sources, or unknown arguments.
 func (cli *CLI) ParseFlags() {
 	flag.StringVar(&cli.sourceArg, "sources", "", "Comma-separated list of news sources\n"+
-		"Available sources: "+cli.storage.GetAvailableSources())
+		"Available sources: "+cli.resourceManager.AvailableSources())
 	flag.StringVar(&cli.keywordsArg, "keywords", "", "Comma-separated list of keywords to filter news articles")
 	flag.StringVar(&cli.startDateArg, "date-start", "", "Start date for filtering news articles (format: yyyy-dd-mm)")
 	flag.StringVar(&cli.endDateArg, "date-end", "", "End date for filtering news articles (format: yyyy-dd-mm)")
@@ -85,7 +85,7 @@ func (cli *CLI) Run() error {
 }
 
 func (cli *CLI) checkAvailableSources() bool {
-	if cli.storage.GetAvailableSources() == "" {
+	if cli.resourceManager.AvailableSources() == "" {
 		console_printer.New().Warn("No sources available")
 		return true
 	}
@@ -101,7 +101,7 @@ func (cli *CLI) countFlags() int {
 }
 
 func (cli *CLI) showAllArticles() {
-	resources, err := cli.storage.GetAllResources()
+	resources, err := cli.resourceManager.AllResources()
 	if err != nil {
 		console_printer.New().Error(err.Error())
 	}
@@ -149,7 +149,7 @@ func (cli *CLI) sortArticles(articles []article.Article) []article.Article {
 
 func (cli *CLI) getResources() []resource.Resource {
 	if cli.sourceArg == "" {
-		resources, err := cli.storage.GetAllResources()
+		resources, err := cli.resourceManager.AllResources()
 		if err != nil {
 			console_printer.New().Error(err.Error())
 		}
@@ -158,7 +158,7 @@ func (cli *CLI) getResources() []resource.Resource {
 	}
 
 	sources := strings.Split(cli.sourceArg, ",")
-	resources, err := cli.storage.GetSelectedResources(sources)
+	resources, err := cli.resourceManager.GetSelectedResources(sources)
 	if err != nil {
 		console_printer.New().Error(err.Error())
 	}
