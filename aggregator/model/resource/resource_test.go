@@ -36,6 +36,13 @@ func TestNewResource(t *testing.T) {
 			content:     "",
 			expectedErr: errors.New("content cannot be empty"),
 		},
+		{
+			name:        "Empty format",
+			source:      "CNN",
+			format:      resource.UNKNOWN,
+			content:     "Some news content",
+			expectedErr: errors.New("format cannot be unknown"),
+		},
 	}
 
 	for _, test := range tests {
