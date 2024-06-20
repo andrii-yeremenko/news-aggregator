@@ -6,7 +6,8 @@ import (
 	"news-aggregator/storage"
 )
 
-// ResourceManager is responsible for creating resources according its format and its managing.
+// ResourceManager is a manager that responsible for retrieval of resources from the storage,
+// forming them into structures.
 type ResourceManager struct {
 	storage   *storage.Storage
 	resources map[resource.Source]resource.Format

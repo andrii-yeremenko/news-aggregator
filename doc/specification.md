@@ -128,9 +128,7 @@ output is an instantiated parser object capable of parsing articles from the spe
 
 ## Storage:
 
-The Storage API is responsible for managing the storage and retrieval of news article data.
-The API also includes an error handling
-mechanism, which allows handling errors in a way that is convenient for the user.
+The Storage API is responsible for the retrieval and manipulation of known files from a file system.
 
 ### Methods
 
@@ -142,24 +140,34 @@ mechanism, which allows handling errors in a way that is convenient for the user
     * Returns:
        * Storage object.
 
-2. GetAvailableSources: Retrieves a list of available sources.
+2. ReadSource: Retrieves a source from a file.
 
+    * Args:
+        * sourceName (string): Name of the source to retrieve.
    * Returns:
-      * []string: A list of available sources.
-        * error: Error object in case of failure.
+       * resource.Resource: The source object.
+       * error: Error object in case of failure.
     * Errors:
-       * SourceLoadError: Error occurred while loading the sources.
+        * SourceNotFoundError: Source not found in the storage system.
     * Docs:
-       * Description: Retrieves a list of available sources from the storage system.
+        * Description: Retrieve a source from the storage system based on the provided source name.
 
    #### Usage:
 
     ```
-    sources, err := storage.GetAvailableSources()
-    fmt.Println("Available sources:", sources)
+    source := resource.Source("nbc-news")
+    res, err := storage.ReadSource(source)
     ```
 
-3. GetAllResources: Retrieves all resources from the storage system.
+## Resource manager:
+
+The Resource Manager API is responsible for creating resource.Resource structures from raw data and managing them in the
+storage system. Uses the Storage API to retrieve resources from the storage system. Helps user to interact with the
+storage API and forms the resource.Resource based on the provided and fetched data.
+
+### Methods
+
+1. AllResources: Retrieves all available and known resources from the storage system.
 
    * Returns:
       * []resource.Resource: Slice of Resource objects.
@@ -170,13 +178,13 @@ mechanism, which allows handling errors in a way that is convenient for the user
    #### Usage:
 
     ```
-    resources, err := storage.GetAllResources()
+    resources, err := resource_manager.AllResources()
     if err != nil {
         log.Fatalf("Error fetching all resources: %v", err)
     }
     ```
 
-4. GetSelectedResources: Retrieves selected resources from the storage system.
+2. GetSelectedResources: Retrieves selected resources from the storage system.
 
    * Args:
       * sources []string: List of sources to retrieve.
@@ -190,9 +198,26 @@ mechanism, which allows handling errors in a way that is convenient for the user
 
     ```
     sources := []string{"nbc-news", "abc-news"}
-    selectedResources, err := storage.GetSelectedResources(sources)
+    selectedResources, err := resource_manager.GetSelectedResources(sources)
     if err != nil {
         log.Fatalf("Error fetching selected resources: %v", err)
+    }
+    ```
+
+3. AvailableSources: Retrieves the list of known and available sources in the storage system.
+
+    * Returns:
+        * []string: List of available sources.
+        * error: Error object in case of failure.
+    * Docs:
+        * Description: Retrieves the list of available sources from the storage system.
+
+   #### Usage:
+
+    ```
+    sources, err := resource_manager.AvailableSources()
+    if err != nil {
+        log.Fatalf("Error fetching available sources: %v", err)
     }
     ```
 
