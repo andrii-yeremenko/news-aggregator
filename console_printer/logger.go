@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"github.com/Masterminds/sprig/v3"
 	"github.com/fatih/color"
+	"github.com/reiver/go-porterstemmer"
 	"news-aggregator/aggregator/model/article"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 	"text/template"
 )
@@ -36,13 +36,29 @@ func New() *Logger {
 
 func highlightKeywords(text string, keywordsArg string) string {
 	keywords := strings.Split(keywordsArg, ",")
-	for _, keyword := range keywords {
-		pattern := `\b` + regexp.QuoteMeta(keyword) + `\b`
-		re := regexp.MustCompile(pattern)
-		highlighted := color.New(color.Underline).SprintFunc()(keyword)
-		text = re.ReplaceAllString(text, highlighted)
+	stemmedKeywords := make([]string, len(keywords))
+
+	for i, keyword := range keywords {
+		stemmedKeywords[i] = porterstemmer.StemString(keyword)
 	}
-	return text
+
+	words := strings.Fields(text)
+	stemmedWords := make([]string, len(words))
+	for i, word := range words {
+		stemmedWords[i] = porterstemmer.StemString(word)
+	}
+
+	for i, stemmedWord := range stemmedWords {
+		for _, stemmedKeyword := range stemmedKeywords {
+			if stemmedWord == stemmedKeyword {
+				highlighted := color.New(color.Underline).SprintFunc()(words[i])
+				words[i] = highlighted
+				break
+			}
+		}
+	}
+
+	return strings.Join(words, " ")
 }
 
 func groupBySource(articles []article.Article) map[string][]article.Article {
