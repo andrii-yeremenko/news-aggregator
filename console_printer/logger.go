@@ -34,31 +34,45 @@ func New() *Logger {
 	}
 }
 
-func highlightKeywords(text string, keywordsArg string) string {
+func extractKeywords(keywordsArg string) []string {
 	keywords := strings.Split(keywordsArg, ",")
 	stemmedKeywords := make([]string, len(keywords))
-
 	for i, keyword := range keywords {
 		stemmedKeywords[i] = porterstemmer.StemString(keyword)
 	}
+	return stemmedKeywords
+}
 
+func extractWords(text string) ([]string, []string) {
 	words := strings.Fields(text)
 	stemmedWords := make([]string, len(words))
 	for i, word := range words {
 		stemmedWords[i] = porterstemmer.StemString(word)
 	}
+	return words, stemmedWords
+}
 
-	for i, stemmedWord := range stemmedWords {
-		for _, stemmedKeyword := range stemmedKeywords {
-			if stemmedWord == stemmedKeyword {
-				highlighted := color.New(color.Underline).SprintFunc()(words[i])
-				words[i] = highlighted
-				break
-			}
-		}
+func highlightWords(words, stemmedWords, stemmedKeywords []string) []string {
+	stemmedKeywordsSet := make(map[string]struct{}, len(stemmedKeywords))
+	for _, stemmedKeyword := range stemmedKeywords {
+		stemmedKeywordsSet[stemmedKeyword] = struct{}{}
 	}
 
-	return strings.Join(words, " ")
+	for i, stemmedWord := range stemmedWords {
+		if _, exists := stemmedKeywordsSet[stemmedWord]; exists {
+			highlighted := color.New(color.Underline).SprintFunc()(words[i])
+			words[i] = highlighted
+		}
+	}
+	return words
+}
+
+// highlightKeywords is the main function that uses the helper functions to highlight the keywords in the text.
+func highlightKeywords(text string, keywordsArg string) string {
+	stemmedKeywords := extractKeywords(keywordsArg)
+	words, stemmedWords := extractWords(text)
+	highlightedWords := highlightWords(words, stemmedWords, stemmedKeywords)
+	return strings.Join(highlightedWords, " ")
 }
 
 func groupBySource(articles []article.Article) map[string][]article.Article {
