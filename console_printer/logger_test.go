@@ -31,7 +31,8 @@ func TestPrintArticlesInTemplate(t *testing.T) {
 		EndDateArg:   "2024-06-05",
 	}
 
-	err := l.PrintArticlesInTemplate(articles, params, "testdata/article_simple_template.txt")
+	l.SetTemplatePath("testdata/article_simple_template.txt")
+	err := l.PrintArticles(articles, params)
 	if err != nil {
 		t.Fatalf("Failed to print articles in template: %v", err)
 	}
@@ -44,10 +45,11 @@ func TestPrintArticlesInTemplateError(t *testing.T) {
 
 	articles := make([]article.Article, 0)
 
-	err := l.PrintArticlesInTemplate(articles, console_printer.FilterParams{}, "testdata/template_with_error.txt")
+	l.SetTemplatePath("testdata/template_with_error.txt")
+	err := l.PrintArticles(articles, console_printer.FilterParams{})
 
 	if err == nil {
-		t.Errorf("PrintArticlesInTemplate() should return an error when template is invalid")
+		t.Errorf("PrintArticles() should return an error when template is invalid")
 	}
 }
 
@@ -57,10 +59,11 @@ func TestPrintArticlesInEmptyTemplate(t *testing.T) {
 
 	articles := make([]article.Article, 0)
 
-	err := l.PrintArticlesInTemplate(articles, console_printer.FilterParams{}, "testdata/empty_template.txt")
+	l.SetTemplatePath("testdata/empty_template.txt")
+	err := l.PrintArticles(articles, console_printer.FilterParams{})
 
 	if err == nil {
-		t.Errorf("PrintArticlesInTemplate() should return an error when template is empty")
+		t.Errorf("PrintArticles() should return an error when template is empty")
 	}
 }
 
@@ -70,10 +73,11 @@ func TestPrintArticlesInTemplate_WithIncorrectLocation(t *testing.T) {
 
 	articles := make([]article.Article, 0)
 
-	err := l.PrintArticlesInTemplate(articles, console_printer.FilterParams{}, "testdata/unknown.txt")
+	l.SetTemplatePath("testdata/incorrect.txt")
+	err := l.PrintArticles(articles, console_printer.FilterParams{})
 
 	if err == nil {
-		t.Errorf("PrintArticlesInTemplate() should return an error when template location is incorrect")
+		t.Errorf("PrintArticles() should return an error when template location is incorrect")
 	}
 }
 

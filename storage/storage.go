@@ -29,8 +29,8 @@ func New(basePath string) *Storage {
 }
 
 // FileExists checks if a file exists in the storage.
-func (l *Storage) fileExists(filename string) bool {
-	absPath := filepath.Join(l.basePath, filename)
+func (s *Storage) fileExists(filename string) bool {
+	absPath := filepath.Join(s.basePath, filename)
 	_, err := os.Stat(absPath)
 
 	if err != nil {
@@ -41,13 +41,13 @@ func (l *Storage) fileExists(filename string) bool {
 }
 
 // ReadSource reads the content of a file in the storage.
-func (l *Storage) ReadSource(source resource.Source) (string, error) {
+func (s *Storage) ReadSource(source resource.Source) (string, error) {
 
-	if l.resourcesPath[source] == "" {
+	if s.resourcesPath[source] == "" {
 		return "", fmt.Errorf("source %s is unknown", source)
 	}
 
-	absPath := filepath.Join(l.basePath, l.resourcesPath[source])
+	absPath := filepath.Join(s.basePath, s.resourcesPath[source])
 	file, err := os.Open(absPath)
 	if err != nil {
 		return "", fmt.Errorf("error opening file: %v", err)
@@ -60,21 +60,21 @@ func (l *Storage) ReadSource(source resource.Source) (string, error) {
 		}
 	}(file)
 
-	return l.scanFile(file)
+	return s.scanFile(file)
 }
 
 // AvailableSources returns all the available registered is storage sources.
-func (l *Storage) AvailableSources() []resource.Source {
-	sources := make([]resource.Source, 0, len(l.resourcesPath))
-	for source := range l.resourcesPath {
-		if l.fileExists(l.resourcesPath[source]) {
+func (s *Storage) AvailableSources() []resource.Source {
+	sources := make([]resource.Source, 0, len(s.resourcesPath))
+	for source := range s.resourcesPath {
+		if s.fileExists(s.resourcesPath[source]) {
 			sources = append(sources, source)
 		}
 	}
 	return sources
 }
 
-func (l *Storage) scanFile(file *os.File) (string, error) {
+func (s *Storage) scanFile(file *os.File) (string, error) {
 	scanner := bufio.NewScanner(file)
 	var content string
 	for scanner.Scan() {

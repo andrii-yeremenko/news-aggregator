@@ -6,6 +6,7 @@ import (
 	"github.com/fatih/color"
 	"news-aggregator/aggregator/model/article"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 	"text/template"
@@ -13,6 +14,7 @@ import (
 
 // Logger is a tool that records actions, measurements, print program output or other information.
 type Logger struct {
+	templatePath string
 }
 
 // FilterParams is a struct that holds the parameters for filtering articles.
@@ -26,7 +28,10 @@ type FilterParams struct {
 
 // New creates a new Logger instance.
 func New() *Logger {
-	return &Logger{}
+	basePath, _ := os.Getwd()
+	return &Logger{
+		templatePath: path.Join(basePath, "console_printer/template/article_template.txt"),
+	}
 }
 
 func highlightKeywords(text string, keywordsArg string) string {
@@ -48,8 +53,8 @@ func groupBySource(articles []article.Article) map[string][]article.Article {
 	return sourceGroups
 }
 
-// PrintArticlesInTemplate prints a slice of article.Article to the console in predefined template.
-func (l *Logger) PrintArticlesInTemplate(articles []article.Article, params FilterParams, templatePath string) error {
+// PrintArticles prints a slice of article.Article to the console in predefined template.
+func (l *Logger) PrintArticles(articles []article.Article, params FilterParams) error {
 
 	data := struct {
 		Articles []article.Article
@@ -64,7 +69,7 @@ func (l *Logger) PrintArticlesInTemplate(articles []article.Article, params Filt
 		"groupBySource": groupBySource,
 	}
 
-	tmpl, err := template.New("main").Funcs(funcMap).Funcs(sprig.FuncMap()).ParseFiles(templatePath)
+	tmpl, err := template.New("main").Funcs(funcMap).Funcs(sprig.FuncMap()).ParseFiles(l.templatePath)
 	if err != nil {
 		return fmt.Errorf("failed to parse template: %v", err)
 	}
@@ -90,4 +95,9 @@ func (l *Logger) Error(error string) {
 // Warn logs the given warning.
 func (l *Logger) Warn(warning string) {
 	fmt.Printf("[Warning] %s\n", warning)
+}
+
+// SetTemplatePath sets the template for the logger.
+func (l *Logger) SetTemplatePath(path string) {
+	l.templatePath = path
 }

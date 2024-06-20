@@ -205,7 +205,7 @@ func (cli *CLI) printArticles(articles []article.Article) {
 		OrderArg:     cli.sortOrderArg,
 	}
 
-	err := console_printer.New().PrintArticlesInTemplate(articles, params, "console_printer/template/article_template.txt")
+	err := console_printer.New().PrintArticles(articles, params)
 
 	if err != nil {
 		console_printer.New().Error(err.Error())
