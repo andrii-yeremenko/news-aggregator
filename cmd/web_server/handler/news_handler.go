@@ -1,27 +1,29 @@
 package handler
 
 import (
+	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 	"news-aggregator/aggregator"
 	"news-aggregator/aggregator/filter"
 	"news-aggregator/aggregator/model/article"
 	"news-aggregator/aggregator/model/resource"
-	"news-aggregator/console_printer"
 	"news-aggregator/resource_manager"
 	"strings"
 )
 
 // NewsAggregatorHandler a Handler for aggregating news by provided filters and arguments.
 type NewsAggregatorHandler struct {
-	Aggregator      *aggregator.Aggregator
-	ResourceManager *resource_manager.ResourceManager
+	resourceManager *resource_manager.ResourceManager
+	parserPool      *aggregator.ParserFactory
 }
 
 // NewNewsHandler creates a new NewsAggregatorHandler instance.
-func NewNewsHandler(aggregator *aggregator.Aggregator, resourceManager *resource_manager.ResourceManager) *NewsAggregatorHandler {
+func NewNewsHandler(resourceManager *resource_manager.ResourceManager) *NewsAggregatorHandler {
 	return &NewsAggregatorHandler{
-		Aggregator:      aggregator,
-		ResourceManager: resourceManager,
+		resourceManager: resourceManager,
+		parserPool:      aggregator.NewParserFactory(),
 	}
 }
 
@@ -35,50 +37,65 @@ func (h *NewsAggregatorHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	endDate := query.Get("date-end")
 	sortOrder := query.Get("sort-order")
 
-	resources := h.getResources(sources)
-	err := h.applyFilters(keywords, startDate, endDate)
+	a, err := aggregator.New(h.parserPool)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Fatalf("failed to create aggregator: %v", err)
+	}
+
+	resources, err := h.getResources(sources)
+	if err != nil {
+		h.respondWithError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	articles, err := h.Aggregator.AggregateMultiple(resources)
+	err = h.applyFilters(a, keywords, startDate, endDate)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		h.respondWithError(w, err, http.StatusBadRequest)
 		return
 	}
 
-	articles = h.sortArticles(articles, sortOrder)
-	h.printArticles(w, articles)
+	articles, err := a.AggregateMultiple(resources)
+	if err != nil {
+		h.respondWithError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	if sortOrder != "" {
+		articles, err = h.sortArticles(articles, sortOrder)
+		if err != nil {
+			h.respondWithError(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+
+	h.sendArticles(w, articles)
 }
 
-func (h *NewsAggregatorHandler) getResources(sources string) []resource.Resource {
+func (h *NewsAggregatorHandler) getResources(sources string) ([]resource.Resource, error) {
 	if sources == "" {
-		resources, err := h.ResourceManager.AllResources()
+		resources, err := h.resourceManager.AllResources()
 		if err != nil {
-			console_printer.New().Error(err.Error())
+			return resources, err
 		}
-
-		return resources
+		return resources, nil
 	}
 
 	sourceList := strings.Split(sources, ",")
-	resources, err := h.ResourceManager.GetSelectedResources(sourceList)
+	resources, err := h.resourceManager.GetSelectedResources(sourceList)
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		return resources, err
 	}
 
-	h.Aggregator.AddFilter(filter.NewSourceFilter(sourceList))
-	return resources
+	return resources, nil
 }
 
-func (h *NewsAggregatorHandler) applyFilters(keywords, startDate, endDate string) error {
+func (h *NewsAggregatorHandler) applyFilters(a *aggregator.Aggregator, keywords, startDate, endDate string) error {
 	if startDate != "" {
 		startDateFilter, err := filter.NewStartDateFilter(startDate)
 		if err != nil {
 			return err
 		}
-		h.Aggregator.AddFilter(startDateFilter)
+		a.AddFilter(startDateFilter)
 	}
 
 	if endDate != "" {
@@ -86,40 +103,62 @@ func (h *NewsAggregatorHandler) applyFilters(keywords, startDate, endDate string
 		if err != nil {
 			return err
 		}
-		h.Aggregator.AddFilter(endDateFilter)
+		a.AddFilter(endDateFilter)
 	}
 
 	if keywords != "" {
 		keywordList := strings.Split(keywords, ",")
-		h.Aggregator.AddFilter(filter.NewKeywordFilter(keywordList))
+		a.AddFilter(filter.NewKeywordFilter(keywordList))
 	}
 
 	return nil
 }
 
-func (h *NewsAggregatorHandler) sortArticles(articles []article.Article, sortOrder string) []article.Article {
+func (h *NewsAggregatorHandler) sortArticles(articles []article.Article, sortOrder string) ([]article.Article, error) {
 	switch sortOrder {
 	case "asc":
-		return aggregator.SortArticlesByDateAsc(articles)
+		return aggregator.SortArticlesByDateAsc(articles), nil
 	case "desc":
-		return aggregator.SortArticlesByDateDesc(articles)
+		return aggregator.SortArticlesByDateDesc(articles), nil
 	default:
-		console_printer.New().Error("Unknown sort order")
-		return articles
+		return nil, errors.New("invalid sort order")
 	}
 }
 
-func (h *NewsAggregatorHandler) printArticles(w http.ResponseWriter, articles []article.Article) {
-	params := console_printer.FilterParams{
-		SourceArg:    "",
-		KeywordsArg:  "",
-		StartDateArg: "",
-		EndDateArg:   "",
-		OrderArg:     "",
+func (h *NewsAggregatorHandler) sendArticles(w http.ResponseWriter, articles []article.Article) {
+	var articlesJSON []map[string]interface{}
+
+	for _, art := range articles {
+		articleJSON := map[string]interface{}{
+			"title":        art.TitleStr(),
+			"description":  art.DescriptionStr(),
+			"creationDate": art.Date().HumanReadableString(),
+			"source":       art.Source(),
+			"author":       art.Author(),
+			"link":         art.Link(),
+		}
+
+		articlesJSON = append(articlesJSON, articleJSON)
 	}
 
-	err := console_printer.New().PrintArticles(articles, params)
+	w.Header().Set("Content-Type", "application/json")
+
+	responseJSON, err := json.Marshal(articlesJSON)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_, err = w.Write(responseJSON)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func (h *NewsAggregatorHandler) respondWithError(w http.ResponseWriter, err error, status int) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	errorResponse := NewErrorResponse(err)
+	_, _ = w.Write(errorResponse.getJSON())
 }

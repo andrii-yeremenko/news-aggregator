@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"news-aggregator/aggregator"
 	"news-aggregator/cmd/web_server"
 	"news-aggregator/cmd/web_server/handler"
 	"news-aggregator/resource_manager"
@@ -11,12 +10,6 @@ import (
 )
 
 func main() {
-	parserPool := aggregator.NewParserFactory()
-	a, err := aggregator.New(parserPool)
-	if err != nil {
-		log.Fatalf("failed to create aggregator: %v", err)
-	}
-
 	basePath, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("failed to get current directory: %v", err)
@@ -24,7 +17,7 @@ func main() {
 
 	manager := resource_manager.New(path.Join(basePath, "/storage"))
 
-	newsHandler := handler.NewNewsHandler(a, manager)
+	newsHandler := handler.NewNewsHandler(manager)
 
 	server := web_server.NewServerBuilder().
 		SetPort("8443").
