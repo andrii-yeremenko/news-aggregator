@@ -1,13 +1,13 @@
 package main
 
 import (
-	"news-aggregator/cmd"
+	"news-aggregator/cmd/cli"
 	"news-aggregator/console_printer"
 )
 
 // the main is the entry point of the application.
 func main() {
-	cli, err := cmd.New()
+	cli, err := cli.New()
 
 	if err != nil {
 		console_printer.New().Error(err.Error())
