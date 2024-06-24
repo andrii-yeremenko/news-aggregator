@@ -35,7 +35,7 @@ func (sb *ServerBuilder) Build() *http.Server {
 		mux.HandleFunc(path, handler)
 	}
 
-	mux.HandleFunc("/alive", handler.NewServerStatusHandler().Handle)
+	mux.HandleFunc("/status", handler.NewServerStatusHandler("1.0").Handle)
 
 	return &http.Server{
 		Addr:    ":" + sb.port,
