@@ -25,7 +25,7 @@ func TestStorage_ReadSource(t *testing.T) {
 	testDir := "testdata"
 	storage := New(testDir)
 
-	testFilePath := filepath.Join(testDir, "resources/abc-news.xml")
+	testFilePath := filepath.Join(testDir, "resources/abc-news-20240518.xml")
 	err := os.MkdirAll(filepath.Dir(testFilePath), 0755)
 	assert.NoError(t, err)
 	file, err := os.Create(testFilePath)

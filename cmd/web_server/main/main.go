@@ -17,11 +17,10 @@ func main() {
 
 	manager := resource_manager.New(path.Join(basePath, "/storage"))
 
-	newsHandler := handler.NewNewsHandler(manager)
-
 	server := web_server.NewServerBuilder().
 		SetPort("8443").
-		AddHandler("/news", newsHandler.Handle).
+		AddHandler("/news", handler.NewNewsHandler(manager).Handle).
+		AddHandler("/sources", handler.NewUpdateSourcesHandler(manager).Handle).
 		Build()
 
 	log.Println("Starting server on port 8443")
