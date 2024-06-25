@@ -30,6 +30,12 @@ func New(storagePath string) *ResourceManager {
 	}
 }
 
+// SourceIsSupported checks if the source is supported.
+func (rm *ResourceManager) SourceIsSupported(source resource.Source) bool {
+	_, exists := rm.resources[source]
+	return exists
+}
+
 // AvailableSources returns the available sources.
 func (rm *ResourceManager) AvailableSources() string {
 	sources := rm.storage.AvailableSources()
@@ -101,4 +107,8 @@ func (rm *ResourceManager) getResource(source resource.Source) (resource.Resourc
 	}
 
 	return *res, nil
+}
+
+func (rm *ResourceManager) UpdateResource(source resource.Source) error {
+
 }
