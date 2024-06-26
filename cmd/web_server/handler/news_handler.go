@@ -44,26 +44,26 @@ func (h *NewsAggregatorHandler) Handle(w http.ResponseWriter, r *http.Request) {
 
 	resources, err := h.getResources(sources)
 	if err != nil {
-		h.respondWithError(w, err, http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = h.applyFilters(a, keywords, startDate, endDate)
 	if err != nil {
-		h.respondWithError(w, err, http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	articles, err := a.AggregateMultiple(resources)
 	if err != nil {
-		h.respondWithError(w, err, http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	if sortOrder != "" {
 		articles, err = h.sortArticles(articles, sortOrder)
 		if err != nil {
-			h.respondWithError(w, err, http.StatusBadRequest)
+			http.Error(w, "Invalid sort order", http.StatusBadRequest)
 			return
 		}
 	}
@@ -153,12 +153,4 @@ func (h *NewsAggregatorHandler) sendArticles(w http.ResponseWriter, articles []a
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-}
-
-func (h *NewsAggregatorHandler) respondWithError(w http.ResponseWriter, err error, status int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	errorResponse := NewErrorResponse(err)
-	_, _ = w.Write(errorResponse.getJSON())
 }

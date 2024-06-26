@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 	"news-aggregator/aggregator/model/resource"
 	"news-aggregator/resource_manager"
@@ -24,30 +23,21 @@ func (h *UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	sourceType := r.URL.Query().Get("source")
 
 	if sourceType == "" {
-		h.respondWithError(w, fmt.Errorf("update source not specified"), http.StatusBadRequest)
+		http.Error(w, "Source not specified", http.StatusBadRequest)
 		return
 	}
 
 	if !h.ResourceManager.SourceIsSupported(resource.Source(sourceType)) {
-		h.respondWithError(w, fmt.Errorf("unsupported source: %s", sourceType), http.StatusBadRequest)
+		http.Error(w, "Source not supported", http.StatusBadRequest)
 		return
 	}
 
 	err := h.ResourceManager.UpdateResource(resource.Source(sourceType))
 
 	if err != nil {
-		h.respondWithError(w, err, http.StatusInternalServerError)
+		http.Error(w, "Failed to update source", http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-}
-
-// respondWithError responds with an error.
-func (h *UpdateHandler) respondWithError(w http.ResponseWriter, err error, status int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	errorResponse := NewErrorResponse(err)
-	_, _ = w.Write(errorResponse.getJSON())
 }

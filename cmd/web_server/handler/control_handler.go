@@ -61,13 +61,13 @@ func (ch *ControlHandler) AddSource(w http.ResponseWriter, r *http.Request) {
 	format, err := resource.ParseFormat(source.Format)
 
 	if err != nil {
-		ch.respondWithError(w, err, http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = ch.manager.RegisterSource(resource.Source(source.Name), source.URL, format)
 	if err != nil {
-		ch.respondWithError(w, err, http.StatusBadRequest)
+		http.Error(w, "Failed to add source", http.StatusInternalServerError)
 		return
 	}
 
@@ -90,14 +90,14 @@ func (ch *ControlHandler) UpdateSource(w http.ResponseWriter, r *http.Request) {
 	format, err := resource.ParseFormat(source.Format)
 
 	if err != nil {
-		ch.respondWithError(w, err, http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	err = ch.manager.UpdateSource(resource.Source(source.Name), source.URL, format)
 
 	if err != nil {
-		ch.respondWithError(w, err, http.StatusBadRequest)
+		http.Error(w, "Failed to update source", http.StatusInternalServerError)
 		return
 	}
 
@@ -113,15 +113,10 @@ func (ch *ControlHandler) DeleteSource(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-	ch.manager.DeleteSource(source.Name)
+	err := ch.manager.DeleteSource(source.Name)
+	if err != nil {
+		http.Error(w, "Failed to delete source", http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusOK)
-}
-
-// respondWithError responds with an error.
-func (ch *ControlHandler) respondWithError(w http.ResponseWriter, err error, status int) {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-
-	errorResponse := NewErrorResponse(err)
-	_, _ = w.Write(errorResponse.getJSON())
 }
