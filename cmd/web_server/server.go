@@ -6,11 +6,13 @@ import (
 	"news-aggregator/cmd/web_server/handler"
 )
 
+// ServerBuilder is a builder pattern for creating a new http.Server instance.
 type ServerBuilder struct {
 	port     string
 	handlers map[string]http.HandlerFunc
 }
 
+// NewServerBuilder creates a new ServerBuilder instance.
 func NewServerBuilder() *ServerBuilder {
 	return &ServerBuilder{
 		port:     "8000",
@@ -18,16 +20,19 @@ func NewServerBuilder() *ServerBuilder {
 	}
 }
 
+// SetPort sets the port for the server.
 func (sb *ServerBuilder) SetPort(port string) *ServerBuilder {
 	sb.port = port
 	return sb
 }
 
+// AddHandler adds a new handler to the server.
 func (sb *ServerBuilder) AddHandler(path string, handler http.HandlerFunc) *ServerBuilder {
 	sb.handlers[path] = handler
 	return sb
 }
 
+// Build creates a new http.Server instance.
 func (sb *ServerBuilder) Build() *http.Server {
 	mux := http.NewServeMux()
 
@@ -35,7 +40,7 @@ func (sb *ServerBuilder) Build() *http.Server {
 		mux.HandleFunc(path, hand)
 	}
 
-	mux.HandleFunc("/status", handler.NewServerStatusHandler("1.0").Handle)
+	mux.HandleFunc("/status", handler.NewStatusHandler("1.0").Handle)
 
 	return &http.Server{
 		Addr:    ":" + sb.port,

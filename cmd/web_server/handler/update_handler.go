@@ -7,20 +7,20 @@ import (
 	"news-aggregator/resource_manager"
 )
 
-// UpdateSourcesHandler is a handler for updating news sources from the internet.
-type UpdateSourcesHandler struct {
+// UpdateHandler is a handler for updating news sources from the internet.
+type UpdateHandler struct {
 	ResourceManager *resource_manager.ResourceManager
 }
 
-// NewUpdateSourcesHandler creates a new UpdateSourcesHandler instance.
-func NewUpdateSourcesHandler(resourceManager *resource_manager.ResourceManager) *UpdateSourcesHandler {
-	return &UpdateSourcesHandler{
+// NewUpdateHandler creates a new UpdateHandler instance.
+func NewUpdateHandler(resourceManager *resource_manager.ResourceManager) *UpdateHandler {
+	return &UpdateHandler{
 		ResourceManager: resourceManager,
 	}
 }
 
 // Handle handles the HTTP request and response for updating news sources.
-func (h *UpdateSourcesHandler) Handle(w http.ResponseWriter, r *http.Request) {
+func (h *UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	sourceType := r.URL.Query().Get("source")
 
 	if sourceType == "" {
@@ -44,7 +44,7 @@ func (h *UpdateSourcesHandler) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 // respondWithError responds with an error.
-func (h *UpdateSourcesHandler) respondWithError(w http.ResponseWriter, err error, status int) {
+func (h *UpdateHandler) respondWithError(w http.ResponseWriter, err error, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 

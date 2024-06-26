@@ -19,8 +19,9 @@ type ResourceDetails struct {
 // ResourceManager is a manager that responsible for retrieval of resources from the storage,
 // forming them into structures.
 type ResourceManager struct {
-	storage   *storage.Storage
-	resources map[resource.Source]ResourceDetails
+	storage        *storage.Storage
+	resources      map[resource.Source]ResourceDetails
+	resourcesSetup string
 }
 
 // New creates a new ResourceManager.
@@ -33,61 +34,41 @@ func New(storagePath string, resourcesPath string) (*ResourceManager, error) {
 	}
 
 	return &ResourceManager{
-		storage:   s,
-		resources: rFormats,
+		storage:        s,
+		resources:      rFormats,
+		resourcesSetup: resourcesPath,
 	}, nil
 }
 
-func loadResources(resourcesPath string) (map[resource.Source]ResourceDetails, error) {
-	file, err := os.Open(resourcesPath)
-	if err != nil {
-		return nil, fmt.Errorf("error opening resources file: %v", err)
-	}
-	defer func(file *os.File) {
-		err := file.Close()
-		if err != nil {
-			fmt.Printf("error closing resources file: %v\n", err)
-		}
-	}(file)
+// RegisterSource registers a new source.
+func (rm *ResourceManager) RegisterSource(name resource.Source, url string, format resource.Format) error {
 
-	var resourceList []struct {
-		Source string `json:"source"`
-		Format string `json:"format"`
-		Link   string `json:"link"`
+	rm.resources[name] = ResourceDetails{
+		Format: format,
+		Link:   url,
 	}
 
-	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&resourceList); err != nil {
-		return nil, fmt.Errorf("error decoding resources file: %v", err)
-	}
-
-	rFormats := make(map[resource.Source]ResourceDetails)
-	for _, res := range resourceList {
-		format, err := parseFormat(res.Format)
-		if err != nil {
-			return nil, err
-		}
-
-		rFormats[resource.Source(res.Source)] = ResourceDetails{
-			Format: format,
-			Link:   res.Link,
-		}
-	}
-
-	return rFormats, nil
+	return saveResources(rm.resourcesSetup, rm.resources)
 }
 
-func parseFormat(formatStr string) (resource.Format, error) {
-	switch formatStr {
-	case "RSS":
-		return resource.RSS, nil
-	case "HTML":
-		return resource.HTML, nil
-	case "JSON":
-		return resource.JSON, nil
-	default:
-		return resource.UNKNOWN, fmt.Errorf("unknown format: %s", formatStr)
+// UpdateSource updates the source.
+func (rm *ResourceManager) UpdateSource(name resource.Source, url string, format resource.Format) error {
+
+	rm.resources[name] = ResourceDetails{
+		Format: format,
+		Link:   url,
 	}
+
+	return saveResources(rm.resourcesSetup, rm.resources)
+}
+
+// DeleteSource deletes the source.
+func (rm *ResourceManager) DeleteSource(name string) error {
+
+	source := resource.Source(name)
+	delete(rm.resources, source)
+
+	return saveResources(rm.resourcesSetup, rm.resources)
 }
 
 // SourceIsSupported checks if the source is supported.
@@ -227,6 +208,7 @@ func (rm *ResourceManager) updateRSSResource(source resource.Source, details Res
 
 func (rm *ResourceManager) updateJSONResource(source resource.Source, details ResourceDetails) error {
 	resp, err := http.Get(details.Link)
+
 	if err != nil {
 		return fmt.Errorf("error fetching resource from link: %v", err)
 	}
@@ -278,6 +260,83 @@ func (rm *ResourceManager) updateHTMLResource(source resource.Source, details Re
 	err = rm.storage.UpdateHTMLSource(source, body)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func loadResources(resourcesPath string) (map[resource.Source]ResourceDetails, error) {
+	file, err := os.Open(resourcesPath)
+	if err != nil {
+		return nil, fmt.Errorf("error opening resources file: %v", err)
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("error closing resources file: %v\n", err)
+		}
+	}(file)
+
+	var resourceList []struct {
+		Source string `json:"source"`
+		Format string `json:"format"`
+		Link   string `json:"link"`
+	}
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&resourceList); err != nil {
+		return nil, fmt.Errorf("error decoding resources file: %v", err)
+	}
+
+	rFormats := make(map[resource.Source]ResourceDetails)
+	for _, res := range resourceList {
+		format, err := resource.ParseFormat(res.Format)
+		if err != nil {
+			return nil, err
+		}
+
+		rFormats[resource.Source(res.Source)] = ResourceDetails{
+			Format: format,
+			Link:   res.Link,
+		}
+	}
+
+	return rFormats, nil
+}
+
+func saveResources(resourcesPath string, resources map[resource.Source]ResourceDetails) error {
+	resourceList := make([]struct {
+		Source string `json:"source"`
+		Format string `json:"format"`
+		Link   string `json:"link"`
+	}, 0, len(resources))
+
+	for source, details := range resources {
+		resourceList = append(resourceList, struct {
+			Source string `json:"source"`
+			Format string `json:"format"`
+			Link   string `json:"link"`
+		}{
+			Source: string(source),
+			Format: resource.FormatToString(details.Format),
+			Link:   details.Link,
+		})
+	}
+
+	file, err := os.Create(resourcesPath)
+	if err != nil {
+		return fmt.Errorf("error creating resources file: %v", err)
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("error closing resources file: %v\n", err)
+		}
+	}(file)
+
+	encoder := json.NewEncoder(file)
+	if err := encoder.Encode(&resourceList); err != nil {
+		return fmt.Errorf("error encoding resources file: %v", err)
 	}
 
 	return nil

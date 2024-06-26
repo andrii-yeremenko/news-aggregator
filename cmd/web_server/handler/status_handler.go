@@ -6,22 +6,22 @@ import (
 	"time"
 )
 
-// ServerStatusHandler a Handler for getting the server status.
-type ServerStatusHandler struct {
+// StatusHandler a Handler for getting the server status.
+type StatusHandler struct {
 	startTime time.Time
 	version   string
 }
 
-// NewServerStatusHandler creates a new ServerStatusHandler instance.
-func NewServerStatusHandler(version string) *ServerStatusHandler {
-	return &ServerStatusHandler{
+// NewStatusHandler creates a new StatusHandler instance.
+func NewStatusHandler(version string) *StatusHandler {
+	return &StatusHandler{
 		startTime: time.Now(),
 		version:   version,
 	}
 }
 
 // Handle is responsible for handling the request and response for the server status.
-func (ssh *ServerStatusHandler) Handle(w http.ResponseWriter, r *http.Request) {
+func (ssh *StatusHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	uptime := time.Since(ssh.startTime).String()
 
 	fmt.Fprintf(w, "Server Status:\n")

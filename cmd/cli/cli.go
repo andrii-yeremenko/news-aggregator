@@ -39,7 +39,12 @@ func New() (*CLI, error) {
 		return nil, err
 	}
 
-	manager := resource_manager.New(path.Join(basePath, "/storage"))
+	manager, err := resource_manager.New(path.Join(basePath, "/storage"),
+		path.Join(basePath, "/resource_manager/setup/resources.json"))
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &CLI{
 		parserFactory:   parserPool,

@@ -25,7 +25,8 @@ func main() {
 	server := web_server.NewServerBuilder().
 		SetPort("8443").
 		AddHandler("/news", handler.NewNewsHandler(manager).Handle).
-		AddHandler("/sources", handler.NewUpdateSourcesHandler(manager).Handle).
+		AddHandler("/update", handler.NewUpdateHandler(manager).Handle).
+		AddHandler("/sources", handler.NewControlHandler(manager).Handle).
 		Build()
 
 	log.Println("Starting server on port 8443")
