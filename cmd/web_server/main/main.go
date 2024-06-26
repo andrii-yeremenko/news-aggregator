@@ -15,7 +15,12 @@ func main() {
 		log.Fatalf("failed to get current directory: %v", err)
 	}
 
-	manager := resource_manager.New(path.Join(basePath, "/storage"))
+	manager, err := resource_manager.New(path.Join(basePath, "/storage"),
+		path.Join(basePath, "/resource_manager/setup/resources.json"))
+
+	if err != nil {
+		log.Fatalf("failed to create resource manager: %v", err)
+	}
 
 	server := web_server.NewServerBuilder().
 		SetPort("8443").

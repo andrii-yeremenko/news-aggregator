@@ -1,11 +1,13 @@
 package resource_manager
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"news-aggregator/aggregator/model/resource"
 	"news-aggregator/storage"
+	"os"
 )
 
 // ResourceDetails is a struct that contains the format and link of a resource.
@@ -22,19 +24,69 @@ type ResourceManager struct {
 }
 
 // New creates a new ResourceManager.
-func New(storagePath string) *ResourceManager {
+func New(storagePath string, resourcesPath string) (*ResourceManager, error) {
 	s := storage.New(storagePath)
-	rFormats := map[resource.Source]ResourceDetails{
-		"nbc-news":         {Format: resource.JSON, Link: "https://www.nbcnews.com/rss.xml"},
-		"abc-news":         {Format: resource.RSS, Link: "https://feeds.abcnews.com/abcnews/internationalheadlines"},
-		"washington-times": {Format: resource.RSS, Link: "https://www.washingtontimes.com/rss/headlines/news/world/"},
-		"bbc-world":        {Format: resource.RSS, Link: "https://feeds.bbci.co.uk/news/rss.xml"},
-		"usa-today":        {Format: resource.HTML, Link: "https://www.nbcnews.com/rss.xml"},
+
+	rFormats, err := loadResources(resourcesPath)
+	if err != nil {
+		return nil, fmt.Errorf("error loading resources: %v", err)
 	}
 
 	return &ResourceManager{
 		storage:   s,
 		resources: rFormats,
+	}, nil
+}
+
+func loadResources(resourcesPath string) (map[resource.Source]ResourceDetails, error) {
+	file, err := os.Open(resourcesPath)
+	if err != nil {
+		return nil, fmt.Errorf("error opening resources file: %v", err)
+	}
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("error closing resources file: %v\n", err)
+		}
+	}(file)
+
+	var resourceList []struct {
+		Source string `json:"source"`
+		Format string `json:"format"`
+		Link   string `json:"link"`
+	}
+
+	decoder := json.NewDecoder(file)
+	if err := decoder.Decode(&resourceList); err != nil {
+		return nil, fmt.Errorf("error decoding resources file: %v", err)
+	}
+
+	rFormats := make(map[resource.Source]ResourceDetails)
+	for _, res := range resourceList {
+		format, err := parseFormat(res.Format)
+		if err != nil {
+			return nil, err
+		}
+
+		rFormats[resource.Source(res.Source)] = ResourceDetails{
+			Format: format,
+			Link:   res.Link,
+		}
+	}
+
+	return rFormats, nil
+}
+
+func parseFormat(formatStr string) (resource.Format, error) {
+	switch formatStr {
+	case "RSS":
+		return resource.RSS, nil
+	case "HTML":
+		return resource.HTML, nil
+	case "JSON":
+		return resource.JSON, nil
+	default:
+		return resource.UNKNOWN, fmt.Errorf("unknown format: %s", formatStr)
 	}
 }
 
@@ -114,11 +166,11 @@ func (rm *ResourceManager) UpdateResource(source resource.Source) error {
 
 	switch details.Format {
 	case resource.JSON:
-		return fmt.Errorf("format JSON is not supported")
+		return rm.updateJSONResource(source, details)
 	case resource.RSS:
 		return rm.updateRSSResource(source, details)
 	case resource.HTML:
-		return fmt.Errorf("format HTML is not supported")
+		return rm.updateHTMLResource(source, details)
 	default:
 		return fmt.Errorf("unknown format")
 	}
@@ -166,6 +218,64 @@ func (rm *ResourceManager) updateRSSResource(source resource.Source, details Res
 	}
 
 	err = rm.storage.UpdateXMLSource(source, body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (rm *ResourceManager) updateJSONResource(source resource.Source, details ResourceDetails) error {
+	resp, err := http.Get(details.Link)
+	if err != nil {
+		return fmt.Errorf("error fetching resource from link: %v", err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Printf("error closing response body: %v\n", err)
+		}
+	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error fetching resource from link: status code %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading resource content: %v", err)
+	}
+
+	err = rm.storage.UpdateJSONSource(source, body)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (rm *ResourceManager) updateHTMLResource(source resource.Source, details ResourceDetails) error {
+	resp, err := http.Get(details.Link)
+	if err != nil {
+		return fmt.Errorf("error fetching resource from link: %v", err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Printf("error closing response body: %v\n", err)
+		}
+	}(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error fetching resource from link: status code %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading resource content: %v", err)
+	}
+
+	err = rm.storage.UpdateHTMLSource(source, body)
 	if err != nil {
 		return err
 	}

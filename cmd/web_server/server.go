@@ -13,7 +13,7 @@ type ServerBuilder struct {
 
 func NewServerBuilder() *ServerBuilder {
 	return &ServerBuilder{
-		port:     "443",
+		port:     "8000",
 		handlers: make(map[string]http.HandlerFunc),
 	}
 }
@@ -31,8 +31,8 @@ func (sb *ServerBuilder) AddHandler(path string, handler http.HandlerFunc) *Serv
 func (sb *ServerBuilder) Build() *http.Server {
 	mux := http.NewServeMux()
 
-	for path, handler := range sb.handlers {
-		mux.HandleFunc(path, handler)
+	for path, hand := range sb.handlers {
+		mux.HandleFunc(path, hand)
 	}
 
 	mux.HandleFunc("/status", handler.NewServerStatusHandler("1.0").Handle)
