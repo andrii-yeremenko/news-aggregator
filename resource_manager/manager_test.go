@@ -9,7 +9,7 @@ import (
 
 func TestStorage_GetAvailableSources(t *testing.T) {
 	basePath, _ := os.Getwd()
-	manager, _ := New(path.Join(basePath, "../storage"), path.Join(basePath, "resources.json"))
+	manager, _ := New(path.Join(basePath, "../storage"), path.Join(basePath, "resource_dictionary.json"))
 	expectedSources := []string{"bbc-world", "usa-today", "nbc-news", "abc-news", "washington-times"}
 	expectedCount := len(expectedSources)
 	sources := manager.AvailableSources()
@@ -28,7 +28,7 @@ func TestStorage_GetAvailableSources(t *testing.T) {
 
 func TestStorage_GetAllResources(t *testing.T) {
 	basePath, _ := os.Getwd()
-	manager, _ := New(path.Join(basePath, "../storage"), path.Join(basePath, "resources.json"))
+	manager, _ := New(path.Join(basePath, "../storage"), path.Join(basePath, "resource_dictionary.json"))
 
 	resources, err := manager.AllResources()
 	if err != nil {
@@ -42,7 +42,7 @@ func TestStorage_GetAllResources(t *testing.T) {
 
 func TestStorage_GetSelectedResources(t *testing.T) {
 	basePath, _ := os.Getwd()
-	manager, _ := New(path.Join(basePath, "../storage"), path.Join(basePath, "resources.json"))
+	manager, _ := New(path.Join(basePath, "../storage"), path.Join(basePath, "resource_dictionary.json"))
 	selectedSources := []string{"nbc-news", "abc-news"}
 	resources, err := manager.GetSelectedResources(selectedSources)
 	if err != nil {
@@ -61,7 +61,7 @@ func TestStorage_GetSelectedResources(t *testing.T) {
 
 func TestStorage_GetSelectedResources_InvalidSource(t *testing.T) {
 	basePath, _ := os.Getwd()
-	manager, _ := New(path.Join(basePath, "../storage"), path.Join(basePath, "resources.json"))
+	manager, _ := New(path.Join(basePath, "../storage"), path.Join(basePath, "resource_dictionary.json"))
 	selectedSources := []string{"nbc-news", "abc-news", "invalid-source"}
 	_, err := manager.GetSelectedResources(selectedSources)
 	if err == nil {

@@ -2,7 +2,7 @@
   {
     "source": "nbc-news",
     "format": "JSON",
-    "link": "https://www.nbcnews.com/rss.xml"
+    "link": "https://www.nbcnews.com"
   },
   {
     "source": "abc-news",

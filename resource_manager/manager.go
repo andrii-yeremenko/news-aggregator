@@ -146,8 +146,6 @@ func (rm *ResourceManager) UpdateResource(source resource.Source) error {
 	}
 
 	switch details.Format {
-	case resource.JSON:
-		return rm.updateJSONResource(source, details)
 	case resource.RSS:
 		return rm.updateRSSResource(source, details)
 	case resource.HTML:
@@ -199,36 +197,6 @@ func (rm *ResourceManager) updateRSSResource(source resource.Source, details Res
 	}
 
 	err = rm.storage.UpdateXMLSource(source, body)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (rm *ResourceManager) updateJSONResource(source resource.Source, details ResourceDetails) error {
-	resp, err := http.Get(details.Link)
-
-	if err != nil {
-		return fmt.Errorf("error fetching resource from link: %v", err)
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			fmt.Printf("error closing response body: %v\n", err)
-		}
-	}(resp.Body)
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error fetching resource from link: status code %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("error reading resource content: %v", err)
-	}
-
-	err = rm.storage.UpdateJSONSource(source, body)
 	if err != nil {
 		return err
 	}

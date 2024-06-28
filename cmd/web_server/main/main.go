@@ -15,8 +15,10 @@ func main() {
 		log.Fatalf("failed to get current directory: %v", err)
 	}
 
-	manager, err := resource_manager.New(path.Join(basePath, "/storage"),
-		path.Join(basePath, "/resource_manager/setup/resources.json"))
+	storagePath := path.Join(basePath, "/storage")
+	managerDictionaryPath := path.Join(basePath, "/resource_manager/setup/resource_dictionary.json")
+
+	manager, err := resource_manager.New(storagePath, managerDictionaryPath)
 
 	if err != nil {
 		log.Fatalf("failed to create resource manager: %v", err)
@@ -30,6 +32,7 @@ func main() {
 		Build()
 
 	log.Println("Starting server on port 8443")
+
 	err = server.ListenAndServeTLS("cmd/web_server/cert/cert.pem", "cmd/web_server/cert/key.pem")
 	if err != nil {
 		log.Fatalf("server failed to start: %v", err)
