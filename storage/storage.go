@@ -3,7 +3,6 @@ package storage
 import (
 	"bufio"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
@@ -39,17 +38,24 @@ func (s *Storage) AvailableSources() ([]resource.Source, error) {
 		return nil, fmt.Errorf("error reading directory: %v", err)
 	}
 
+	sourceMap := make(map[string]bool)
 	var sources []resource.Source
+
 	for _, file := range files {
 		if file.IsDir() {
 			continue
 		}
 		fileName := file.Name()
-		if strings.HasPrefix(fileName, "resource.Source") {
-			source := strings.TrimSuffix(fileName, filepath.Ext(fileName))
-			sources = append(sources, resource.Source(source))
+		parts := strings.Split(fileName, "_")
+		if len(parts) > 1 {
+			sourceName := strings.Join(parts[:len(parts)-1], "_")
+			if !sourceMap[sourceName] {
+				sourceMap[sourceName] = true
+				sources = append(sources, resource.Source(sourceName))
+			}
 		}
 	}
+
 	return sources, nil
 }
 
@@ -57,7 +63,7 @@ func (s *Storage) AvailableSources() ([]resource.Source, error) {
 func (s *Storage) ReadSource(source resource.Source) ([]string, error) {
 	var contents []string
 	prefix := string(source)
-	files, err := ioutil.ReadDir(s.basePath)
+	files, err := os.ReadDir(s.basePath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading directory: %v", err)
 	}
@@ -76,6 +82,11 @@ func (s *Storage) ReadSource(source resource.Source) ([]string, error) {
 			contents = append(contents, content)
 		}
 	}
+
+	if len(contents) == 0 {
+		return nil, fmt.Errorf("source %s is unknown", source)
+	}
+
 	return contents, nil
 }
 
@@ -112,7 +123,12 @@ func (s *Storage) readFileContents(absPath string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error opening file: %v", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+			fmt.Printf("error closing file: %v\n", err)
+		}
+	}(file)
 
 	scanner := bufio.NewScanner(file)
 	var content strings.Builder
