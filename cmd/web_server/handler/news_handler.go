@@ -73,7 +73,7 @@ func (h *NewsAggregatorHandler) Handle(w http.ResponseWriter, r *http.Request) {
 
 func (h *NewsAggregatorHandler) getResources(sources string) ([]resource.Resource, error) {
 	if sources == "" {
-		resources, err := h.resourceManager.AllResources()
+		resources, err := h.resourceManager.GetAllResources()
 		if err != nil {
 			return resources, err
 		}

@@ -40,7 +40,7 @@ func New() (*CLI, error) {
 	}
 
 	manager, err := resource_manager.New(path.Join(basePath, "/storage"),
-		path.Join(basePath, "/resource_manager/setup/resource_dictionary.json"))
+		path.Join(basePath, "/resource_manager/config/feeds_dictionary.json"))
 
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func (cli *CLI) countFlags() int {
 }
 
 func (cli *CLI) showAllArticles() {
-	resources, err := cli.resourceManager.AllResources()
+	resources, err := cli.resourceManager.GetAllResources()
 	if err != nil {
 		console_printer.New().Error(err.Error())
 	}
@@ -154,7 +154,7 @@ func (cli *CLI) sortArticles(articles []article.Article) []article.Article {
 
 func (cli *CLI) getResources() []resource.Resource {
 	if cli.sourceArg == "" {
-		resources, err := cli.resourceManager.AllResources()
+		resources, err := cli.resourceManager.GetAllResources()
 		if err != nil {
 			console_printer.New().Error(err.Error())
 		}

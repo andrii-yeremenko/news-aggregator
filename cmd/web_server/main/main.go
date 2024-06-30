@@ -16,7 +16,7 @@ func main() {
 	}
 
 	storagePath := path.Join(basePath, "/storage")
-	managerDictionaryPath := path.Join(basePath, "/resource_manager/setup/resource_dictionary.json")
+	managerDictionaryPath := path.Join(basePath, "/resource_manager/config/feeds_dictionary.json")
 
 	manager, err := resource_manager.New(storagePath, managerDictionaryPath)
 
