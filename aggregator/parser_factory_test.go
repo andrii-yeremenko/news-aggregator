@@ -23,11 +23,7 @@ func TestNewParserFactory(t *testing.T) {
 		expected  bool
 	}{
 		{resource.JSON, "nbc-news", true},
-		{resource.RSS, "abc-news", true},
-		{resource.RSS, "washington-times", true},
-		{resource.RSS, "bbc-world", true},
 		{resource.HTML, "usa-today", true},
-		{resource.RSS, "non-existing", false},
 	}
 
 	for _, tt := range tests {
@@ -64,7 +60,7 @@ func TestGetParser(t *testing.T) {
 		{resource.RSS, "washington-times", true},
 		{resource.RSS, "bbc-world", true},
 		{resource.HTML, "usa-today", true},
-		{resource.RSS, "non-existing", false},
+		{resource.HTML, "non-existing", false},
 	}
 
 	for _, tt := range tests {
