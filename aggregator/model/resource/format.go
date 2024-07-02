@@ -1,6 +1,9 @@
 package resource
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 // Format the way in which information is arranged and stored on the resource.
 type Format int
@@ -28,7 +31,7 @@ func FormatToString(f Format) string {
 
 // ParseFormat converts a string to a Format.
 func ParseFormat(formatStr string) (Format, error) {
-	switch formatStr {
+	switch strings.ToUpper(formatStr) {
 	case "RSS":
 		return RSS, nil
 	case "HTML":
