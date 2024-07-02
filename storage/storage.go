@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -19,8 +18,20 @@ type Storage struct {
 
 // New creates a new Storage.
 func New(basePath string) *Storage {
+
+	if basePath == "" {
+		basePath = "/resources"
+	}
+
+	if _, err := os.Stat(basePath); os.IsNotExist(err) {
+		err := os.MkdirAll(basePath, os.ModePerm)
+		if err != nil {
+			fmt.Printf("error creating directory: %v\n", err)
+		}
+	}
+
 	return &Storage{
-		basePath: path.Join(basePath, "/resources"),
+		basePath: basePath,
 	}
 }
 
