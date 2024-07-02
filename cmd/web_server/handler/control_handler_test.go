@@ -48,6 +48,16 @@ func (m *MockResourceManager) IsSourceSupported(source resource.Source) bool {
 	return args.Bool(0)
 }
 
+func (m *MockResourceManager) GetAllResources() ([]resource.Resource, error) {
+	args := m.Called()
+	return args.Get(0).([]resource.Resource), args.Error(1)
+}
+
+func (m *MockResourceManager) GetSelectedResources(sources []string) ([]resource.Resource, error) {
+	args := m.Called(sources)
+	return args.Get(0).([]resource.Resource), args.Error(1)
+}
+
 func TestControlHandler_GetSources(t *testing.T) {
 	mockManager := new(MockResourceManager)
 	mockManager.On("AvailableSources").Return([]string{"source1", "source2"})

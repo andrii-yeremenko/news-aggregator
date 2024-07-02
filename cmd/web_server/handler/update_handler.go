@@ -3,16 +3,15 @@ package handler
 import (
 	"net/http"
 	"news-aggregator/aggregator/model/resource"
-	"news-aggregator/resource_manager"
 )
 
 // UpdateHandler is a handler for updating news sources from the internet.
 type UpdateHandler struct {
-	ResourceManager *resource_manager.ResourceManager
+	ResourceManager ResourceManager
 }
 
 // NewUpdateHandler creates a new UpdateHandler instance.
-func NewUpdateHandler(resourceManager *resource_manager.ResourceManager) *UpdateHandler {
+func NewUpdateHandler(resourceManager ResourceManager) *UpdateHandler {
 	return &UpdateHandler{
 		ResourceManager: resourceManager,
 	}
@@ -27,11 +26,12 @@ func (h *UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !h.ResourceManager.SourceIsSupported(resource.Source(sourceType)) {
+	//rename to IsSourceSupported
+	if !h.ResourceManager.IsSourceSupported(resource.Source(sourceType)) {
 		http.Error(w, "Source not supported", http.StatusBadRequest)
 		return
 	}
-
+	//resource.Source(sourceType)
 	err := h.ResourceManager.UpdateResource(resource.Source(sourceType))
 
 	if err != nil {

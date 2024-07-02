@@ -9,20 +9,19 @@ import (
 	"news-aggregator/aggregator/filter"
 	"news-aggregator/aggregator/model/article"
 	"news-aggregator/aggregator/model/resource"
-	"news-aggregator/resource_manager"
 	"strings"
 )
 
 // NewsAggregatorHandler a Handler for aggregating news by provided filters and arguments.
 type NewsAggregatorHandler struct {
-	resourceManager *resource_manager.ResourceManager
+	resourceManager ResourceManager
 	parserPool      *aggregator.ParserFactory
 }
 
 // NewNewsHandler creates a new NewsAggregatorHandler instance.
-func NewNewsHandler(resourceManager *resource_manager.ResourceManager) *NewsAggregatorHandler {
+func NewNewsHandler(resourceManager *ResourceManager) *NewsAggregatorHandler {
 	return &NewsAggregatorHandler{
-		resourceManager: resourceManager,
+		resourceManager: *resourceManager,
 		parserPool:      aggregator.NewParserFactory(),
 	}
 }

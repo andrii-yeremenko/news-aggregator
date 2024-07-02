@@ -62,10 +62,9 @@ func (rm *ResourceManager) UpdateSource(name resource.Source, url string, format
 }
 
 // DeleteSource deletes the source.
-func (rm *ResourceManager) DeleteSource(name string) error {
+func (rm *ResourceManager) DeleteSource(name resource.Source) error {
 
-	source := resource.Source(name)
-	delete(rm.feeds, source)
+	delete(rm.feeds, name)
 
 	return rm.saveFeeds()
 }
