@@ -93,7 +93,7 @@ func TestSourceIsSupported(t *testing.T) {
 	rm, err := resource_manager.New(testStoragePath, testFeedDictionary)
 	assert.NoError(t, err)
 
-	assert.True(t, rm.SourceIsSupported("supported_source"))
+	assert.True(t, rm.IsSourceSupported("supported_source"))
 }
 
 func TestAvailableSources(t *testing.T) {

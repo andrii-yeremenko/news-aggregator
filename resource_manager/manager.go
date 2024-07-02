@@ -70,8 +70,8 @@ func (rm *ResourceManager) DeleteSource(name string) error {
 	return rm.saveFeeds()
 }
 
-// SourceIsSupported checks if the source is supported.
-func (rm *ResourceManager) SourceIsSupported(source resource.Source) bool {
+// IsSourceSupported checks if the source is supported.
+func (rm *ResourceManager) IsSourceSupported(source resource.Source) bool {
 	_, exists := rm.feeds[source]
 	return exists
 }
