@@ -39,8 +39,8 @@ func New() (*CLI, error) {
 		return nil, err
 	}
 
-	manager, err := resource_manager.New(path.Join(basePath, "/storage"),
-		path.Join(basePath, "/resource_manager/config/feeds_dictionary.json"))
+	manager, err := resource_manager.New(path.Join(basePath, "/resources"),
+		path.Join(basePath, "/config/feeds_dictionary.json"))
 
 	if err != nil {
 		return nil, err

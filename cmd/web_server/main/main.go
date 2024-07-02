@@ -15,10 +15,10 @@ func main() {
 		log.Fatalf("failed to get current directory: %v", err)
 	}
 
-	storagePath := path.Join(basePath, "/storage")
-	managerDictionaryPath := path.Join(basePath, "/resource_manager/config/feeds_dictionary.json")
+	managerConfigPath := path.Join(basePath, "/config/feeds_dictionary.json")
+	storagePath := path.Join(basePath, "/resources")
 
-	manager, err := resource_manager.New(storagePath, managerDictionaryPath)
+	manager, err := resource_manager.New(storagePath, managerConfigPath)
 
 	if err != nil {
 		log.Fatalf("failed to create resource manager: %v", err)
