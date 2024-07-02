@@ -6,7 +6,6 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/fatih/color v1.17.0
-	github.com/golang/mock v1.6.0
 	github.com/reiver/go-porterstemmer v1.0.1
 	github.com/stretchr/testify v1.9.0
 )
