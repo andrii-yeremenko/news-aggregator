@@ -33,7 +33,7 @@ func main() {
 
 	log.Println("Starting server on port 8443")
 
-	err = server.ListenAndServeTLS("cmd/web_server/cert/cert.pem", "cmd/web_server/cert/key.pem")
+	err = server.ListenAndServeTLS("certificates/cert.pem", "certificates/key.pem")
 	if err != nil {
 		log.Fatalf("server failed to start: %v", err)
 	}
