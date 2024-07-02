@@ -4,16 +4,15 @@ import (
 	"encoding/json"
 	"net/http"
 	"news-aggregator/aggregator/model/resource"
-	"news-aggregator/resource_manager"
 )
 
 // ControlHandler handles requests for managing news sources.
 type ControlHandler struct {
-	manager *resource_manager.ResourceManager
+	manager ResourceManager
 }
 
 // NewControlHandler creates a new ControlHandler instance.
-func NewControlHandler(manager *resource_manager.ResourceManager) *ControlHandler {
+func NewControlHandler(manager ResourceManager) *ControlHandler {
 	return &ControlHandler{
 		manager: manager,
 	}
@@ -113,7 +112,7 @@ func (ch *ControlHandler) DeleteSource(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)
 		return
 	}
-	err := ch.manager.DeleteSource(source.Name)
+	err := ch.manager.DeleteSource(resource.Source(source.Name))
 	if err != nil {
 		http.Error(w, "Failed to delete source", http.StatusInternalServerError)
 		return
