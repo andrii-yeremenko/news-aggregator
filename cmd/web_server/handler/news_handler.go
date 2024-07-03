@@ -19,9 +19,9 @@ type NewsAggregatorHandler struct {
 }
 
 // NewNewsHandler creates a new NewsAggregatorHandler instance.
-func NewNewsHandler(resourceManager *ResourceManager) *NewsAggregatorHandler {
+func NewNewsHandler(resourceManager ResourceManager) *NewsAggregatorHandler {
 	return &NewsAggregatorHandler{
-		resourceManager: *resourceManager,
+		resourceManager: resourceManager,
 		parserPool:      aggregator.NewParserFactory(),
 	}
 }

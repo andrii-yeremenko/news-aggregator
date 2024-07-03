@@ -18,9 +18,9 @@ type MockResourceManager struct {
 	mock.Mock
 }
 
-func (m *MockResourceManager) AvailableSources() []string {
+func (m *MockResourceManager) AvailableSources() string {
 	args := m.Called()
-	return args.Get(0).([]string)
+	return args.Get(0).(string)
 }
 
 func (m *MockResourceManager) RegisterSource(name resource.Source, url string, format resource.Format) error {
@@ -60,7 +60,7 @@ func (m *MockResourceManager) GetSelectedResources(sources []string) ([]resource
 
 func TestControlHandler_GetSources(t *testing.T) {
 	mockManager := new(MockResourceManager)
-	mockManager.On("AvailableSources").Return([]string{"source1", "source2"})
+	mockManager.On("AvailableSources").Return("source1,source2")
 
 	handler := NewControlHandler(mockManager)
 
@@ -74,10 +74,10 @@ func TestControlHandler_GetSources(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-	var sources []string
+	var sources string
 	err := json.NewDecoder(resp.Body).Decode(&sources)
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"source1", "source2"}, sources)
+	assert.Equal(t, "source1,source2", sources)
 }
 
 func TestControlHandler_AddSource(t *testing.T) {
