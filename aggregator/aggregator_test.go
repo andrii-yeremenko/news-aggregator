@@ -31,6 +31,7 @@ func (m *MockFactory) GetParser(format resource.Format, source resource.Source) 
 	return &MockParser{}, nil
 }
 
+//goland:noinspection GoUnusedParameter,GoUnusedParameter,GoUnusedParameter
 func (m *MockFactory) AddNewParser(format resource.Format, source resource.Source, parser aggregator.Parser) {
 
 }

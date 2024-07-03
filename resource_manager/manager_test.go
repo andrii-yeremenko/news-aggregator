@@ -2,7 +2,6 @@ package resource_manager_test
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 	"testing"
 
@@ -29,7 +28,7 @@ func TestRegisterSource(t *testing.T) {
 	err = rm.RegisterSource("source", "http://source.com/source", resource.RSS)
 	assert.NoError(t, err)
 
-	data, err := ioutil.ReadFile(testFeedDictionary)
+	data, err := os.ReadFile(testFeedDictionary)
 	assert.NoError(t, err)
 
 	var feeds []struct {

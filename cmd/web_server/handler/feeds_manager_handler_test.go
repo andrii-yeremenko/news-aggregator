@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"news-aggregator/aggregator/model/resource"
@@ -70,7 +71,12 @@ func TestControlHandler_GetSources(t *testing.T) {
 	handler.Handle(w, req)
 
 	resp := w.Result()
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -83,7 +89,7 @@ func TestControlHandler_GetSources(t *testing.T) {
 func TestControlHandler_AddSource(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockManager := new(MockResourceManager)
-		mockManager.On("RegisterSource", resource.Source("source1"), "http://example.com", int(resource.JSON)).Return(nil)
+		mockManager.On("RegisterSource", resource.Source("source1"), "http://example.com", resource.JSON).Return(nil)
 
 		handler := NewFeedsManagerHandler(mockManager)
 
@@ -100,7 +106,12 @@ func TestControlHandler_AddSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 	})
@@ -115,7 +126,12 @@ func TestControlHandler_AddSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -137,14 +153,19 @@ func TestControlHandler_AddSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
 	t.Run("registration error", func(t *testing.T) {
 		mockManager := new(MockResourceManager)
-		mockManager.On("RegisterSource", resource.Source("source1"), "http://example.com", int(resource.JSON)).Return(fmt.Errorf("registration error"))
+		mockManager.On("RegisterSource", resource.Source("source1"), "http://example.com", resource.JSON).Return(fmt.Errorf("registration error"))
 
 		handler := NewFeedsManagerHandler(mockManager)
 
@@ -161,7 +182,12 @@ func TestControlHandler_AddSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	})
@@ -170,7 +196,7 @@ func TestControlHandler_AddSource(t *testing.T) {
 func TestControlHandler_UpdateSource(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		mockManager := new(MockResourceManager)
-		mockManager.On("UpdateSource", resource.Source("source1"), "http://example.com", int(resource.JSON)).Return(nil)
+		mockManager.On("UpdateSource", resource.Source("source1"), "http://example.com", resource.JSON).Return(nil)
 
 		handler := NewFeedsManagerHandler(mockManager)
 
@@ -187,7 +213,12 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -202,7 +233,12 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -224,14 +260,19 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
 
 	t.Run("update error", func(t *testing.T) {
 		mockManager := new(MockResourceManager)
-		mockManager.On("UpdateSource", resource.Source("source1"), "http://example.com", int(resource.JSON)).Return(fmt.Errorf("update error"))
+		mockManager.On("UpdateSource", resource.Source("source1"), "http://example.com", resource.JSON).Return(fmt.Errorf("update error"))
 
 		handler := NewFeedsManagerHandler(mockManager)
 
@@ -248,7 +289,12 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	})
@@ -272,7 +318,12 @@ func TestControlHandler_DeleteSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 	})
@@ -287,7 +338,12 @@ func TestControlHandler_DeleteSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	})
@@ -309,7 +365,12 @@ func TestControlHandler_DeleteSource(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	})

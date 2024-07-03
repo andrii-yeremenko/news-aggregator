@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -28,7 +27,12 @@ func TestFileExists(t *testing.T) {
 		t.Errorf("expected file %s to exist", testFile)
 	}
 
-	defer os.Remove(filepath.Join(dir, testFile))
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			t.Fatalf("error removing test file: %v", err)
+		}
+	}(filepath.Join(dir, testFile))
 
 	exists = s.fileExists("nonexistentfile.txt")
 	if exists {
@@ -44,9 +48,24 @@ func TestAvailableSources(t *testing.T) {
 	createTestFile(t, dir, "source2_20210101.json", "content")
 	createTestFile(t, dir, "source1_20210102.html", "content")
 
-	defer os.Remove(filepath.Join(dir, "source1_20210101.xml"))
-	defer os.Remove(filepath.Join(dir, "source2_20210101.json"))
-	defer os.Remove(filepath.Join(dir, "source1_20210102.html"))
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			t.Fatalf("error removing test file: %v", err)
+		}
+	}(filepath.Join(dir, "source1_20210101.xml"))
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			t.Fatalf("error removing test file: %v", err)
+		}
+	}(filepath.Join(dir, "source2_20210101.json"))
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			t.Fatalf("error removing test file: %v", err)
+		}
+	}(filepath.Join(dir, "source1_20210102.html"))
 
 	sources, err := storage.AvailableSources()
 	if err != nil {
@@ -76,8 +95,18 @@ func TestReadSource(t *testing.T) {
 	createTestFile(t, dir, "source1_20210101.xml", "content1")
 	createTestFile(t, dir, "source1_20210102.html", "content2")
 
-	defer os.Remove(filepath.Join(dir, "source1_20210101.xml"))
-	defer os.Remove(filepath.Join(dir, "source1_20210102.html"))
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			t.Fatalf("error removing test file: %v", err)
+		}
+	}(filepath.Join(dir, "source1_20210101.xml"))
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			t.Fatalf("error removing test file: %v", err)
+		}
+	}(filepath.Join(dir, "source1_20210102.html"))
 
 	contents, err := storage.ReadSource("source1")
 	if err != nil {
@@ -112,7 +141,7 @@ func TestUpdateXMLSource(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		t.Fatalf("error reading directory: %v", err)
 	}
@@ -126,12 +155,17 @@ func TestUpdateXMLSource(t *testing.T) {
 		t.Errorf("expected file name %q, got %q", expectedFileName, files[0].Name())
 	}
 
-	fileContent, err := ioutil.ReadFile(filepath.Join(dir, files[0].Name()))
+	fileContent, err := os.ReadFile(filepath.Join(dir, files[0].Name()))
 	if err != nil {
 		t.Fatalf("error reading file: %v", err)
 	}
 
-	defer os.Remove(filepath.Join(dir, files[0].Name()))
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			t.Fatalf("error removing test file: %v", err)
+		}
+	}(filepath.Join(dir, files[0].Name()))
 
 	if string(fileContent) != string(content) {
 		t.Errorf("expected file content %q, got %q", content, fileContent)
@@ -149,7 +183,7 @@ func TestUpdateJSONSource(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		t.Fatalf("error reading directory: %v", err)
 	}
@@ -163,12 +197,17 @@ func TestUpdateJSONSource(t *testing.T) {
 		t.Errorf("expected file name %q, got %q", expectedFileName, files[0].Name())
 	}
 
-	fileContent, err := ioutil.ReadFile(filepath.Join(dir, files[0].Name()))
+	fileContent, err := os.ReadFile(filepath.Join(dir, files[0].Name()))
 	if err != nil {
 		t.Fatalf("error reading file: %v", err)
 	}
 
-	defer os.Remove(filepath.Join(dir, files[0].Name()))
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			t.Fatalf("error removing test file: %v", err)
+		}
+	}(filepath.Join(dir, files[0].Name()))
 
 	if string(fileContent) != string(content) {
 		t.Errorf("expected file content %q, got %q", content, fileContent)
@@ -186,7 +225,7 @@ func TestUpdateHTMLSource(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 	if err != nil {
 		t.Fatalf("error reading directory: %v", err)
 	}
@@ -200,12 +239,17 @@ func TestUpdateHTMLSource(t *testing.T) {
 		t.Errorf("expected file name %q, got %q", expectedFileName, files[0].Name())
 	}
 
-	fileContent, err := ioutil.ReadFile(filepath.Join(dir, files[0].Name()))
+	fileContent, err := os.ReadFile(filepath.Join(dir, files[0].Name()))
 	if err != nil {
 		t.Fatalf("error reading file: %v", err)
 	}
 
-	defer os.Remove(filepath.Join(dir, files[0].Name()))
+	defer func(name string) {
+		err := os.Remove(name)
+		if err != nil {
+			t.Fatalf("error removing test file: %v", err)
+		}
+	}(filepath.Join(dir, files[0].Name()))
 
 	if string(fileContent) != string(content) {
 		t.Errorf("expected file content %q, got %q", content, fileContent)

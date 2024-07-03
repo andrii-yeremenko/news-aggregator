@@ -22,7 +22,7 @@ func NewFeedsManagerHandler(manager ResourceManager) *FeedsManagerHandler {
 func (ch *FeedsManagerHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
-		ch.GetSources(w, r)
+		ch.GetSources(w)
 	case http.MethodPost:
 		ch.AddSource(w, r)
 	case http.MethodPut:
@@ -35,7 +35,7 @@ func (ch *FeedsManagerHandler) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetSources handles GET /sources to retrieve all sources.
-func (ch *FeedsManagerHandler) GetSources(w http.ResponseWriter, r *http.Request) {
+func (ch *FeedsManagerHandler) GetSources(w http.ResponseWriter) {
 	sources := ch.manager.AvailableSources()
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(sources)

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"news-aggregator/aggregator/model/resource"
@@ -23,7 +24,12 @@ func TestUpdateHandler_Handle(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -41,7 +47,12 @@ func TestUpdateHandler_Handle(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
@@ -60,7 +71,12 @@ func TestUpdateHandler_Handle(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		assert.Contains(t, readResponseBody(resp), "Source not supported")
@@ -81,7 +97,12 @@ func TestUpdateHandler_Handle(t *testing.T) {
 		handler.Handle(w, req)
 
 		resp := w.Result()
-		defer resp.Body.Close()
+		defer func(Body io.ReadCloser) {
+			err := Body.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		}(resp.Body)
 
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 		assert.Contains(t, readResponseBody(resp), "Failed to update source")

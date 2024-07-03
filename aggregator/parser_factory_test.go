@@ -10,6 +10,7 @@ import (
 
 type mockParser struct{}
 
+//goland:noinspection ALL
 func (m *mockParser) Parse(resource resource.Resource) ([]article.Article, error) {
 	return nil, nil
 }
