@@ -19,6 +19,12 @@ func NewUpdateHandler(resourceManager ResourceManager) *UpdateHandler {
 
 // Handle handles the HTTP request and response for updating news sources.
 func (h *UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	sourceType := r.URL.Query().Get("source")
 
 	if sourceType == "" {

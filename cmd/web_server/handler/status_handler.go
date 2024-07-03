@@ -22,6 +22,12 @@ func NewStatusHandler(version string) *StatusHandler {
 
 // Handle is responsible for handling the request and response for the server status.
 func (ssh *StatusHandler) Handle(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	uptime := time.Since(ssh.startTime).String()
 
 	fmt.Fprintf(w, "Server Status:\n")

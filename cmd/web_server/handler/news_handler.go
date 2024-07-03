@@ -28,6 +28,12 @@ func NewNewsHandler(resourceManager ResourceManager) *NewsAggregatorHandler {
 
 // Handle is responsible for handling the request and response for the news aggregator.
 func (h *NewsAggregatorHandler) Handle(w http.ResponseWriter, r *http.Request) {
+
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
 	query := r.URL.Query()
 
 	sources := query.Get("sources")
