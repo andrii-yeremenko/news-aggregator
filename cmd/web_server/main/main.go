@@ -31,10 +31,13 @@ func main() {
 		AddHandler("/sources", handler.NewControlHandler(manager).Handle).
 		Build()
 
-	log.Println("Starting server on port 8443")
+	log.Println("Starting server...")
 
 	err = server.ListenAndServeTLS("certificates/cert.pem", "certificates/key.pem")
 	if err != nil {
 		log.Fatalf("server failed to start: %v", err)
+		return
 	}
+
+	log.Println("Server started successfully")
 }
