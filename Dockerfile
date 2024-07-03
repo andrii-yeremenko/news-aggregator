@@ -8,6 +8,8 @@ FROM base AS build-server
 RUN go build -o /app/server ./cmd/web_server/main
 
 FROM scratch
+
+RUN apk --no-cache add ca-certificates
 COPY --from=build-server /app/server /app/server
 COPY --from=build-server /app/config /config
 COPY --from=build-server /app/resources /resources
