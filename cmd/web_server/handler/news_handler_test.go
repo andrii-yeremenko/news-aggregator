@@ -25,7 +25,7 @@ func TestNewsAggregatorHandler_Handle(t *testing.T) {
 			parserPool:      parserFactory,
 		}
 
-		req := httptest.NewRequest(http.MethodGet, "/news", nil)
+		req := httptest.NewRequest(http.MethodGet, "/news?sort=asc&sources=usa-today&keywords=Ukraine", nil)
 		w := httptest.NewRecorder()
 
 		handler.Handle(w, req)
