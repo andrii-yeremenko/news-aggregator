@@ -62,7 +62,7 @@ func TestControlHandler_GetSources(t *testing.T) {
 	mockManager := new(MockResourceManager)
 	mockManager.On("AvailableSources").Return("source1,source2")
 
-	handler := NewControlHandler(mockManager)
+	handler := NewFeedsManagerHandler(mockManager)
 
 	req := httptest.NewRequest(http.MethodGet, "/sources", nil)
 	w := httptest.NewRecorder()
@@ -85,7 +85,7 @@ func TestControlHandler_AddSource(t *testing.T) {
 		mockManager := new(MockResourceManager)
 		mockManager.On("RegisterSource", resource.Source("source1"), "http://example.com", int(resource.JSON)).Return(nil)
 
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		sourceData := map[string]string{
 			"name":   "source1",
@@ -107,7 +107,7 @@ func TestControlHandler_AddSource(t *testing.T) {
 
 	t.Run("invalid request payload", func(t *testing.T) {
 		mockManager := new(MockResourceManager)
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		req := httptest.NewRequest(http.MethodPost, "/sources", bytes.NewReader([]byte("invalid json")))
 		w := httptest.NewRecorder()
@@ -122,7 +122,7 @@ func TestControlHandler_AddSource(t *testing.T) {
 
 	t.Run("unknown format", func(t *testing.T) {
 		mockManager := new(MockResourceManager)
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		sourceData := map[string]string{
 			"name":   "source1",
@@ -146,7 +146,7 @@ func TestControlHandler_AddSource(t *testing.T) {
 		mockManager := new(MockResourceManager)
 		mockManager.On("RegisterSource", resource.Source("source1"), "http://example.com", int(resource.JSON)).Return(fmt.Errorf("registration error"))
 
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		sourceData := map[string]string{
 			"name":   "source1",
@@ -172,7 +172,7 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 		mockManager := new(MockResourceManager)
 		mockManager.On("UpdateSource", resource.Source("source1"), "http://example.com", int(resource.JSON)).Return(nil)
 
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		sourceData := map[string]string{
 			"name":   "source1",
@@ -194,7 +194,7 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 
 	t.Run("invalid request payload", func(t *testing.T) {
 		mockManager := new(MockResourceManager)
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		req := httptest.NewRequest(http.MethodPut, "/sources", bytes.NewReader([]byte("invalid json")))
 		w := httptest.NewRecorder()
@@ -209,7 +209,7 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 
 	t.Run("unknown format", func(t *testing.T) {
 		mockManager := new(MockResourceManager)
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		sourceData := map[string]string{
 			"name":   "source1",
@@ -233,7 +233,7 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 		mockManager := new(MockResourceManager)
 		mockManager.On("UpdateSource", resource.Source("source1"), "http://example.com", int(resource.JSON)).Return(fmt.Errorf("update error"))
 
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		sourceData := map[string]string{
 			"name":   "source1",
@@ -259,7 +259,7 @@ func TestControlHandler_DeleteSource(t *testing.T) {
 		mockManager := new(MockResourceManager)
 		mockManager.On("DeleteSource", resource.Source("source1")).Return(nil)
 
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		sourceData := map[string]string{
 			"name": "source1",
@@ -279,7 +279,7 @@ func TestControlHandler_DeleteSource(t *testing.T) {
 
 	t.Run("invalid request payload", func(t *testing.T) {
 		mockManager := new(MockResourceManager)
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		req := httptest.NewRequest(http.MethodDelete, "/sources", bytes.NewReader([]byte("invalid json")))
 		w := httptest.NewRecorder()
@@ -296,7 +296,7 @@ func TestControlHandler_DeleteSource(t *testing.T) {
 		mockManager := new(MockResourceManager)
 		mockManager.On("DeleteSource", resource.Source("source1")).Return(fmt.Errorf("deletion error"))
 
-		handler := NewControlHandler(mockManager)
+		handler := NewFeedsManagerHandler(mockManager)
 
 		sourceData := map[string]string{
 			"name": "source1",

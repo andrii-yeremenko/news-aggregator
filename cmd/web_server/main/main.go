@@ -28,7 +28,7 @@ func main() {
 		SetPort("8443").
 		AddHandler("/news", handler.NewNewsHandler(manager).Handle).
 		AddHandler("/update", handler.NewUpdateHandler(manager).Handle).
-		AddHandler("/sources", handler.NewControlHandler(manager).Handle).
+		AddHandler("/sources", handler.NewFeedsManagerHandler(manager).Handle).
 		Build()
 
 	log.Println("Starting server...")

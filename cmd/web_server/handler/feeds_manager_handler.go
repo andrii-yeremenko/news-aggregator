@@ -6,20 +6,20 @@ import (
 	"news-aggregator/aggregator/model/resource"
 )
 
-// ControlHandler handles requests for managing news sources.
-type ControlHandler struct {
+// FeedsManagerHandler handles requests for managing news sources.
+type FeedsManagerHandler struct {
 	manager ResourceManager
 }
 
-// NewControlHandler creates a new ControlHandler instance.
-func NewControlHandler(manager ResourceManager) *ControlHandler {
-	return &ControlHandler{
+// NewFeedsManagerHandler creates a new FeedsManagerHandler instance.
+func NewFeedsManagerHandler(manager ResourceManager) *FeedsManagerHandler {
+	return &FeedsManagerHandler{
 		manager: manager,
 	}
 }
 
 // Handle routes the request based on the HTTP method.
-func (ch *ControlHandler) Handle(w http.ResponseWriter, r *http.Request) {
+func (ch *FeedsManagerHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		ch.GetSources(w, r)
@@ -35,7 +35,7 @@ func (ch *ControlHandler) Handle(w http.ResponseWriter, r *http.Request) {
 }
 
 // GetSources handles GET /sources to retrieve all sources.
-func (ch *ControlHandler) GetSources(w http.ResponseWriter, r *http.Request) {
+func (ch *FeedsManagerHandler) GetSources(w http.ResponseWriter, r *http.Request) {
 	sources := ch.manager.AvailableSources()
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(sources)
@@ -46,7 +46,7 @@ func (ch *ControlHandler) GetSources(w http.ResponseWriter, r *http.Request) {
 }
 
 // AddSource handles POST /sources to add a new source.
-func (ch *ControlHandler) AddSource(w http.ResponseWriter, r *http.Request) {
+func (ch *FeedsManagerHandler) AddSource(w http.ResponseWriter, r *http.Request) {
 	var source struct {
 		Name   string `json:"name"`
 		URL    string `json:"url"`
@@ -74,7 +74,7 @@ func (ch *ControlHandler) AddSource(w http.ResponseWriter, r *http.Request) {
 }
 
 // UpdateSource handles PUT /sources to update an existing source.
-func (ch *ControlHandler) UpdateSource(w http.ResponseWriter, r *http.Request) {
+func (ch *FeedsManagerHandler) UpdateSource(w http.ResponseWriter, r *http.Request) {
 	var source struct {
 		Name   string `json:"name"`
 		URL    string `json:"url"`
@@ -104,7 +104,7 @@ func (ch *ControlHandler) UpdateSource(w http.ResponseWriter, r *http.Request) {
 }
 
 // DeleteSource handles DELETE /sources to delete a source.
-func (ch *ControlHandler) DeleteSource(w http.ResponseWriter, r *http.Request) {
+func (ch *FeedsManagerHandler) DeleteSource(w http.ResponseWriter, r *http.Request) {
 	var source struct {
 		Name string `json:"name"`
 	}
