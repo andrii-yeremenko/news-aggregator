@@ -32,13 +32,14 @@ func (h *UpdateHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//rename to IsSourceSupported
-	if !h.ResourceManager.IsSourceSupported(resource.Source(sourceType)) {
+	source := resource.Source(sourceType)
+
+	if !h.ResourceManager.IsSourceSupported(source) {
 		http.Error(w, "Source not supported", http.StatusBadRequest)
 		return
 	}
-	//resource.Source(sourceType)
-	err := h.ResourceManager.UpdateResource(resource.Source(sourceType))
+
+	err := h.ResourceManager.UpdateResource(source)
 
 	if err != nil {
 		http.Error(w, "Failed to update source", http.StatusInternalServerError)
