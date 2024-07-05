@@ -24,14 +24,20 @@ func main() {
 		log.Fatalf("failed to create resource manager: %v", err)
 	}
 
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "8443"
+	}
+
 	server := web_server.NewServerBuilder().
-		SetPort("8443").
+		SetPort(port).
 		AddHandler("/news", handler.NewNewsHandler(manager).Handle).
 		AddHandler("/update", handler.NewUpdateHandler(manager).Handle).
 		AddHandler("/sources", handler.NewFeedsManagerHandler(manager).Handle).
 		Build()
 
-	log.Println("Starting server...")
+	log.Println("Starting server on port " + port + " ...")
 
 	err = server.ListenAndServeTLS("certificates/cert.pem", "certificates/key.pem")
 	if err != nil {

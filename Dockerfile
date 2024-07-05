@@ -1,19 +1,23 @@
 FROM golang:1.22-alpine AS base
 WORKDIR /app
+
 COPY go.mod go.sum ./
+
 RUN go mod download
+RUN apk --no-cache add ca-certificates
+
 COPY . .
 
-FROM base AS build-server
 RUN go build -o /app/server ./cmd/web_server/main
 
 FROM scratch
+ENV PORT=8443
 
-RUN apk --no-cache add ca-certificates
-COPY --from=build-server /app/server /app/server
-COPY --from=build-server /app/config /config
-COPY --from=build-server /app/resources /resources
-COPY --from=build-server /app/certificates /certificates
+COPY --from=base /app/server /app/server
+COPY --from=base /app/config /config
+COPY --from=base /app/resources /resources
+COPY --from=base /app/certificates /certificates
+
 EXPOSE 8443
 
 ENTRYPOINT ["/app/server"]
