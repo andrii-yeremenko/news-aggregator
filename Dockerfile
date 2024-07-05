@@ -1,4 +1,5 @@
 FROM golang:1.22-alpine AS base
+LABEL maintainer="Andrii Yeremenko"
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -11,6 +12,7 @@ COPY . .
 RUN go build -o /app/server ./cmd/web_server/main
 
 FROM alpine:latest
+LABEL maintainer="Andrii Yeremenko"
 
 ENV PORT=8443
 
