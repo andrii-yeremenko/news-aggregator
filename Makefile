@@ -1,9 +1,19 @@
 DOCKER_IMAGE_NAME = news-aggregator
 DOCKER_IMAGE_VERSION = 1.0
 
-# Run the project
-run-web-server:
-	go run cmd/web-server/main/main.go
+# Build the cli application
+build:
+	go build -o bin/news-aggregator cmd/cli/main/main.go
+
+# Build the docker image and run the container
+build-and-run-docker-image:
+	$(MAKE) build-docker-image
+	$(MAKE) run-docker-image
+
+# Stop the docker container and remove it
+stop-and-remove-docker-container:
+	$(MAKE) stop-docker-container
+	$(MAKE) remove-container
 
 # Build the docker image
 build-docker-image:
