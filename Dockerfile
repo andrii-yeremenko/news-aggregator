@@ -10,7 +10,8 @@ COPY . .
 
 RUN go build -o /app/server ./cmd/web_server/main
 
-FROM scratch
+FROM alpine:latest
+
 ENV PORT=8443
 
 COPY --from=base /app/server /app/server
