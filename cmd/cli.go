@@ -24,6 +24,7 @@ type CLI struct {
 	parserFactory   *aggregator.ParserFactory
 	aggregator      *aggregator.Aggregator
 	resourceManager *resource_manager.ResourceManager
+	printer         *console_printer.Logger
 }
 
 // New creates a new CLI instance.
@@ -45,6 +46,7 @@ func New() (*CLI, error) {
 		parserFactory:   parserPool,
 		aggregator:      a,
 		resourceManager: manager,
+		printer:         console_printer.New(),
 	}, nil
 }
 
@@ -86,7 +88,7 @@ func (cli *CLI) Run() error {
 
 func (cli *CLI) checkAvailableSources() bool {
 	if cli.resourceManager.AvailableSources() == "" {
-		console_printer.New().Warn("No sources available")
+		cli.printer.Warn("No sources available")
 		return true
 	}
 	return false
@@ -103,12 +105,12 @@ func (cli *CLI) countFlags() int {
 func (cli *CLI) showAllArticles() {
 	resources, err := cli.resourceManager.AllResources()
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 	}
 
 	articles, err := cli.aggregator.AggregateMultiple(resources)
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 	}
 
 	articles = cli.sortArticles(articles)
@@ -120,14 +122,14 @@ func (cli *CLI) showFilteredArticles() {
 
 	err := cli.applyFilters()
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 		return
 	}
 
 	filteredArticles, err := cli.aggregator.AggregateMultiple(resources)
 
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 		return
 	}
 
@@ -142,7 +144,7 @@ func (cli *CLI) sortArticles(articles []article.Article) []article.Article {
 	} else if cli.sortOrderArg == "desc" {
 		return aggregator.SortArticlesByDateDesc(articles)
 	} else {
-		console_printer.New().Error("Unknown sort order")
+		cli.printer.Error("Unknown sort order")
 		return articles
 	}
 }
@@ -151,7 +153,7 @@ func (cli *CLI) getResources() []resource.Resource {
 	if cli.sourceArg == "" {
 		resources, err := cli.resourceManager.AllResources()
 		if err != nil {
-			console_printer.New().Error(err.Error())
+			cli.printer.Error(err.Error())
 		}
 
 		return resources
@@ -160,7 +162,7 @@ func (cli *CLI) getResources() []resource.Resource {
 	sources := strings.Split(cli.sourceArg, ",")
 	resources, err := cli.resourceManager.GetSelectedResources(sources)
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 	}
 	cli.aggregator.AddFilter(filter.NewSourceFilter(sources))
 	return resources
@@ -205,10 +207,10 @@ func (cli *CLI) printArticles(articles []article.Article) {
 		OrderArg:     cli.sortOrderArg,
 	}
 
-	err := console_printer.New().PrintArticles(articles, params)
+	err := cli.printer.PrintArticles(articles, params)
 
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 		return
 	}
 }

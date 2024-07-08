@@ -9,8 +9,10 @@ import (
 func main() {
 	cli, err := cmd.New()
 
+	printer := console_printer.New()
+
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		printer.Error(err.Error())
 		return
 	}
 
@@ -18,6 +20,6 @@ func main() {
 
 	err = cli.Run()
 	if err != nil {
-		console_printer.New().Error("Error occurred during execution")
+		printer.Error("Error occurred during execution")
 	}
 }
