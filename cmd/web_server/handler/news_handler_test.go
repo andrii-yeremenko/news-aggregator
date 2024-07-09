@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"news-aggregator/aggregator"
-	"news-aggregator/resource_manager"
+	"news-aggregator/manager"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,7 +17,7 @@ func TestNewsAggregatorHandler_Handle(t *testing.T) {
 		managerConfigPath := "../../../config/feeds_dictionary.json"
 		storagePath := "../../../resources"
 
-		manager, err := resource_manager.New(storagePath, managerConfigPath)
+		manager, err := manager.New(storagePath, managerConfigPath)
 		parserFactory := aggregator.NewParserFactory()
 
 		handler := &NewsAggregatorHandler{
@@ -51,7 +51,7 @@ func TestNewsAggregatorHandler_Handle(t *testing.T) {
 		managerConfigPath := "../../../config/feeds_dictionary.json"
 		storagePath := "../../../resources"
 
-		manager, err := resource_manager.New(storagePath, managerConfigPath)
+		manager, err := manager.New(storagePath, managerConfigPath)
 
 		assert.NoError(t, err)
 

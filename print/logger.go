@@ -1,4 +1,4 @@
-package console_printer
+package print
 
 import (
 	"fmt"
@@ -30,7 +30,7 @@ type FilterParams struct {
 func New() *Logger {
 	basePath, _ := os.Getwd()
 	return &Logger{
-		templatePath: path.Join(basePath, "console_printer/template/article_template.txt"),
+		templatePath: path.Join(basePath, "print/template/article_template.txt"),
 	}
 }
 

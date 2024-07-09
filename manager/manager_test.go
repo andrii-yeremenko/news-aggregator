@@ -1,13 +1,13 @@
-package resource_manager_test
+package manager_test
 
 import (
 	"encoding/json"
+	"news-aggregator/manager"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"news-aggregator/aggregator/model/resource"
-	"news-aggregator/resource_manager"
 )
 
 const (
@@ -16,13 +16,13 @@ const (
 )
 
 func TestNewResourceManager(t *testing.T) {
-	rm, err := resource_manager.New(testStoragePath, testFeedDictionary)
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
 	assert.NoError(t, err)
 	assert.NotNil(t, rm)
 }
 
 func TestRegisterSource(t *testing.T) {
-	rm, err := resource_manager.New(testStoragePath, testFeedDictionary)
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
 	assert.NoError(t, err)
 
 	err = rm.RegisterSource("source", "http://source.com/source", resource.RSS)
@@ -42,7 +42,7 @@ func TestRegisterSource(t *testing.T) {
 }
 
 func TestUpdateSource(t *testing.T) {
-	rm, err := resource_manager.New(testStoragePath, testFeedDictionary)
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
 	assert.NoError(t, err)
 
 	err = rm.UpdateSource("source", "http://source.com/updated", resource.HTML)
@@ -68,7 +68,7 @@ func TestUpdateSource(t *testing.T) {
 }
 
 func TestDeleteSource(t *testing.T) {
-	rm, err := resource_manager.New(testStoragePath, testFeedDictionary)
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
 	assert.NoError(t, err)
 
 	err = rm.DeleteSource("source")
@@ -89,14 +89,14 @@ func TestDeleteSource(t *testing.T) {
 }
 
 func TestSourceIsSupported(t *testing.T) {
-	rm, err := resource_manager.New(testStoragePath, testFeedDictionary)
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
 	assert.NoError(t, err)
 
 	assert.True(t, rm.IsSourceSupported("supported_source"))
 }
 
 func TestAvailableSources(t *testing.T) {
-	rm, err := resource_manager.New(testStoragePath, testFeedDictionary)
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
 	assert.NoError(t, err)
 
 	expectedSources := "supported,test,"
@@ -104,7 +104,7 @@ func TestAvailableSources(t *testing.T) {
 }
 
 func TestGetAllResources(t *testing.T) {
-	rm, err := resource_manager.New(testStoragePath, testFeedDictionary)
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
 	assert.NoError(t, err)
 
 	resources, err := rm.GetAllResources()
@@ -120,7 +120,7 @@ func TestGetAllResources(t *testing.T) {
 }
 
 func TestGetSelectedResources(t *testing.T) {
-	rm, err := resource_manager.New(testStoragePath, testFeedDictionary)
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
 	assert.NoError(t, err)
 
 	resources, err := rm.GetSelectedResources([]string{"supported_source"})

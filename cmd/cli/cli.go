@@ -3,12 +3,13 @@ package cli
 import (
 	"flag"
 	"fmt"
+	"log"
 	"news-aggregator/aggregator"
 	"news-aggregator/aggregator/filter"
 	"news-aggregator/aggregator/model/article"
 	"news-aggregator/aggregator/model/resource"
-	"news-aggregator/console_printer"
-	"news-aggregator/resource_manager"
+	"news-aggregator/manager"
+	"news-aggregator/print"
 	"os"
 	"path"
 	"strings"
@@ -23,11 +24,12 @@ type CLI struct {
 	sortOrderArg    string
 	parserFactory   *aggregator.ParserFactory
 	aggregator      *aggregator.Aggregator
-	resourceManager *resource_manager.ResourceManager
+	resourceManager *manager.ResourceManager
+	printer         *print.Logger
 }
 
 // New creates a new CLI instance.
-func New() (*CLI, error) {
+func New(managerPath, storagePath string) (*CLI, error) {
 	parserPool := aggregator.NewParserFactory()
 	a, err := aggregator.New(parserPool)
 	if err != nil {
@@ -36,11 +38,13 @@ func New() (*CLI, error) {
 
 	basePath, err := os.Getwd()
 	if err != nil {
-		return nil, err
+		log.Fatalf("failed to get current directory: %v", err)
 	}
 
-	manager, err := resource_manager.New(path.Join(basePath, "/resources"),
-		path.Join(basePath, "/config/feeds_dictionary.json"))
+	managerConfigPath := path.Join(basePath, managerPath)
+	storagePath = path.Join(basePath, storagePath)
+
+	m, err := manager.New(storagePath, managerConfigPath)
 
 	if err != nil {
 		return nil, err
@@ -49,7 +53,8 @@ func New() (*CLI, error) {
 	return &CLI{
 		parserFactory:   parserPool,
 		aggregator:      a,
-		resourceManager: manager,
+		resourceManager: m,
+		printer:         print.New(),
 	}, nil
 }
 
@@ -91,7 +96,7 @@ func (cli *CLI) Run() error {
 
 func (cli *CLI) checkAvailableSources() bool {
 	if cli.resourceManager.AvailableSources() == "" {
-		console_printer.New().Warn("No sources available")
+		cli.printer.Warn("No sources available")
 		return true
 	}
 	return false
@@ -108,12 +113,12 @@ func (cli *CLI) countFlags() int {
 func (cli *CLI) showAllArticles() {
 	resources, err := cli.resourceManager.GetAllResources()
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 	}
 
 	articles, err := cli.aggregator.AggregateMultiple(resources)
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 	}
 
 	articles = cli.sortArticles(articles)
@@ -125,14 +130,14 @@ func (cli *CLI) showFilteredArticles() {
 
 	err := cli.applyFilters()
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 		return
 	}
 
 	filteredArticles, err := cli.aggregator.AggregateMultiple(resources)
 
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 		return
 	}
 
@@ -147,7 +152,7 @@ func (cli *CLI) sortArticles(articles []article.Article) []article.Article {
 	} else if cli.sortOrderArg == "desc" {
 		return aggregator.SortArticlesByDateDesc(articles)
 	} else {
-		console_printer.New().Error("Unknown sort order")
+		cli.printer.Error("Unknown sort order")
 		return articles
 	}
 }
@@ -156,7 +161,7 @@ func (cli *CLI) getResources() []resource.Resource {
 	if cli.sourceArg == "" {
 		resources, err := cli.resourceManager.GetAllResources()
 		if err != nil {
-			console_printer.New().Error(err.Error())
+			cli.printer.Error(err.Error())
 		}
 
 		return resources
@@ -165,7 +170,7 @@ func (cli *CLI) getResources() []resource.Resource {
 	sources := strings.Split(cli.sourceArg, ",")
 	resources, err := cli.resourceManager.GetSelectedResources(sources)
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 	}
 	cli.aggregator.AddFilter(filter.NewSourceFilter(sources))
 	return resources
@@ -202,7 +207,7 @@ func (cli *CLI) applyFilters() error {
 
 func (cli *CLI) printArticles(articles []article.Article) {
 
-	params := console_printer.FilterParams{
+	params := print.FilterParams{
 		SourceArg:    cli.sourceArg,
 		KeywordsArg:  cli.keywordsArg,
 		StartDateArg: cli.startDateArg,
@@ -210,10 +215,10 @@ func (cli *CLI) printArticles(articles []article.Article) {
 		OrderArg:     cli.sortOrderArg,
 	}
 
-	err := console_printer.New().PrintArticles(articles, params)
+	err := cli.printer.PrintArticles(articles, params)
 
 	if err != nil {
-		console_printer.New().Error(err.Error())
+		cli.printer.Error(err.Error())
 		return
 	}
 }

@@ -1,4 +1,4 @@
-package resource_manager
+package manager
 
 import (
 	"encoding/json"
