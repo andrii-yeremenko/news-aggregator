@@ -73,13 +73,13 @@ tasks:
   cli-run:
     desc: "Run the CLI locally"
     precondition: "task build-cli"
-    cmds:
-      - task cli:run
+    cmd: |
+      task cli:run
 
   server-run:
     desc: "Run the web server locally"
-    cmds:
-      - task web_server:run
+    cmd: |
+      task web_server:run
 
   clean:
     desc: "Clean build artifacts"
