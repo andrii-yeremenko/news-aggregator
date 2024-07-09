@@ -1,0 +1,20 @@
+version: '3'
+
+env:
+  CLI_PATH: "./cmd/cli/main"
+
+tasks:
+  build:
+    desc: "Build the CLI app"
+    cmd: |
+      go build -o cli $CLI_PATH
+
+  run:
+    desc: "Run the CLI app"
+    cmd: |
+      ./cli
+
+  clean:
+    desc: "Clean the binary"
+    cmd: |
+      rm -rf cli

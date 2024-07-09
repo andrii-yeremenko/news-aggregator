@@ -1,57 +1,91 @@
 version: '3'
 
+env:
+  SERVER_PATH: "./cmd/web_server/main"
+  CLI_PATH: "./cmd/cli/main"
+  DOCKER_IMAGE_NAME: "news-aggregator-server"
+  DOCKERFILE_PATH: "Dockerfile"
+  SERVER_EXPOSE_PORT: "8443"
+  DOCKER_RUN_PORT: "8080"
+  LINT_VERSION: "v1.42.1"
+  GO_VERSION: "1.21"
+  BIN_PATH: "./bin"
+
+includes:
+  web_server:
+    taskfile: ./cmd/web_server/Taskfile.yml
+  cli:
+    taskfile: ./cmd/cli/Taskfile.yml
+
 tasks:
   tidy:
     desc: "Tidies the Go module dependencies"
-    cmds:
-      - go mod tidy
+    cmd: |
+      go mod tidy
 
   test:
     desc: "Run all tests"
-    cmds:
-      - go test ./...
+    cmd: |
+      go test ./...
 
   fmt:
     desc: "Run go fmt on all Go files"
-    cmds:
-      - go fmt ./...
+    cmd: |
+      go fmt ./...
 
   vet:
     desc: "Run go vet on all Go files"
-    cmds:
-      - go vet ./...
+    cmd: |
+      go vet ./...
 
   lint:
     desc: "Run golangci-lint"
-    cmds:
-      - golangci-lint run
+    cmd: |
+      golangci-lint run
 
-  build:
-    desc: "Build the web_server and CLI"
-    cmds:
-      - go build -o bin/web_server ./cmd/web_server/main
-      - go build -o bin/cli ./cmd/cli/main
+  build-web-server:
+    desc: "Build the web_server"
+    cmd: |
+      task web_server:build
+
+  build-cli:
+    desc: "Build the CLI"
+    cmd: |
+      task cli:build
+
+  build-all:
+    desc: "Build all binaries"
+    deps:
+      - build-web-server
+      - build-cli
 
   docker-build:
     desc: "Build the Docker image for web_server"
-    cmds:
-      - docker build -t news-aggregator-server -f Dockerfile .
+    silent: true
+    cmd: |
+      docker build -t $DOCKER_IMAGE_NAME -f $DOCKERFILE_PATH .
 
   docker-run:
     desc: "Run the web_server Docker container"
-    cmds:
-      - docker run -p 8080:8443 news-aggregator-server
+    cmd: |
+      docker run -p $DOCKER_RUN_PORT:$SERVER_EXPOSE_PORT $DOCKER_IMAGE_NAME
 
   cli-run:
     desc: "Run the CLI locally"
+    precondition: "task build-cli"
     cmds:
-      - task build
-      - ./bin/cli
+      - task cli:run
+
+  server-run:
+    desc: "Run the web server locally"
+    cmds:
+      - task web_server:run
 
   clean:
     desc: "Clean build artifacts"
     cmds:
-      - rm -rf bin/
+      - task web_server:clean
+      - task cli:clean
 
   lint-all:
     desc: "Run all linters"
