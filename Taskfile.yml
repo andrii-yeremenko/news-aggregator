@@ -11,6 +11,11 @@ env:
   GO_VERSION: "1.21"
   BIN_PATH: "./bin"
 
+output:
+  group:
+    begin: '::group::{{.TASK}}'
+    end: '::endgroup::'
+
 includes:
   web_server:
     taskfile: ./cmd/web_server/Taskfile.yml
@@ -43,53 +48,68 @@ tasks:
     cmd: |
       golangci-lint run
 
+  lint-all:
+    desc: "Run all linters"
+    deps:
+      - fmt
+      - vet
+      - lint
+
   build-web-server:
     desc: "Build the web_server"
+    deps:
+      - tidy
+      - test
     cmd: |
       task web_server:build
 
   build-cli:
     desc: "Build the CLI"
+    deps:
+      - tidy
+      - test
     cmd: |
       task cli:build
 
   build-all:
     desc: "Build all binaries"
     deps:
+      - tidy
+      - test
       - build-web-server
       - build-cli
 
   docker-build:
     desc: "Build the Docker image for web_server"
     silent: true
+    deps:
+      - build-web-server
     cmd: |
       docker build -t $DOCKER_IMAGE_NAME -f $DOCKERFILE_PATH .
 
   docker-run:
     desc: "Run the web_server Docker container"
+    deps:
+      - docker-build
     cmd: |
       docker run -p $DOCKER_RUN_PORT:$SERVER_EXPOSE_PORT $DOCKER_IMAGE_NAME
 
   cli-run:
     desc: "Run the CLI locally"
-    precondition: "task build-cli"
+    deps:
+      - build-cli
     cmd: |
       task cli:run
 
   server-run:
     desc: "Run the web server locally"
+    deps:
+      - build-web-server
     cmd: |
       task web_server:run
 
   clean:
     desc: "Clean build artifacts"
-    cmds:
-      - task web_server:clean
-      - task cli:clean
-
-  lint-all:
-    desc: "Run all linters"
-    cmds:
-      - task fmt
-      - task vet
-      - task lint
+    deps:
+      - web_server:clean
+      - cli:clean
