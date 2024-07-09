@@ -1,0 +1,61 @@
+version: '3'
+
+tasks:
+  tidy:
+    desc: "Tidies the Go module dependencies"
+    cmds:
+      - go mod tidy
+
+  test:
+    desc: "Run all tests"
+    cmds:
+      - go test ./...
+
+  fmt:
+    desc: "Run go fmt on all Go files"
+    cmds:
+      - go fmt ./...
+
+  vet:
+    desc: "Run go vet on all Go files"
+    cmds:
+      - go vet ./...
+
+  lint:
+    desc: "Run golangci-lint"
+    cmds:
+      - golangci-lint run
+
+  build:
+    desc: "Build the web_server and CLI"
+    cmds:
+      - go build -o bin/web_server ./cmd/web_server/main
+      - go build -o bin/cli ./cmd/cli/main
+
+  docker-build:
+    desc: "Build the Docker image for web_server"
+    cmds:
+      - docker build -t news-aggregator-server -f Dockerfile .
+
+  docker-run:
+    desc: "Run the web_server Docker container"
+    cmds:
+      - docker run -p 8080:8443 news-aggregator-server
+
+  cli-run:
+    desc: "Run the CLI locally"
+    cmds:
+      - task build
+      - ./bin/cli
+
+  clean:
+    desc: "Clean build artifacts"
+    cmds:
+      - rm -rf bin/
+
+  lint-all:
+    desc: "Run all linters"
+    cmds:
+      - task fmt
+      - task vet
+      - task lint
