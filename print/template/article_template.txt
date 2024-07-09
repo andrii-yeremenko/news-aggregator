@@ -1,0 +1,72 @@
+{{define "header"}}
+╔═══════════════════════════════════════════════════════════════════════════╗
+║
+║   ╭━╮╱╭╮╱╱╱╱╱╱╱╱╱╱╱╭━━━╮╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╭╮
+║   ┃┃╰╮┃┃╱╱╱╱╱╱╱╱╱╱╱┃╭━╮┃╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╭╯╰╮
+║   ┃╭╮╰╯┣━━┳╮╭╮╭┳━━╮┃┃╱┃┣━━┳━━┳━┳━━┳━━┳━┻╮╭╋━━┳━╮
+║   ┃┃╰╮┃┃┃━┫╰╯╰╯┃━━┫┃╰━╯┃╭╮┃╭╮┃╭┫┃━┫╭╮┃╭╮┃┃┃╭╮┃╭╯
+║   ┃┃╱┃┃┃┃━╋╮╭╮╭╋━━┃┃╭━╮┃╰╯┃╰╯┃┃┃┃━┫╰╯┃╭╮┃╰┫╰╯┃┃
+║   ╰╯╱╰━┻━━╯╰╯╰╯╰━━╯╰╯╱╰┻━╮┣━╮┣╯╰━━┻━╮┣╯╰┻━┻━━┻╯
+║   ╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╭━╯┣━╯┃╱╱╱╱╭━╯┃
+║   ╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╰━━┻━━╯╱╱╱╱╰━━╯
+╠═══════════════════════════════════════════════════════════════════════════╣
+║{{- indent 2 "" -}}Filters Applied:
+║{{- indent 5 "" -}}{{if ne .Params.SourceArg ""}}* Sources: "{{.Params.SourceArg}}"{{else}}- Source: Not Applied{{end}}
+║{{- indent 5 "" -}}{{if ne .Params.KeywordsArg ""}}* Keywords: "{{.Params.KeywordsArg}}"{{else}}- Keywords: Not Applied{{end}}
+║{{- indent 5 "" -}}{{if ne .Params.StartDateArg ""}}* Start Date: "{{.Params.StartDateArg}}"{{else}}- Start Date: Not Applied{{end}}
+║{{- indent 5 "" -}}{{if ne .Params.EndDateArg ""}}* End Date: "{{.Params.EndDateArg}}"{{else}}- End Date: Not Applied{{end}}
+║{{- indent 2 "" -}}Sorted by:
+{{- if eq .Params.OrderArg "asc"}}
+{{- indent 2 "" -}}Ascending
+{{- else if eq .Params.OrderArg "desc"}}
+{{- indent 2 "" -}}Descending
+{{- else}}
+{{- indent 2 "" -}}None
+{{- end}}
+╠═══════════════════════════════════════════════════════════════════════════╣
+{{end}}
+
+{{define "footer"}}
+╠═══════════════════════════════════════════════════════════════════════════╣
+║{{- indent 2 " " -}}Total Articles: {{len .Articles}}{{if lt (len .Articles) 1}}, no articles found.{{end}}
+║{{- indent 2 " " -}}Developed by: @andrii-yeremenko
+╚═══════════════════════════════════════════════════════════════════════════╝
+{{end}}
+
+{{define "article"}}
+{{range .Articles}}
+{{nindent 5 ""}}<-----------------{{highlight .TitleStr $.Params.KeywordsArg}}-------------------->
+{{indent 5 ""}}Description: {{highlight .DescriptionStr $.Params.KeywordsArg}}
+{{indent 5 ""}}Date: {{.Date.HumanReadableString}}
+{{indent 5 ""}}Author: {{.Author}}
+{{indent 5 ""}}Link: {{.Link}}
+{{indent 5 ""}}>-----------------By {{.Source}}--------------------<
+{{end}}
+{{end}}
+
+{{define "sourceGroup"}}
+{{- $sources := groupBySource .Articles -}}
+{{range $source, $articles := $sources}}
+{{nindent 3 ""}}╔════════════════════════════════════╗
+{{indent 3 ""}}║  Source: {{$source}} ({{len $articles}} news)
+{{indent 3 ""}}╚════════════════════════════════════╝
+{{- range $articles}}
+{{nindent 5 ""}}<-----------------{{highlight .TitleStr $.Params.KeywordsArg}}-------------------->
+{{indent 5 ""}}Description: {{highlight .DescriptionStr $.Params.KeywordsArg}}
+{{indent 5 ""}}Date: {{.Date.HumanReadableString}}
+{{indent 5 ""}}Author: {{.Author}}
+{{indent 5 ""}}Link: {{.Link}}
+{{- end}}
+{{end}}
+{{end}}
+
+{{define "main"}}
+{{- template "header" . -}}
+{{- if ne .Params.SourceArg "" -}}
+    {{- template "sourceGroup" . -}}
+{{- else -}}
+    {{- template "article" . -}}
+{{- end -}}
+{{- template "footer" . -}}
+{{end}}
+

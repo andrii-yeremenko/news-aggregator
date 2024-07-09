@@ -1,0 +1,14 @@
+{
+  "articles": [
+    {
+      "source": {
+        "name": "Test Source"
+      },
+      "author": "John Doe",
+      "title": "Test Title",
+      "description": "Test Description",
+      "publishedAt": "2022-01-01T00:00:00Z",
+      "url": "http://example.com"
+    }
+  ]
+}
