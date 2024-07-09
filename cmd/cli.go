@@ -7,8 +7,8 @@ import (
 	"news-aggregator/aggregator/filter"
 	"news-aggregator/aggregator/model/article"
 	"news-aggregator/aggregator/model/resource"
+	"news-aggregator/manager"
 	"news-aggregator/print"
-	"news-aggregator/resource_manager"
 	"os"
 	"path"
 	"strings"
@@ -23,7 +23,7 @@ type CLI struct {
 	sortOrderArg    string
 	parserFactory   *aggregator.ParserFactory
 	aggregator      *aggregator.Aggregator
-	resourceManager *resource_manager.ResourceManager
+	resourceManager *manager.ResourceManager
 	printer         *print.Logger
 }
 
@@ -40,12 +40,12 @@ func New() (*CLI, error) {
 		return nil, err
 	}
 
-	manager := resource_manager.New(path.Join(basePath, "/storage"))
+	rm := manager.New(path.Join(basePath, "/storage"))
 
 	return &CLI{
 		parserFactory:   parserPool,
 		aggregator:      a,
-		resourceManager: manager,
+		resourceManager: rm,
 		printer:         print.New(),
 	}, nil
 }
