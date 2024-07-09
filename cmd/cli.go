@@ -7,7 +7,7 @@ import (
 	"news-aggregator/aggregator/filter"
 	"news-aggregator/aggregator/model/article"
 	"news-aggregator/aggregator/model/resource"
-	"news-aggregator/console_printer"
+	"news-aggregator/print"
 	"news-aggregator/resource_manager"
 	"os"
 	"path"
@@ -24,7 +24,7 @@ type CLI struct {
 	parserFactory   *aggregator.ParserFactory
 	aggregator      *aggregator.Aggregator
 	resourceManager *resource_manager.ResourceManager
-	printer         *console_printer.Logger
+	printer         *print.Logger
 }
 
 // New creates a new CLI instance.
@@ -46,7 +46,7 @@ func New() (*CLI, error) {
 		parserFactory:   parserPool,
 		aggregator:      a,
 		resourceManager: manager,
-		printer:         console_printer.New(),
+		printer:         print.New(),
 	}, nil
 }
 
@@ -199,7 +199,7 @@ func (cli *CLI) applyFilters() error {
 
 func (cli *CLI) printArticles(articles []article.Article) {
 
-	params := console_printer.FilterParams{
+	params := print.FilterParams{
 		SourceArg:    cli.sourceArg,
 		KeywordsArg:  cli.keywordsArg,
 		StartDateArg: cli.startDateArg,

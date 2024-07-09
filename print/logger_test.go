@@ -1,15 +1,15 @@
-package console_printer_test
+package print_test
 
 import (
 	"news-aggregator/aggregator/model/article"
-	"news-aggregator/console_printer"
+	"news-aggregator/print"
 	"os"
 	"testing"
 	"time"
 )
 
 func TestPrintArticlesInTemplate(t *testing.T) {
-	l := console_printer.New()
+	l := print.New()
 
 	articles := make([]article.Article, 0)
 	testDate := time.Date(2024, time.June, 5, 12, 0, 0, 0,
@@ -24,7 +24,7 @@ func TestPrintArticlesInTemplate(t *testing.T) {
 		Build()
 	articles = append(articles, *art)
 
-	params := console_printer.FilterParams{
+	params := print.FilterParams{
 		SourceArg:    "Test Source",
 		KeywordsArg:  "Test",
 		StartDateArg: "2024-06-05",
@@ -41,12 +41,12 @@ func TestPrintArticlesInTemplate(t *testing.T) {
 
 func TestPrintArticlesInTemplateError(t *testing.T) {
 
-	l := console_printer.New()
+	l := print.New()
 
 	articles := make([]article.Article, 0)
 
 	l.SetTemplatePath("testdata/template_with_error.txt")
-	err := l.PrintArticles(articles, console_printer.FilterParams{})
+	err := l.PrintArticles(articles, print.FilterParams{})
 
 	if err == nil {
 		t.Errorf("PrintArticles() should return an error when template is invalid")
@@ -55,12 +55,12 @@ func TestPrintArticlesInTemplateError(t *testing.T) {
 
 func TestPrintArticlesInEmptyTemplate(t *testing.T) {
 
-	l := console_printer.New()
+	l := print.New()
 
 	articles := make([]article.Article, 0)
 
 	l.SetTemplatePath("testdata/empty_template.txt")
-	err := l.PrintArticles(articles, console_printer.FilterParams{})
+	err := l.PrintArticles(articles, print.FilterParams{})
 
 	if err == nil {
 		t.Errorf("PrintArticles() should return an error when template is empty")
@@ -69,12 +69,12 @@ func TestPrintArticlesInEmptyTemplate(t *testing.T) {
 
 func TestPrintArticlesInTemplate_WithIncorrectLocation(t *testing.T) {
 
-	l := console_printer.New()
+	l := print.New()
 
 	articles := make([]article.Article, 0)
 
 	l.SetTemplatePath("testdata/incorrect.txt")
-	err := l.PrintArticles(articles, console_printer.FilterParams{})
+	err := l.PrintArticles(articles, print.FilterParams{})
 
 	if err == nil {
 		t.Errorf("PrintArticles() should return an error when template location is incorrect")
@@ -82,7 +82,7 @@ func TestPrintArticlesInTemplate_WithIncorrectLocation(t *testing.T) {
 }
 
 func TestLog(t *testing.T) {
-	l := console_printer.New()
+	l := print.New()
 
 	output, err := captureOutput(func() {
 		l.Log("Test Log Message")
@@ -99,7 +99,7 @@ func TestLog(t *testing.T) {
 }
 
 func TestError(t *testing.T) {
-	l := console_printer.New()
+	l := print.New()
 
 	output, err := captureOutput(func() {
 		l.Error("Test Error Message")
@@ -116,7 +116,7 @@ func TestError(t *testing.T) {
 }
 
 func TestWarn(t *testing.T) {
-	l := console_printer.New()
+	l := print.New()
 
 	output, err := captureOutput(func() {
 		l.Warn("Test Warning Message")
