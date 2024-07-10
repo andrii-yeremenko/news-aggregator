@@ -38,3 +38,4 @@ Icon?
 
 # Go build cache and other generated files
 *.cache
+.devbox
