@@ -37,10 +37,7 @@ jobs:
 
       - name: Install dependencies
         run: go mod download
-
-      - name: Run tests
-        run: go test -v ./...
-
+        
       - name: Run tests with coverage
         run: go test -coverprofile=coverage.out -v ./...
 
