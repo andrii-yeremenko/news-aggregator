@@ -21,6 +21,6 @@ COPY --from=base /app/config /config
 COPY --from=base /app/resources /resources
 COPY --from=base /app/certificates /certificates
 
-EXPOSE 8443
+EXPOSE ${PORT}
 
 ENTRYPOINT ["/app/server"]
