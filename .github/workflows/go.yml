@@ -1,4 +1,4 @@
-name: Go Test and Coverage
+name: Go Build, Test, and Coverage
 
 on:
   pull_request:
@@ -18,15 +18,15 @@ on:
         type: boolean
 
 concurrency:
-  group: Go-Test-Coverage
+  group: Go-Build-Test-Coverage
   cancel-in-progress: false
 
 jobs:
   run:
     if: github.event_name != 'pull_request' || github.event.pull_request.labels.*.name != 'docbook'
-    name: Go Test and Coverage
+    name: Go Build, Test, and Coverage
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     strategy:
       fail-fast: true
     
@@ -51,12 +51,17 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
+            
+      - name: Build
+        run: go build -v ./...
+
       - name: Install dependencies
         run: go mod download
 
       - name: Run tests with coverage
+        if: steps.skip_tests.outputs.skipTests == 'false'
         run: go test -coverprofile=coverage.out -v ./...
-
+        
       - name: Upload coverage report
         uses: actions/upload-artifact@v3
         with:
