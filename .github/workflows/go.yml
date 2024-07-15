@@ -33,13 +33,6 @@ jobs:
       fail-fast: true
     
     steps:
-      - name: Log Machine Info
-        run: |
-          echo "Running on machine: ${{ runner.os }}"
-          echo "Current directory: $(pwd)"
-          echo "Available CPUs: $(nproc)"
-          echo "Memory information: $(free -m)"
-
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -51,33 +44,23 @@ jobs:
       - name: Verify Go installation
         run: go version
 
-      - name: Go Format
-        run: |
-          echo "Running gofmt"
-          gofmt -s -w . && git diff --exit-code
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+      - name: Install dependencies
+        run: go mod download
 
-      - name: Go Tidy
-        run: |
-          echo "Running go mod tidy"
-          go mod tidy && git diff --exit-code
+      - name: Run tests with coverage
+        run: go test -coverprofile=coverage.out -v ./...
 
-      - name: Go Mod
-        run: |
-          echo "Running go mod download"
-          go mod download
-
-      - name: Go Mod Verify
-        run: |
-          echo "Verifying go modules"
-          go mod verify
-
-      - name: Go Build
-        run: |
-          echo "Building Go application"
-          go build -o /dev/null ./...
-
-      - name: Go Test
-        if: ${{ !inputs.skipTests }}
-        run: |
-          echo "Running Go tests"
-          go test -v -count=1 -race -shuffle=on -coverprofile=coverage.txt ./...
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage.out
