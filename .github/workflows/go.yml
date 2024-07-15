@@ -4,8 +4,6 @@ permissions: {}
 
 on:
   push:
-  pull_request:
-    types: [opened, synchronize, reopened]
   schedule:
     - cron: '30 5 * * 2,4'
   workflow_dispatch:
@@ -41,8 +39,8 @@ jobs:
           echo "Available CPUs: $(nproc)"
           echo "Memory information: $(free -m)"
 
-      - name: Check out code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Install Go
         run: |
