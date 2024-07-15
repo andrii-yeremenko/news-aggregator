@@ -1,4 +1,4 @@
-name: ci
+name: Go Test and Coverage
 
 on:
   pull_request:
@@ -18,13 +18,13 @@ on:
         type: boolean
 
 concurrency:
-  group: ci
+  group: Go-Test-Coverage
   cancel-in-progress: false
 
 jobs:
   run:
     if: github.event_name != 'pull_request' || github.event.pull_request.labels.*.name != 'docbook'
-    name: CI
+    name: Go Test and Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 5
     strategy:
