@@ -28,6 +28,7 @@ func main() {
 
 	if port == "" {
 		port = "8443"
+		log.Println("PORT environment variable not set. Using default port " + port)
 	}
 
 	server := web_server.NewServerBuilder().
