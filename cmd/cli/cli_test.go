@@ -128,7 +128,7 @@ func TestRunWithParams(t *testing.T) {
 		t.Fatalf("Expected no error, got %v", err)
 	}
 
-	os.Args = []string{"-sources=source", "-keywords=keyword", "-date-start=2024-01-01", "-date-end=2024-31-312", "-sort-order=asc"}
+	os.Args = []string{"-sources=source", "-keywords=keyword", "-date-start=2024-01-01", "-date-end=2024-31-12", "-sort-order=asc"}
 	cli.ParseFlags()
 
 	err = cli.Run()
