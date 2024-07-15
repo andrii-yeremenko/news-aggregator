@@ -1,37 +1,18 @@
-name: ci
-
-permissions: {}
+name: CI
 
 on:
+  push:
+    branches-ignore:
+      - 'docbook/**'
   pull_request:
     branches-ignore:
       - 'docbook/**'
-    types: [opened, synchronize, reopened]
-  schedule:
-    - cron: '30 5 * * 2,4'
   workflow_dispatch:
-  
-  workflow_call:
-    inputs:
-      skipTests:
-        description: 'Skip tests, useful when there is a dedicated CI job for tests'
-        default: false
-        required: false
-        type: boolean
-
-concurrency:
-  group: ci
-  cancel-in-progress: false
 
 jobs:
-  run:
-    if: github.event_name != 'pull_request' || github.event.pull_request.labels.*.name != 'docbook'
-    name: CI
+  test:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    strategy:
-      fail-fast: true
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -55,7 +36,7 @@ jobs:
             ${{ runner.os }}-go-
       - name: Install dependencies
         run: go mod download
-
+        
       - name: Run tests with coverage
         run: go test -coverprofile=coverage.out -v ./...
 
