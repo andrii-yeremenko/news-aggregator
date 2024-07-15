@@ -9,6 +9,5 @@ type CreationDate time.Time
 // The date format is RFC822 chosen as the most common date format.
 func (cd CreationDate) HumanReadableString() string {
 	t := time.Time(cd)
-	localTime := t.Local()
-	return localTime.Format(time.RFC822)
+	return t.UTC().Format(time.RFC822)
 }
