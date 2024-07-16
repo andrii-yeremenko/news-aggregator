@@ -24,6 +24,8 @@ ENV PORT=8443
 COPY --from=base /app/server/bin /app/bin
 COPY --from=base /app/certificates certificates
 
+VOLUME ["/resources", "/config"]
+
 EXPOSE ${PORT}
 
 ENTRYPOINT ["app/bin"]
