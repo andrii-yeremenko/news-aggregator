@@ -16,7 +16,7 @@ COPY print print
 
 RUN go build -o /app/server/bin ./cmd/web_server/main
 
-FROM alpine:latest
+FROM alpine:3.20.0
 LABEL maintainer="Andrii Yeremenko"
 
 ENV PORT=8443
