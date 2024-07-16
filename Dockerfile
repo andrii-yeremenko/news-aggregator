@@ -11,8 +11,6 @@ COPY aggregator aggregator
 COPY cmd/web_server cmd/web_server
 COPY storage storage
 COPY manager manager
-COPY config config
-COPY resources resources
 COPY certificates certificates
 COPY print print
 
@@ -24,8 +22,6 @@ LABEL maintainer="Andrii Yeremenko"
 ENV PORT=8443
 
 COPY --from=base /app/server/bin /app/bin
-COPY --from=base /app/config config
-COPY --from=base /app/resources resources
 COPY --from=base /app/certificates certificates
 
 EXPOSE ${PORT}

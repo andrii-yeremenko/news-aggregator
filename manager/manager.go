@@ -8,6 +8,7 @@ import (
 	"news-aggregator/aggregator/model/resource"
 	"news-aggregator/storage"
 	"os"
+	"path/filepath"
 )
 
 // ResourceDetails is a struct that contains the format and link of a resource.
@@ -26,6 +27,26 @@ type ResourceManager struct {
 
 // New creates a new ResourceManager.
 func New(storagePath string, feedDictionaryPath string) (*ResourceManager, error) {
+
+	dir := filepath.Dir(feedDictionaryPath)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err := os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			return nil, fmt.Errorf("error creating directory: %v", err)
+		}
+	}
+
+	if fileInfo, err := os.Stat(feedDictionaryPath); os.IsNotExist(err) {
+		err := createEmptyJSONFile(feedDictionaryPath)
+		if err != nil {
+			return nil, fmt.Errorf("error creating feed dictionary file: %v", err)
+		}
+	} else if err == nil && fileInfo.Size() == 0 {
+		err := createEmptyJSONFile(feedDictionaryPath)
+		if err != nil {
+			return nil, fmt.Errorf("error initializing feed dictionary file: %v", err)
+		}
+	}
 
 	feeds, err := loadResources(feedDictionaryPath)
 	if err != nil {
@@ -308,4 +329,16 @@ func loadResources(path string) (map[resource.Source]ResourceDetails, error) {
 	}
 
 	return rFormats, nil
+}
+
+// createEmptyJSONFile creates a file with an empty JSON array.
+func createEmptyJSONFile(path string) error {
+	emptyFile, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer emptyFile.Close()
+
+	_, err = emptyFile.Write([]byte("[]"))
+	return err
 }
