@@ -38,6 +38,8 @@ func (s *UpdateScheduler) Start() {
 			if err != nil {
 				log.Printf("Failed to update resources: %v", err)
 			}
+			t := time.Now().Format("2006-01-02 15:04:05")
+			log.Println("Resources updated at", t)
 		}
 	}
 }
