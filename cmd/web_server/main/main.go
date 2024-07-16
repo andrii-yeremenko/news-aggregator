@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"time"
 )
 
 func main() {
@@ -18,6 +19,21 @@ func main() {
 	port := getPort()
 
 	startServer(port, m)
+
+	timeoutStr := os.Getenv("TIMEOUT")
+	if timeoutStr == "" {
+		log.Println("TIMEOUT environment variable not set. Using default timeout of 12 hours.")
+		timeoutStr = "12h"
+	}
+
+	timeout, err := time.ParseDuration(timeoutStr)
+
+	if err != nil {
+		log.Fatalf("Failed to parse TIMEOUT duration: %v", err)
+	}
+
+	scheduler := web_server.NewUpdateScheduler(m, timeout)
+	scheduler.Start()
 }
 
 // getCurrentDirectory retrieves the current working directory.

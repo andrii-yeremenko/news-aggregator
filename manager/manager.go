@@ -158,6 +158,19 @@ func (rm *ResourceManager) GetSelectedResources(sourceNames []string) ([]resourc
 	return fetchedResources, nil
 }
 
+// UpdateAllSources updates all sources in the storage.
+func (rm *ResourceManager) UpdateAllSources() error {
+
+	for source := range rm.feeds {
+		err := rm.UpdateResource(source)
+		if err != nil {
+			return fmt.Errorf("error updating source \"%s\": %v", source, err)
+		}
+	}
+
+	return nil
+}
+
 // UpdateResource updates the source in the storage.
 func (rm *ResourceManager) UpdateResource(source resource.Source) error {
 	details, exists := rm.feeds[source]
