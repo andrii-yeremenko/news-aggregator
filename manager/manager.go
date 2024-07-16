@@ -9,6 +9,7 @@ import (
 	"news-aggregator/storage"
 	"os"
 	"path/filepath"
+	"sort"
 )
 
 // ResourceDetails is a struct that contains the format and link of a resource.
@@ -283,6 +284,10 @@ func (rm *ResourceManager) saveFeeds() error {
 			fmt.Printf("error closing feeds file: %v\n", err)
 		}
 	}(file)
+
+	sort.Slice(resourceList, func(i, j int) bool {
+		return resourceList[i].Source < resourceList[j].Source
+	})
 
 	encoder := json.NewEncoder(file)
 	if err := encoder.Encode(&resourceList); err != nil {
