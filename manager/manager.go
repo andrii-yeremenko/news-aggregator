@@ -161,6 +161,10 @@ func (rm *ResourceManager) GetSelectedResources(sourceNames []string) ([]resourc
 // UpdateAllSources updates all sources in the storage.
 func (rm *ResourceManager) UpdateAllSources() error {
 
+	if len(rm.feeds) == 0 {
+		return fmt.Errorf("no sources available")
+	}
+
 	for source := range rm.feeds {
 		err := rm.UpdateResource(source)
 		if err != nil {
