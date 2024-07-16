@@ -7,6 +7,7 @@ import (
 	"news-aggregator/manager"
 	"os"
 	"path"
+	"strconv"
 )
 
 func main() {
@@ -24,12 +25,7 @@ func main() {
 		log.Fatalf("failed to create resource m: %v", err)
 	}
 
-	port := os.Getenv("PORT")
-
-	if port == "" {
-		port = "8443"
-		log.Println("PORT environment variable not set. Using default port " + port)
-	}
+	port := getPort()
 
 	server := web_server.NewServerBuilder().
 		SetPort(port).
@@ -47,4 +43,22 @@ func main() {
 	}
 
 	log.Println("Server started successfully")
+}
+
+// getPort returns the port number from the environment variable, or the default one if port not specified or invalid.
+func getPort() string {
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "8443"
+		log.Println("PORT environment variable not set. Using default port " + port)
+	} else {
+		_, err := strconv.Atoi(port)
+		if err != nil {
+			log.Println("Invalid PORT value set in environment variable. Using default port " + port)
+			port = "8443"
+		}
+	}
+
+	return port
 }
