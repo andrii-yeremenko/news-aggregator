@@ -11,44 +11,39 @@ import (
 )
 
 func main() {
+	basePath := getCurrentDirectory()
+
+	m := createResourceManager(basePath)
+
+	port := getPort()
+
+	startServer(port, m)
+}
+
+// getCurrentDirectory retrieves the current working directory.
+func getCurrentDirectory() string {
 	basePath, err := os.Getwd()
 	if err != nil {
 		log.Fatalf("failed to get current directory: %v", err)
 	}
+	return basePath
+}
 
+// createResourceManager initializes and returns the resource manager.
+func createResourceManager(basePath string) *manager.ResourceManager {
 	managerConfigPath := path.Join(basePath, "/config/feeds_dictionary.json")
 	storagePath := path.Join(basePath, "/resources")
 
 	m, err := manager.New(storagePath, managerConfigPath)
-
 	if err != nil {
-		log.Fatalf("failed to create resource m: %v", err)
+		log.Fatalf("failed to create resource manager: %v", err)
 	}
-
-	port := getPort()
-
-	server := web_server.NewServerBuilder().
-		SetPort(port).
-		AddHandler("/news", handler.NewNewsHandler(m).Handle).
-		AddHandler("/update", handler.NewUpdateHandler(m).Handle).
-		AddHandler("/sources", handler.NewFeedsManagerHandler(m).Handle).
-		Build()
-
-	log.Println("Starting server on port " + port + " ...")
-
-	err = server.ListenAndServeTLS("certificates/cert.pem", "certificates/key.pem")
-	if err != nil {
-		log.Fatalf("server failed to start: %v", err)
-		return
-	}
-
-	log.Println("Server started successfully")
+	return m
 }
 
-// getPort returns the port number from the environment variable, or the default one if port not specified or invalid.
+// getPort returns the port number to use for the server.
 func getPort() string {
 	port := os.Getenv("PORT")
-
 	if port == "" {
 		port = "8443"
 		log.Println("PORT environment variable not set. Using default port " + port)
@@ -59,6 +54,23 @@ func getPort() string {
 			port = "8443"
 		}
 	}
-
 	return port
+}
+
+// startServer initializes and starts the web server.
+func startServer(port string, m *manager.ResourceManager) {
+	server := web_server.NewServerBuilder().
+		SetPort(port).
+		AddHandler("/news", handler.NewNewsHandler(m).Handle).
+		AddHandler("/update", handler.NewUpdateHandler(m).Handle).
+		AddHandler("/sources", handler.NewFeedsManagerHandler(m).Handle).
+		Build()
+
+	log.Println("Starting server on port " + port + " ...")
+
+	err := server.ListenAndServeTLS("certificates/cert.pem", "certificates/key.pem")
+	if err != nil {
+		log.Fatalf("server failed to start: %v", err)
+	}
+	log.Println("Server started successfully")
 }
