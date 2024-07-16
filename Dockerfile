@@ -20,6 +20,7 @@ FROM alpine:3.20.0
 LABEL maintainer="Andrii Yeremenko"
 
 ENV PORT=8443
+ENV TIMEOUT=12h
 
 COPY --from=base /app/server/bin /app/bin
 COPY --from=base /app/certificates certificates
