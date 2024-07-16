@@ -16,10 +16,6 @@ func main() {
 
 	m := createResourceManager(basePath)
 
-	port := getPort()
-
-	startServer(port, m)
-
 	timeoutStr := os.Getenv("TIMEOUT")
 	if timeoutStr == "" {
 		log.Println("TIMEOUT environment variable not set. Using default timeout of 12 hours.")
@@ -34,6 +30,10 @@ func main() {
 
 	scheduler := web_server.NewUpdateScheduler(m, timeout)
 	scheduler.Start()
+
+	p := getPort()
+
+	startServer(p, m)
 }
 
 // getCurrentDirectory retrieves the current working directory.
