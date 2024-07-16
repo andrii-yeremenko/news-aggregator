@@ -7,20 +7,27 @@ COPY go.mod go.sum ./
 RUN go mod download
 RUN apk --no-cache add ca-certificates
 
-COPY . .
+COPY aggregator aggregator
+COPY cmd/web_server cmd/web_server
+COPY storage storage
+COPY manager manager
+COPY config config
+COPY resources resources
+COPY certificates certificates
+COPY print print
 
-RUN go build -o /app/server ./cmd/web_server/main
+RUN go build -o /app/server/bin ./cmd/web_server/main
 
 FROM alpine:latest
 LABEL maintainer="Andrii Yeremenko"
 
 ENV PORT=8443
 
-COPY --from=base /app/server /app/server
-COPY --from=base /app/config /config
-COPY --from=base /app/resources /resources
-COPY --from=base /app/certificates /certificates
+COPY --from=base /app/server/bin /app/bin
+COPY --from=base /app/config config
+COPY --from=base /app/resources resources
+COPY --from=base /app/certificates certificates
 
 EXPOSE ${PORT}
 
-ENTRYPOINT ["/app/server"]
+ENTRYPOINT ["app/bin"]
