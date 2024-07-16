@@ -342,7 +342,12 @@ func createEmptyJSONFile(path string) error {
 	if err != nil {
 		return err
 	}
-	defer emptyFile.Close()
+	defer func(emptyFile *os.File) {
+		err := emptyFile.Close()
+		if err != nil {
+			fmt.Printf("error closing empty JSON file: %v\n", err)
+		}
+	}(emptyFile)
 
 	_, err = emptyFile.Write([]byte("[]"))
 	return err
