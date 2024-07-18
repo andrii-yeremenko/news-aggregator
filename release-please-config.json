@@ -1,7 +1,7 @@
 {
   "release-type": "go",
   "tag-separator": "@",
-  "include_component-in-tag": true.
+  "include_component-in-tag": true,
   "packages": {
     ".": {
       "package-name": "news-aggregator"
