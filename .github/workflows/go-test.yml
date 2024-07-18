@@ -1,4 +1,4 @@
-name: Go Build, Test, and Coverage
+name: go build, test, and coverage
 
 on:
   pull_request:
@@ -8,11 +8,10 @@ on:
   schedule:
     - cron: '30 5 * * 2,4'
   workflow_dispatch:
-  
   workflow_call:
     inputs:
       skipTests:
-        description: 'Skip tests, useful when there is a dedicated CI job for tests'
+        description: 'Skip tests if needed'
         default: false
         required: false
         type: boolean
@@ -23,7 +22,7 @@ concurrency:
 
 jobs:
   run:
-    if: github.event_name != 'pull_request' || github.event.pull_request.labels.*.name != 'docbook'
+    if: github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'docbook')
     name: Go Build, Test, and Coverage
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -51,18 +50,20 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-            
-      - name: Build
-        run: go build -v ./...
 
       - name: Install dependencies
         run: go mod download
 
+      - name: Build
+        run: go build -v ./...
+
       - name: Run tests with coverage
-        if: steps.skip_tests.outputs.skipTests == 'false'
+        if: ${{ !inputs.skipTests }}
         run: go test -coverprofile=coverage.out -v ./...
-        
+
       - name: Upload coverage report
+        if: ${{ !inputs.skipTests }}
+
         uses: actions/upload-artifact@v3
         with:
           name: coverage-report
