@@ -77,8 +77,9 @@ tasks:
     deps:
       - tidy
       - test
-      - build-web-server
-      - build-cli
+    cmds:
+      - task web_server:build
+      - task cli:build
 
   docker-build:
     desc: "Build the Docker image for web_server"
