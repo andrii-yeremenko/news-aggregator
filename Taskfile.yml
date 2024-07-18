@@ -26,7 +26,7 @@ env:
   DOCKER_RUN_PORT: "443"
   DOCKER_TAG: "1.0.0"
   LINT_VERSION: "v1.42.1"
-  GO_VERSION: "1.21"
+  GO_VERSION: "1.22.3"
   BIN_PATH: "./bin"
 
 output:
