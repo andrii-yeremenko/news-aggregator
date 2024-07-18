@@ -1,22 +1,5 @@
 version: '3'
 
-# Available tasks
-# 1. tidy - Tidies the Go module dependencies
-# 2. test - Run all tests
-# 3. fmt - Run go fmt on all Go files
-# 4. vet - Run go vet on all Go files
-# 5. lint - Run golangci-lint
-# 6. lint-all - Run all linters
-# 7. build-web-server - Build the web_server
-# 8. build-cli - Build the CLI
-# 9. build-all - Build all binaries
-# 10. docker-build - Build the Docker image for web_server
-# 11. docker-run - Run the web_server Docker container
-# 12. docker-push - Push the Docker image to the registry
-# 13. cli-run - Run the CLI locally
-# 14. server-run - Run the web server locally
-# 15. clean - Clean build artifacts
-
 env:
   SERVER_PATH: "./cmd/web_server/main"
   CLI_PATH: "./cmd/cli/main"
