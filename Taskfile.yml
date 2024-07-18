@@ -56,22 +56,6 @@ tasks:
       - vet
       - lint
 
-  build-web-server:
-    desc: "Build the web_server"
-    deps:
-      - tidy
-      - test
-    cmd: |
-      task web_server:build
-
-  build-cli:
-    desc: "Build the CLI"
-    deps:
-      - tidy
-      - test
-    cmd: |
-      task cli:build
-
   build-all:
     desc: "Build all binaries"
     deps:
@@ -102,20 +86,6 @@ tasks:
       - docker-build
     cmd: |
       docker push ayeremenko/news-aggregator:$DOCKER_TAG
-
-  cli-run:
-    desc: "Run the CLI locally"
-    deps:
-      - build-cli
-    cmd: |
-      task cli:run
-
-  server-run:
-    desc: "Run the web server locally"
-    deps:
-      - build-web-server
-    cmd: |
-      task web_server:run
 
   clean:
     desc: "Clean build artifacts"
