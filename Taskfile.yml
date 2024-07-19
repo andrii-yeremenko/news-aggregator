@@ -21,6 +21,12 @@ includes:
     taskfile: ./cmd/cli/Taskfile.yml
 
 tasks:
+
+  download:
+    desc: "Download all dependencies"
+    cmd: |
+      go mod download
+
   tidy:
     desc: "Tidies the Go module dependencies"
     cmd: |
