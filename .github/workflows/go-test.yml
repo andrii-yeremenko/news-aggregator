@@ -1,4 +1,4 @@
-name: go build, test, and coverage
+name: Go Build, Test, and Coverage
 
 on:
   pull_request:
@@ -54,17 +54,15 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
+      - name: Install Task
+        run: |
+          sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+
+      - name: Tidy Go module dependencies
+        run: task tidy
+
       - name: Build
-        run: go build -v ./...
+        run: task build-all
 
       - name: Run tests with coverage
-        if: ${{ !inputs.skipTests }}
-        run: go test -coverprofile=coverage.out -v ./...
-
-      - name: Upload coverage report
-        if: ${{ !inputs.skipTests }}
-
-        uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage.out
+        run: task test
