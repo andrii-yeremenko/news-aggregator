@@ -1,5 +1,10 @@
 version: '3'
 
+# Available tasks
+# 1. build - Build the web server app
+# 2. run - Run the web server app
+# 3. clean - Clean the binary
+
 env:
   SERVER_PATH: "./cmd/web_server/main"
 

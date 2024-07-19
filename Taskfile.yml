@@ -3,13 +3,11 @@ version: '3'
 env:
   SERVER_PATH: "./cmd/web_server/main"
   CLI_PATH: "./cmd/cli/main"
-  DOCKER_IMAGE_NAME: "news-aggregator-server"
+  DOCKER_IMAGE_NAME: "ayeremenko/news-aggregator"
   DOCKERFILE_PATH: "Dockerfile"
   SERVER_EXPOSE_PORT: "8443"
-  DOCKER_RUN_PORT: "8080"
-  LINT_VERSION: "v1.42.1"
-  GO_VERSION: "1.21"
-  BIN_PATH: "./bin"
+  DOCKER_RUN_PORT: "443"
+  DOCKER_TAG: "1.0.0"
 
 output:
   group:
@@ -23,6 +21,12 @@ includes:
     taskfile: ./cmd/cli/Taskfile.yml
 
 tasks:
+
+  download:
+    desc: "Download all dependencies"
+    cmd: |
+      go mod download
+
   tidy:
     desc: "Tidies the Go module dependencies"
     cmd: |
@@ -55,37 +59,19 @@ tasks:
       - vet
       - lint
 
-  build-web-server:
-    desc: "Build the web_server"
-    deps:
-      - tidy
-      - test
-    cmd: |
-      task web_server:build
-
-  build-cli:
-    desc: "Build the CLI"
-    deps:
-      - tidy
-      - test
-    cmd: |
-      task cli:build
-
   build-all:
     desc: "Build all binaries"
-    deps:
-      - tidy
-      - test
-      - build-web-server
-      - build-cli
+    cmds:
+      - task web_server:build
+      - task cli:build
 
   docker-build:
     desc: "Build the Docker image for web_server"
     silent: true
     deps:
-      - build-web-server
+      - test
     cmd: |
-      docker build -t $DOCKER_IMAGE_NAME -f $DOCKERFILE_PATH .
+      docker build -t $DOCKER_IMAGE_NAME:$DOCKER_TAG -f $DOCKERFILE_PATH .
 
   docker-run:
     desc: "Run the web_server Docker container"
@@ -94,19 +80,12 @@ tasks:
     cmd: |
       docker run -p $DOCKER_RUN_PORT:$SERVER_EXPOSE_PORT $DOCKER_IMAGE_NAME
 
-  cli-run:
-    desc: "Run the CLI locally"
+  docker-push:
+    desc: "Push the Docker image to the registry"
     deps:
-      - build-cli
+      - docker-build
     cmd: |
-      task cli:run
-
-  server-run:
-    desc: "Run the web server locally"
-    deps:
-      - build-web-server
-    cmd: |
-      task web_server:run
+      docker push ayeremenko/news-aggregator:$DOCKER_TAG
 
   clean:
     desc: "Clean build artifacts"

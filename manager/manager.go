@@ -8,6 +8,8 @@ import (
 	"news-aggregator/aggregator/model/resource"
 	"news-aggregator/storage"
 	"os"
+	"path/filepath"
+	"sort"
 )
 
 // ResourceDetails is a struct that contains the format and link of a resource.
@@ -26,6 +28,26 @@ type ResourceManager struct {
 
 // New creates a new ResourceManager.
 func New(storagePath string, feedDictionaryPath string) (*ResourceManager, error) {
+
+	dir := filepath.Dir(feedDictionaryPath)
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err := os.MkdirAll(dir, os.ModePerm)
+		if err != nil {
+			return nil, fmt.Errorf("error creating directory: %v", err)
+		}
+	}
+
+	if fileInfo, err := os.Stat(feedDictionaryPath); os.IsNotExist(err) {
+		err := createEmptyJSONFile(feedDictionaryPath)
+		if err != nil {
+			return nil, fmt.Errorf("error creating feed dictionary file: %v", err)
+		}
+	} else if err == nil && fileInfo.Size() == 0 {
+		err := createEmptyJSONFile(feedDictionaryPath)
+		if err != nil {
+			return nil, fmt.Errorf("error initializing feed dictionary file: %v", err)
+		}
+	}
 
 	feeds, err := loadResources(feedDictionaryPath)
 	if err != nil {
@@ -134,6 +156,23 @@ func (rm *ResourceManager) GetSelectedResources(sourceNames []string) ([]resourc
 	}
 
 	return fetchedResources, nil
+}
+
+// UpdateAllSources updates all sources in the storage.
+func (rm *ResourceManager) UpdateAllSources() error {
+
+	if len(rm.feeds) == 0 {
+		return fmt.Errorf("no sources available")
+	}
+
+	for source := range rm.feeds {
+		err := rm.UpdateResource(source)
+		if err != nil {
+			return fmt.Errorf("error updating source \"%s\": %v", source, err)
+		}
+	}
+
+	return nil
 }
 
 // UpdateResource updates the source in the storage.
@@ -263,6 +302,10 @@ func (rm *ResourceManager) saveFeeds() error {
 		}
 	}(file)
 
+	sort.Slice(resourceList, func(i, j int) bool {
+		return resourceList[i].Source < resourceList[j].Source
+	})
+
 	encoder := json.NewEncoder(file)
 	if err := encoder.Encode(&resourceList); err != nil {
 		return fmt.Errorf("error encoding feeds file: %v", err)
@@ -308,4 +351,21 @@ func loadResources(path string) (map[resource.Source]ResourceDetails, error) {
 	}
 
 	return rFormats, nil
+}
+
+// createEmptyJSONFile creates a file with an empty JSON array.
+func createEmptyJSONFile(path string) error {
+	emptyFile, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer func(emptyFile *os.File) {
+		err := emptyFile.Close()
+		if err != nil {
+			fmt.Printf("error closing empty JSON file: %v\n", err)
+		}
+	}(emptyFile)
+
+	_, err = emptyFile.Write([]byte("[]"))
+	return err
 }

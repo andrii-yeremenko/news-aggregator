@@ -1,5 +1,10 @@
 version: '3'
 
+# Available tasks
+# 1. build - Build the CLI app
+# 2. run - Run the CLI app
+# 3. clean - Clean the binary
+
 env:
   CLI_PATH: "./cmd/cli/main"
 

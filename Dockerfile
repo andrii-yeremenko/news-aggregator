@@ -7,20 +7,34 @@ COPY go.mod go.sum ./
 RUN go mod download
 RUN apk --no-cache add ca-certificates
 
-COPY . .
+COPY aggregator aggregator
+COPY cmd/web_server cmd/web_server
+COPY storage storage
+COPY manager manager
+COPY certificates certificates
+COPY print print
 
-RUN go build -o /app/server ./cmd/web_server/main
+RUN go build -o /app/server/bin ./cmd/web_server/main
 
-FROM alpine:latest
+FROM alpine:3.20.0
 LABEL maintainer="Andrii Yeremenko"
 
 ENV PORT=8443
+ENV TIMEOUT=12h
 
-COPY --from=base /app/server /app/server
-COPY --from=base /app/config /config
-COPY --from=base /app/resources /resources
-COPY --from=base /app/certificates /certificates
+COPY --from=base /app/server/bin /app/bin
+COPY --from=base /app/certificates certificates
 
-EXPOSE 8443
+RUN apk --no-cache add curl
 
-ENTRYPOINT ["/app/server"]
+VOLUME ["/resources", "/config"]
+
+EXPOSE ${PORT}
+
+RUN mkdir -p /var/log/app
+RUN touch /var/log/app/healthcheck.log
+
+HEALTHCHECK --interval=3600s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl --insecure --silent --fail https://localhost:${PORT}/status >> /var/log/app/healthcheck.log 2>&1 || exit 1
+
+ENTRYPOINT ["app/bin"]
