@@ -17,9 +17,9 @@ on:
         type: boolean
 
 concurrency:
-  group: Go-Build-Test-Coverage
+  group: ${{ github.event.pull_request.number }}-Go-Build-Test-Coverage
   cancel-in-progress: false
-
+  
 jobs:
   run:
     if: github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'docbook')
@@ -36,7 +36,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: 1.21
+          go-version: 1.22
 
       - name: Verify Go installation
         run: go version
@@ -50,13 +50,13 @@ jobs:
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-
-
-      - name: Install dependencies
-        run: go mod download
-
+            
       - name: Install Task
         run: |
           sudo sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
+          
+      - name: Install dependencies
+        run: task download
 
       - name: Tidy Go module dependencies
         run: task tidy
@@ -64,10 +64,16 @@ jobs:
       - name: Format Go files
         run: task fmt
 
+      - name: Check for unformatted files
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "Unformatted files detected. Please run 'task fmt' and commit the changes.";
+            git diff;
+            exit 1;
+          fi
+
       - name: Run tests with coverage
         run: task test
-      
+
       - name: Build
         run: task build-all
-
-      
