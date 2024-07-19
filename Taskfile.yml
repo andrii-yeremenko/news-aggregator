@@ -55,9 +55,6 @@ tasks:
 
   build-all:
     desc: "Build all binaries"
-    deps:
-      - tidy
-      - test
     cmds:
       - task web_server:build
       - task cli:build
