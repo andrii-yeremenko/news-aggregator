@@ -45,29 +45,14 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Debug Print Docker Tag
-        run: |
-          echo "Major version: ${{ needs.release-please.outputs.major }}"
-          echo "Minor version: ${{ needs.release-please.outputs.minor }}"
-          echo "Patch version: ${{ needs.release-please.outputs.patch }}"
-          IMAGE_TAG="v${{ needs.release-please.outputs.major }}.${{ needs.release-please.outputs.minor }}.${{ needs.release-please.outputs.patch }}"
-          echo "IMAGE_TAG=${IMAGE_TAG}"
+
       - name: Build and push Docker image
         env:
           MAJOR_VERSION: ${{ needs.release-please.outputs.major }}
           MINOR_VERSION: ${{ needs.release-please.outputs.minor }}
           PATCH_VERSION: ${{ needs.release-please.outputs.patch }}
         run: |
-          if [ -z "$MAJOR_VERSION" ] || [ -z "$MINOR_VERSION" ] || [ -z "$PATCH_VERSION" ]; then
-            echo "Error: One or more version components are empty"
-            exit 1
-          fi
           IMAGE_TAG="v${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}"
-          # Validate Docker tag format
-          if [[ ! "$IMAGE_TAG" =~ ^[a-zA-Z0-9._-]+$ ]]; then
-            echo "Error: Invalid Docker tag format: ${IMAGE_TAG}"
-            exit 1
-          fi
           echo "Building Docker image with tag: ${IMAGE_TAG}"
           docker build -t ${{ secrets.DOCKER_USERNAME }}/news-aggregator:${IMAGE_TAG} .
           docker push ${{ secrets.DOCKER_USERNAME }}/news-aggregator:${IMAGE_TAG}
