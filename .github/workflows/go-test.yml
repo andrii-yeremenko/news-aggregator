@@ -61,8 +61,13 @@ jobs:
       - name: Tidy Go module dependencies
         run: task tidy
 
-      - name: Build
-        run: task build-all
+      - name: Format Go files
+        run: task fmt
 
       - name: Run tests with coverage
         run: task test
+      
+      - name: Build
+        run: task build-all
+
+      
