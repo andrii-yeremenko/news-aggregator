@@ -52,8 +52,8 @@ tasks:
     cmd: |
       golangci-lint run
 
-  lint-all:
-    desc: "Run all linters"
+  run-quality-checks:
+    desc: "Run all quality checks"
     deps:
       - fmt
       - vet
