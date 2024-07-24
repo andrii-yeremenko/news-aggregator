@@ -17,11 +17,11 @@ func TestNewsAggregatorHandler_Handle(t *testing.T) {
 		managerConfigPath := "../../../config/feeds_dictionary.json"
 		storagePath := "../../../resources"
 
-		manager, err := manager.New(storagePath, managerConfigPath)
+		m, err := manager.New(storagePath, managerConfigPath)
 		parserFactory := aggregator.NewParserFactory()
 
 		handler := &NewsAggregatorHandler{
-			resourceManager: manager,
+			resourceManager: m,
 			parserPool:      parserFactory,
 		}
 
@@ -51,14 +51,14 @@ func TestNewsAggregatorHandler_Handle(t *testing.T) {
 		managerConfigPath := "../../../config/feeds_dictionary.json"
 		storagePath := "../../../resources"
 
-		manager, err := manager.New(storagePath, managerConfigPath)
+		m, err := manager.New(storagePath, managerConfigPath)
 
 		assert.NoError(t, err)
 
 		parserFactory := aggregator.NewParserFactory()
 
 		handler := &NewsAggregatorHandler{
-			resourceManager: manager,
+			resourceManager: m,
 			parserPool:      parserFactory,
 		}
 
