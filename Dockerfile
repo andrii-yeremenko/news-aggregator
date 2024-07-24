@@ -31,10 +31,4 @@ VOLUME ["/resources", "/config"]
 
 EXPOSE ${PORT}
 
-RUN mkdir -p /var/log/app
-RUN touch /var/log/app/healthcheck.log
-
-HEALTHCHECK --interval=3600s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl --insecure --silent --fail https://localhost:${PORT}/status >> /var/log/app/healthcheck.log 2>&1 || exit 1
-
 ENTRYPOINT ["app/bin"]
