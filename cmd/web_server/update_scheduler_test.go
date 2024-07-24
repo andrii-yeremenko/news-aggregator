@@ -4,19 +4,12 @@ import (
 	"bytes"
 	"errors"
 	"log"
+	"news-aggregator/cmd/web_server/mocks"
 	"testing"
 	"time"
+
+	"github.com/golang/mock/gomock"
 )
-
-// MockManager implements the Manager interface for testing purposes.
-type MockManager struct {
-	UpdateAllSourcesFunc func() error
-}
-
-// UpdateAllSources calls the mocked function.
-func (m *MockManager) UpdateAllSources() error {
-	return m.UpdateAllSourcesFunc()
-}
 
 // TestUpdateScheduler_LogMessages tests the Start method of the UpdateScheduler for positive cases.
 func TestUpdateScheduler_LogMessages(t *testing.T) {
@@ -25,11 +18,11 @@ func TestUpdateScheduler_LogMessages(t *testing.T) {
 	log.SetOutput(&buf)
 	defer log.SetOutput(originalLogOutput)
 
-	mockManager := &MockManager{
-		UpdateAllSourcesFunc: func() error {
-			return nil
-		},
-	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockManager := mocks.NewMockManager(ctrl)
+	mockManager.EXPECT().UpdateAllSources().Return(nil).AnyTimes()
 
 	timeout := time.Millisecond * 100
 	scheduler := NewUpdateScheduler(mockManager, timeout)
@@ -64,11 +57,11 @@ func TestUpdateScheduler_ErrorLog(t *testing.T) {
 	log.SetOutput(&buf)
 	defer log.SetOutput(originalLogOutput)
 
-	mockManager := &MockManager{
-		UpdateAllSourcesFunc: func() error {
-			return errors.New("update failed")
-		},
-	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockManager := mocks.NewMockManager(ctrl)
+	mockManager.EXPECT().UpdateAllSources().Return(errors.New("update failed")).AnyTimes()
 
 	timeout := time.Millisecond * 100
 	scheduler := NewUpdateScheduler(mockManager, timeout)
@@ -91,7 +84,7 @@ func TestUpdateScheduler_ErrorLog(t *testing.T) {
 	}
 }
 
-// containsLogMessage checks if the expected message is contained in the log buffer
+// containsLogMessage checks if the expected message is contained in the log buffer.
 func containsLogMessage(buf *bytes.Buffer, expectedMsg string) bool {
 	return bytes.Contains(buf.Bytes(), []byte(expectedMsg))
 }

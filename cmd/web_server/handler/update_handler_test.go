@@ -5,16 +5,21 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"news-aggregator/aggregator/model/resource"
+	"news-aggregator/cmd/web_server/handler/mocks"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestUpdateHandler_Handle(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	t.Run("valid source", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
-		mockManager.On("IsSourceSupported", resource.Source("validSource")).Return(true)
-		mockManager.On("UpdateResource", resource.Source("validSource")).Return(nil)
+		mockManager := mocks.NewMockResourceManager(ctrl)
+		mockManager.EXPECT().IsSourceSupported(resource.Source("validSource")).Return(true)
+		mockManager.EXPECT().UpdateResource(resource.Source("validSource")).Return(nil)
 
 		handler := NewUpdateHandler(mockManager)
 
@@ -32,12 +37,10 @@ func TestUpdateHandler_Handle(t *testing.T) {
 		}(resp.Body)
 
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		mockManager.AssertExpectations(t)
 	})
 
 	t.Run("source not specified", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
+		mockManager := mocks.NewMockResourceManager(ctrl)
 
 		handler := NewUpdateHandler(mockManager)
 
@@ -55,13 +58,11 @@ func TestUpdateHandler_Handle(t *testing.T) {
 		}(resp.Body)
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
-
-		mockManager.AssertExpectations(t)
 	})
 
 	t.Run("unsupported source", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
-		mockManager.On("IsSourceSupported", resource.Source("unsupportedSource")).Return(false)
+		mockManager := mocks.NewMockResourceManager(ctrl)
+		mockManager.EXPECT().IsSourceSupported(resource.Source("unsupportedSource")).Return(false)
 
 		handler := NewUpdateHandler(mockManager)
 
@@ -80,14 +81,12 @@ func TestUpdateHandler_Handle(t *testing.T) {
 
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 		assert.Contains(t, readResponseBody(resp), "Source not supported")
-
-		mockManager.AssertExpectations(t)
 	})
 
 	t.Run("update error", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
-		mockManager.On("IsSourceSupported", resource.Source("validSource")).Return(true)
-		mockManager.On("UpdateResource", resource.Source("validSource")).Return(assert.AnError)
+		mockManager := mocks.NewMockResourceManager(ctrl)
+		mockManager.EXPECT().IsSourceSupported(resource.Source("validSource")).Return(true)
+		mockManager.EXPECT().UpdateResource(resource.Source("validSource")).Return(assert.AnError)
 
 		handler := NewUpdateHandler(mockManager)
 
@@ -106,8 +105,6 @@ func TestUpdateHandler_Handle(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 		assert.Contains(t, readResponseBody(resp), "Failed to update source")
-
-		mockManager.AssertExpectations(t)
 	})
 }
 
