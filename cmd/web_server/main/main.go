@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"news-aggregator/cmd/web_server"
 	"news-aggregator/cmd/web_server/handler"
@@ -12,9 +13,17 @@ import (
 )
 
 func main() {
-	basePath := getCurrentDirectory()
+	basePath, err := getCurrentDirectory()
 
-	m := createResourceManager(basePath)
+	if err != nil {
+		log.Fatalf("failed to get current directory: %v", err)
+	}
+
+	m, err := createResourceManager(basePath)
+
+	if err != nil {
+		log.Fatalf("failed to create resource manager: %v", err)
+	}
 
 	timeoutStr := os.Getenv("TIMEOUT")
 	if timeoutStr == "" {
@@ -31,46 +40,41 @@ func main() {
 	scheduler := web_server.NewUpdateScheduler(m, timeout)
 	scheduler.Start()
 
-	p := getPort()
+	p, err := getPort()
+
+	if err != nil {
+		log.Println(err)
+	}
 
 	startServer(p, m)
 }
 
 // getCurrentDirectory retrieves the current working directory.
-func getCurrentDirectory() string {
+func getCurrentDirectory() (string, error) {
 	basePath, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("failed to get current directory: %v", err)
-	}
-	return basePath
+	return basePath, err
 }
 
 // createResourceManager initializes and returns the resource manager.
-func createResourceManager(basePath string) *manager.ResourceManager {
+func createResourceManager(basePath string) (*manager.ResourceManager, error) {
 	managerConfigPath := path.Join(basePath, "/config/feeds_dictionary.json")
 	storagePath := path.Join(basePath, "/resources")
 
-	m, err := manager.New(storagePath, managerConfigPath)
-	if err != nil {
-		log.Fatalf("failed to create resource manager: %v", err)
-	}
-	return m
+	return manager.New(storagePath, managerConfigPath)
 }
 
 // getPort returns the port number to use for the server.
-func getPort() string {
+func getPort() (string, error) {
 	port := os.Getenv("PORT")
+
 	if port == "" {
 		port = "8443"
-		log.Println("PORT environment variable not set. Using default port " + port)
+		fmt.Println("PORT environment variable not set. Using default port 8443.")
+		return port, nil
 	} else {
 		_, err := strconv.Atoi(port)
-		if err != nil {
-			log.Println("Invalid PORT value set in environment variable. Using default port " + port)
-			port = "8443"
-		}
+		return "", err
 	}
-	return port
 }
 
 // startServer initializes and starts the web server.
