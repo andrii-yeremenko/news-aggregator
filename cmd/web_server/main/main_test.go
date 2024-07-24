@@ -68,4 +68,19 @@ func TestStartServer(t *testing.T) {
 	}(resp.Body)
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+	err = os.Remove("../../resources")
+	if err != nil {
+		t.Fatalf("failed to remove resources directory: %v", err)
+	}
+
+	err = os.Remove("../../config/feeds_dictionary.json")
+	if err != nil {
+		t.Fatalf("failed to remove config file: %v", err)
+	}
+
+	err = os.Remove("../../config")
+	if err != nil {
+		t.Fatalf("failed to remove config directory: %v", err)
+	}
 }
