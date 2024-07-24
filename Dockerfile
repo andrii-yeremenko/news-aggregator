@@ -16,7 +16,7 @@ COPY print print
 
 RUN go build -o /app/server/bin ./cmd/web_server/main
 
-FROM alpine:3.20.0
+FROM scratch
 LABEL maintainer="Andrii Yeremenko"
 
 ENV PORT=8443
@@ -24,8 +24,6 @@ ENV TIMEOUT=12h
 
 COPY --from=base /app/server/bin /app/bin
 COPY --from=base /app/certificates certificates
-
-RUN apk --no-cache add curl
 
 VOLUME ["/resources", "/config"]
 
