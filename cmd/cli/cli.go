@@ -1,8 +1,9 @@
-package cmd
+package cli
 
 import (
 	"flag"
 	"fmt"
+	"log"
 	"news-aggregator/aggregator"
 	"news-aggregator/aggregator/filter"
 	"news-aggregator/aggregator/model/article"
@@ -28,7 +29,7 @@ type CLI struct {
 }
 
 // New creates a new CLI instance.
-func New() (*CLI, error) {
+func New(managerPath, storagePath string) (*CLI, error) {
 	parserPool := aggregator.NewParserFactory()
 	a, err := aggregator.New(parserPool)
 	if err != nil {
@@ -37,15 +38,22 @@ func New() (*CLI, error) {
 
 	basePath, err := os.Getwd()
 	if err != nil {
-		return nil, err
+		log.Fatalf("failed to get current directory: %v", err)
 	}
 
-	rm := manager.New(path.Join(basePath, "/storage"))
+	managerConfigPath := path.Join(basePath, managerPath)
+	storagePath = path.Join(basePath, storagePath)
+
+	m, err := manager.New(storagePath, managerConfigPath)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &CLI{
 		parserFactory:   parserPool,
 		aggregator:      a,
-		resourceManager: rm,
+		resourceManager: m,
 		printer:         print.New(),
 	}, nil
 }
@@ -103,7 +111,7 @@ func (cli *CLI) countFlags() int {
 }
 
 func (cli *CLI) showAllArticles() {
-	resources, err := cli.resourceManager.AllResources()
+	resources, err := cli.resourceManager.GetAllResources()
 	if err != nil {
 		cli.printer.Error(err.Error())
 	}
@@ -151,7 +159,7 @@ func (cli *CLI) sortArticles(articles []article.Article) []article.Article {
 
 func (cli *CLI) getResources() []resource.Resource {
 	if cli.sourceArg == "" {
-		resources, err := cli.resourceManager.AllResources()
+		resources, err := cli.resourceManager.GetAllResources()
 		if err != nil {
 			cli.printer.Error(err.Error())
 		}

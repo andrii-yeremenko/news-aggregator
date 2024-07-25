@@ -1,0 +1,25 @@
+version: '3'
+
+# Available tasks
+# 1. build - Build the web server app
+# 2. run - Run the web server app
+# 3. clean - Clean the binary
+
+env:
+  SERVER_PATH: "./cmd/web_server/main"
+
+tasks:
+  build:
+    desc: "Build the web server app"
+    cmd: |
+      go build -o web_server $SERVER_PATH
+
+  run:
+    desc: "Run the web server app"
+    cmd: |
+      ./web_server
+
+  clean:
+    desc: "Clean the binary"
+    cmd: |
+      rm -rf web_server

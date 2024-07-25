@@ -1,13 +1,13 @@
 package main
 
 import (
-	"news-aggregator/cmd"
+	"news-aggregator/cmd/cli"
 	"news-aggregator/print"
 )
 
 // the main is the entry point of the application.
 func main() {
-	cli, err := cmd.New()
+	c, err := cli.New("/config/feeds_dictionary.json", "/resources")
 
 	printer := print.New()
 
@@ -16,9 +16,9 @@ func main() {
 		return
 	}
 
-	cli.ParseFlags()
+	c.ParseFlags()
 
-	err = cli.Run()
+	err = c.Run()
 	if err != nil {
 		printer.Error("Error occurred during execution")
 	}

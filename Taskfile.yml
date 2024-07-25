@@ -1,0 +1,102 @@
+version: '3'
+
+env:
+  SERVER_PATH: "./cmd/web_server/main"
+  CLI_PATH: "./cmd/cli/main"
+  DOCKER_IMAGE_NAME: "ayeremenko/news-aggregator"
+  DOCKERFILE_PATH: "Dockerfile"
+  SERVER_EXPOSE_PORT: "8443"
+  DOCKER_RUN_PORT: "443"
+  DOCKER_TAG: "1.0.0"
+
+output:
+  group:
+    begin: '::group::{{.TASK}}'
+    end: '::endgroup::'
+
+includes:
+  web_server:
+    taskfile: ./cmd/web_server/Taskfile.yml
+  cli:
+    taskfile: ./cmd/cli/Taskfile.yml
+
+tasks:
+
+  download:
+    desc: "Download all dependencies"
+    cmd: |
+      go mod download
+
+  tidy:
+    desc: "Tidies the Go module dependencies"
+    cmd: |
+      go mod tidy
+
+  generate:
+    desc: Generate all mocks
+    cmd: |
+      go generate ./...
+
+  test:
+    desc: "Run all tests"
+    deps:
+      - generate
+    cmd: |
+      go test ./...
+
+  fmt:
+    desc: "Run go fmt on all Go files"
+    cmd: |
+      go fmt ./...
+
+  vet:
+    desc: "Run go vet on all Go files"
+    cmd: |
+      go vet ./...
+
+  lint:
+    desc: "Run golangci-lint"
+    cmd: |
+      golangci-lint run
+
+  run-quality-checks:
+    desc: "Run all quality checks"
+    deps:
+      - fmt
+      - vet
+      - lint
+
+  build-all:
+    desc: "Build all binaries"
+    cmds:
+      - task web_server:build
+      - task cli:build
+
+  docker-build:
+    desc: "Build the Docker image for web_server"
+    silent: true
+    deps:
+      - test
+    cmd: |
+      docker build -t $DOCKER_IMAGE_NAME:$DOCKER_TAG -f $DOCKERFILE_PATH .
+
+  docker-run:
+    desc: "Run the web_server Docker container"
+    deps:
+      - docker-build
+    cmd: |
+      docker run -p $DOCKER_RUN_PORT:$SERVER_EXPOSE_PORT $DOCKER_IMAGE_NAME
+
+  docker-push:
+    desc: "Push the Docker image to the registry"
+    deps:
+      - docker-build
+    cmd: |
+      docker push ayeremenko/news-aggregator:$DOCKER_TAG
+
+  clean:
+    desc: Clean build artifacts and remove all 'mocks' directories
+    cmds:
+      - task web_server:clean
+      - task cli:clean
+      - find . -type d -name mocks -exec rm -rf {} +

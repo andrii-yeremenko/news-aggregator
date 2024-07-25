@@ -1,72 +1,136 @@
-package manager
+package manager_test
 
 import (
+	"encoding/json"
+	"news-aggregator/manager"
 	"os"
-	"path"
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"news-aggregator/aggregator/model/resource"
 )
 
-func TestStorage_GetAvailableSources(t *testing.T) {
-	basePath, _ := os.Getwd()
-	manager := New(path.Join(basePath, "../storage"))
-	expectedSources := []string{"bbc-world", "usa-today", "nbc-news", "abc-news", "washington-times"}
-	expectedCount := len(expectedSources)
-	sources := manager.AvailableSources()
+const (
+	testStoragePath    = "./testdata"
+	testFeedDictionary = "./testdata/feeds.json"
+)
 
-	for _, source := range expectedSources {
-		if !strings.Contains(sources, source) {
-			t.Errorf("expected source %s is missing", source)
+func TestNewResourceManager(t *testing.T) {
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
+	assert.NoError(t, err)
+	assert.NotNil(t, rm)
+}
+
+func TestRegisterSource(t *testing.T) {
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
+	assert.NoError(t, err)
+
+	err = rm.RegisterSource("source", "http://source.com/source", resource.RSS)
+	assert.NoError(t, err)
+
+	data, err := os.ReadFile(testFeedDictionary)
+	assert.NoError(t, err)
+
+	var feeds []struct {
+		Source string `json:"source"`
+		Format string `json:"format"`
+		Link   string `json:"link"`
+	}
+	err = json.Unmarshal(data, &feeds)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(feeds))
+}
+
+func TestUpdateSource(t *testing.T) {
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
+	assert.NoError(t, err)
+
+	err = rm.UpdateSource("source", "http://source.com/updated", resource.HTML)
+	assert.NoError(t, err)
+
+	data, err := os.ReadFile(testFeedDictionary)
+	assert.NoError(t, err)
+
+	var feeds []struct {
+		Source string `json:"source"`
+		Format string `json:"format"`
+		Link   string `json:"link"`
+	}
+	err = json.Unmarshal(data, &feeds)
+	assert.NoError(t, err)
+
+	for _, feed := range feeds {
+		if feed.Source == "source" {
+			assert.Equal(t, "http://source.com/updated", feed.Link)
+			assert.Equal(t, "HTML", feed.Format)
 		}
 	}
+}
 
-	actualCount := strings.Count(sources, ",")
-	if actualCount != expectedCount {
-		t.Errorf("expected %d sources but got %d", expectedCount, actualCount)
+func TestDeleteSource(t *testing.T) {
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
+	assert.NoError(t, err)
+
+	err = rm.DeleteSource("source")
+	assert.NoError(t, err)
+
+	data, err := os.ReadFile(testFeedDictionary)
+	assert.NoError(t, err)
+
+	var feeds []struct {
+		Source string `json:"source"`
+		Format string `json:"format"`
+		Link   string `json:"link"`
+	}
+	err = json.Unmarshal(data, &feeds)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(feeds))
+	assert.NotEqual(t, "source", feeds[0].Source)
+}
+
+func TestSourceIsSupported(t *testing.T) {
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
+	assert.NoError(t, err)
+
+	assert.True(t, rm.IsSourceSupported("supported_source"))
+}
+
+func TestAvailableSources(t *testing.T) {
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
+	assert.NoError(t, err)
+
+	expectedSources := "supported,test,"
+	assert.Equal(t, expectedSources, rm.AvailableSources())
+}
+
+func TestGetAllResources(t *testing.T) {
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
+	assert.NoError(t, err)
+
+	resources, err := rm.GetAllResources()
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(resources))
+
+	for _, r := range resources {
+		assert.NotEmpty(t, r.Content())
+		assert.NotEmpty(t, r.Source())
+		assert.NotEmpty(t, r.Format())
 	}
 }
 
-func TestStorage_GetAllResources(t *testing.T) {
-	basePath, _ := os.Getwd()
-	manager := New(path.Join(basePath, "../storage"))
+func TestGetSelectedResources(t *testing.T) {
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
+	assert.NoError(t, err)
 
-	resources, err := manager.AllResources()
-	if err != nil {
-		t.Fatalf("expected no error but got %v", err)
-	}
+	resources, err := rm.GetSelectedResources([]string{"supported_source"})
+	assert.NoError(t, err)
 
-	if len(resources) != 5 {
-		t.Fatalf("expected 5 resources but got %d", len(resources))
-	}
-}
+	assert.Equal(t, 1, len(resources))
 
-func TestStorage_GetSelectedResources(t *testing.T) {
-	basePath, _ := os.Getwd()
-	manager := New(path.Join(basePath, "../storage"))
-
-	selectedSources := []string{"nbc-news", "abc-news"}
-	resources, err := manager.GetSelectedResources(selectedSources)
-	if err != nil {
-		t.Fatalf("expected no error but got %v", err)
-	}
-	if len(resources) != 2 {
-		t.Fatalf("expected 2 resources but got %d", len(resources))
-	}
-
-	for _, res := range resources {
-		if res.Source() != "nbc-news" && res.Source() != "abc-news" {
-			t.Errorf("expected source to be nbc-news or abc-news but got %s", res.Source())
-		}
-	}
-}
-
-func TestStorage_GetSelectedResources_InvalidSource(t *testing.T) {
-	basePath, _ := os.Getwd()
-	manager := New(path.Join(basePath, "../storage"))
-
-	selectedSources := []string{"nbc-news", "abc-news", "invalid-source"}
-	_, err := manager.GetSelectedResources(selectedSources)
-	if err == nil {
-		t.Errorf("expected error but got nil")
+	for _, r := range resources {
+		assert.Equal(t, "supported_source", string(r.Source()))
+		assert.Equal(t, "Test text\n", string(r.Content()))
+		assert.Equal(t, resource.HTML, int(r.Format()))
 	}
 }

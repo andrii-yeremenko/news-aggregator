@@ -1,4 +1,4 @@
-package cmd
+package cli
 
 import (
 	"flag"
@@ -14,7 +14,7 @@ func resetFlags() {
 // TestNew checks if the CLI instance is created successfully.
 func TestNew(t *testing.T) {
 	resetFlags()
-	cli, err := New()
+	cli, err := New("../../config/feeds_dictionary.json", "../../resources")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -26,7 +26,7 @@ func TestNew(t *testing.T) {
 // TestParseFlags checks if command line flags are parsed correctly.
 func TestParseFlags(t *testing.T) {
 	resetFlags()
-	cli, err := New()
+	cli, err := New("../../config/feeds_dictionary.json", "../../resources")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -54,7 +54,7 @@ func TestParseFlags(t *testing.T) {
 // TestRun checks the Run method of CLI.
 func TestRun(t *testing.T) {
 	resetFlags()
-	cli, err := New()
+	cli, err := New("../../config/feeds_dictionary.json", "../../resources")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
@@ -71,7 +71,7 @@ func TestRun(t *testing.T) {
 // TestRunWithParams tests the Run method with parameters.
 func TestRunWithParams(t *testing.T) {
 	resetFlags()
-	cli, err := New()
+	cli, err := New("../../config/feeds_dictionary.json", "../../resources")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}

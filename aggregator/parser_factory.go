@@ -42,7 +42,15 @@ func (f *ParserFactory) AddNewParser(format resource.Format, publisher resource.
 }
 
 // GetParser returns a parser for the given resource.
+// If the format is RSS, always returns the RSS parser as it is the default one for this format.
+// RSSParser is a universal parser for all RSS feeds.
+// It supports all RSS versions (0.91, 0.92, 1.0, 2.0).
 func (f *ParserFactory) GetParser(format resource.Format, publisher resource.Source) (Parser, error) {
+
+	if format == resource.RSS {
+		return &parser.RSSParser{}, nil
+	}
+
 	key := parserProperties{format: format, publisher: publisher}
 	p, exists := f.parsers[key]
 	if !exists {
