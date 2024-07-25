@@ -11,17 +11,43 @@ import (
 	"time"
 )
 
+// Default values for environment variables.
+const (
+	// DefaultTimeout is the default timeout for the update scheduler.
+	DefaultTimeout = "12h"
+
+	// DefaultPort is the default port number for the server.
+	DefaultPort = "8443"
+
+	// DefaultManagerConfigPath is the default path to the feeds dictionary configuration file.
+	DefaultManagerConfigPath = "config/feeds_dictionary.json"
+
+	// DefaultStoragePath is the default path to the storage directory.
+	DefaultStoragePath = "resources"
+
+	// DefaultCertFilePath is the default path to the certificate file.
+	DefaultCertFilePath = "certificates/cert.pem"
+
+	// DefaultKeyFilePath is the default path to the key file.
+	DefaultKeyFilePath = "certificates/key.pem"
+)
+
 func main() {
-	basePath := getCurrentDirectory()
+	basePath, err := getCurrentDirectory()
 
-	m := createResourceManager(basePath)
-
-	timeoutStr := os.Getenv("TIMEOUT")
-	if timeoutStr == "" {
-		log.Println("TIMEOUT environment variable not set. Using default timeout of 12 hours.")
-		timeoutStr = "12h"
+	if err != nil {
+		log.Fatalf("failed to get current directory: %v", err)
 	}
 
+	managerConfigPath := getEnv("MANAGER_CONFIG_PATH", path.Join(basePath, DefaultManagerConfigPath))
+	storagePath := getEnv("STORAGE_PATH", path.Join(basePath, DefaultStoragePath))
+	m, err := createResourceManager(managerConfigPath, storagePath)
+
+	if err != nil {
+		log.Fatalf("failed to create resource manager: %v", err)
+	}
+
+	timeoutStr := getEnv("TIMEOUT", DefaultTimeout)
 	timeout, err := time.ParseDuration(timeoutStr)
 
 	if err != nil {
@@ -31,50 +57,40 @@ func main() {
 	scheduler := web_server.NewUpdateScheduler(m, timeout)
 	scheduler.Start()
 
-	p := getPort()
+	port, err := getPort()
 
-	startServer(p, m)
+	if err != nil {
+		log.Println(err)
+	}
+
+	certFilePath := getEnv("CERT_FILE_PATH", DefaultCertFilePath)
+	keyFilePath := getEnv("KEY_FILE_PATH", DefaultKeyFilePath)
+
+	startServer(port, certFilePath, keyFilePath, m)
 }
 
 // getCurrentDirectory retrieves the current working directory.
-func getCurrentDirectory() string {
+func getCurrentDirectory() (string, error) {
 	basePath, err := os.Getwd()
-	if err != nil {
-		log.Fatalf("failed to get current directory: %v", err)
-	}
-	return basePath
+	return basePath, err
 }
 
 // createResourceManager initializes and returns the resource manager.
-func createResourceManager(basePath string) *manager.ResourceManager {
-	managerConfigPath := path.Join(basePath, "/config/feeds_dictionary.json")
-	storagePath := path.Join(basePath, "/resources")
-
-	m, err := manager.New(storagePath, managerConfigPath)
-	if err != nil {
-		log.Fatalf("failed to create resource manager: %v", err)
-	}
-	return m
+func createResourceManager(managerConfigPath, storagePath string) (*manager.ResourceManager, error) {
+	return manager.New(storagePath, managerConfigPath)
 }
 
 // getPort returns the port number to use for the server.
-func getPort() string {
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8443"
-		log.Println("PORT environment variable not set. Using default port " + port)
-	} else {
-		_, err := strconv.Atoi(port)
-		if err != nil {
-			log.Println("Invalid PORT value set in environment variable. Using default port " + port)
-			port = "8443"
-		}
+func getPort() (string, error) {
+	port := getEnv("PORT", DefaultPort)
+	if _, err := strconv.Atoi(port); err != nil {
+		return "", err
 	}
-	return port
+	return port, nil
 }
 
 // startServer initializes and starts the web server.
-func startServer(port string, m *manager.ResourceManager) {
+func startServer(port, certFilePath, keyFilePath string, m *manager.ResourceManager) {
 	server := web_server.NewServerBuilder().
 		SetPort(port).
 		AddHandler("/news", handler.NewNewsHandler(m).Handle).
@@ -84,9 +100,19 @@ func startServer(port string, m *manager.ResourceManager) {
 
 	log.Println("Starting server on port " + port + " ...")
 
-	err := server.ListenAndServeTLS("certificates/cert.pem", "certificates/key.pem")
+	err := server.ListenAndServeTLS(certFilePath, keyFilePath)
 	if err != nil {
 		log.Fatalf("server failed to start: %v", err)
 	}
 	log.Println("Server started successfully")
+}
+
+// getEnv retrieves the value of the environment variable named by the key or returns the default value if the
+// variable is not present.
+func getEnv(key, defaultValue string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return defaultValue
+	}
+	return value
 }

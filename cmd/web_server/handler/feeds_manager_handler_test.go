@@ -8,60 +8,19 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"news-aggregator/aggregator/model/resource"
+	"news-aggregator/cmd/web_server/handler/mocks"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-// MockResourceManager is a mock implementation of the ResourceManager interface.
-type MockResourceManager struct {
-	mock.Mock
-}
-
-func (m *MockResourceManager) AvailableSources() string {
-	args := m.Called()
-	return args.Get(0).(string)
-}
-
-func (m *MockResourceManager) RegisterSource(name resource.Source, url string, format resource.Format) error {
-	args := m.Called(name, url, int(format))
-	return args.Error(0)
-}
-
-func (m *MockResourceManager) UpdateSource(name resource.Source, url string, format resource.Format) error {
-	args := m.Called(name, url, int(format))
-	return args.Error(0)
-}
-
-func (m *MockResourceManager) UpdateResource(source resource.Source) error {
-	args := m.Called(source)
-	return args.Error(0)
-}
-
-func (m *MockResourceManager) DeleteSource(name resource.Source) error {
-	args := m.Called(name)
-	return args.Error(0)
-}
-
-func (m *MockResourceManager) IsSourceSupported(source resource.Source) bool {
-	args := m.Called(source)
-	return args.Bool(0)
-}
-
-func (m *MockResourceManager) GetAllResources() ([]resource.Resource, error) {
-	args := m.Called()
-	return args.Get(0).([]resource.Resource), args.Error(1)
-}
-
-func (m *MockResourceManager) GetSelectedResources(sources []string) ([]resource.Resource, error) {
-	args := m.Called(sources)
-	return args.Get(0).([]resource.Resource), args.Error(1)
-}
-
 func TestControlHandler_GetSources(t *testing.T) {
-	mockManager := new(MockResourceManager)
-	mockManager.On("AvailableSources").Return("source1,source2")
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	mockManager := mocks.NewMockResourceManager(ctrl)
+	mockManager.EXPECT().AvailableSources().Return("source1,source2")
 
 	handler := NewFeedsManagerHandler(mockManager)
 
@@ -87,9 +46,14 @@ func TestControlHandler_GetSources(t *testing.T) {
 }
 
 func TestControlHandler_AddSource(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	t.Run("success", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
-		mockManager.On("RegisterSource", resource.Source("source1"), "http://example.com", resource.JSON).Return(nil)
+		mockManager := mocks.NewMockResourceManager(ctrl)
+		mockManager.EXPECT().
+			RegisterSource(resource.Source("source1"), "http://example.com", resource.Format(3)).
+			Return(nil)
 
 		handler := NewFeedsManagerHandler(mockManager)
 
@@ -117,7 +81,7 @@ func TestControlHandler_AddSource(t *testing.T) {
 	})
 
 	t.Run("invalid request payload", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
+		mockManager := mocks.NewMockResourceManager(ctrl)
 		handler := NewFeedsManagerHandler(mockManager)
 
 		req := httptest.NewRequest(http.MethodPost, "/sources", bytes.NewReader([]byte("invalid json")))
@@ -137,7 +101,7 @@ func TestControlHandler_AddSource(t *testing.T) {
 	})
 
 	t.Run("unknown format", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
+		mockManager := mocks.NewMockResourceManager(ctrl)
 		handler := NewFeedsManagerHandler(mockManager)
 
 		sourceData := map[string]string{
@@ -164,8 +128,10 @@ func TestControlHandler_AddSource(t *testing.T) {
 	})
 
 	t.Run("registration error", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
-		mockManager.On("RegisterSource", resource.Source("source1"), "http://example.com", resource.JSON).Return(fmt.Errorf("registration error"))
+		mockManager := mocks.NewMockResourceManager(ctrl)
+		mockManager.EXPECT().
+			RegisterSource(resource.Source("source1"), "http://example.com", resource.Format(3)).
+			Return(fmt.Errorf("registration error"))
 
 		handler := NewFeedsManagerHandler(mockManager)
 
@@ -194,9 +160,14 @@ func TestControlHandler_AddSource(t *testing.T) {
 }
 
 func TestControlHandler_UpdateSource(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	t.Run("success", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
-		mockManager.On("UpdateSource", resource.Source("source1"), "http://example.com", resource.JSON).Return(nil)
+		mockManager := mocks.NewMockResourceManager(ctrl)
+		mockManager.EXPECT().
+			UpdateSource(resource.Source("source1"), "http://example.com", resource.Format(3)).
+			Return(nil)
 
 		handler := NewFeedsManagerHandler(mockManager)
 
@@ -224,7 +195,7 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 	})
 
 	t.Run("invalid request payload", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
+		mockManager := mocks.NewMockResourceManager(ctrl)
 		handler := NewFeedsManagerHandler(mockManager)
 
 		req := httptest.NewRequest(http.MethodPut, "/sources", bytes.NewReader([]byte("invalid json")))
@@ -244,7 +215,7 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 	})
 
 	t.Run("unknown format", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
+		mockManager := mocks.NewMockResourceManager(ctrl)
 		handler := NewFeedsManagerHandler(mockManager)
 
 		sourceData := map[string]string{
@@ -271,8 +242,10 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 	})
 
 	t.Run("update error", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
-		mockManager.On("UpdateSource", resource.Source("source1"), "http://example.com", resource.JSON).Return(fmt.Errorf("update error"))
+		mockManager := mocks.NewMockResourceManager(ctrl)
+		mockManager.EXPECT().
+			UpdateSource(resource.Source("source1"), "http://example.com", resource.Format(3)).
+			Return(fmt.Errorf("update error"))
 
 		handler := NewFeedsManagerHandler(mockManager)
 
@@ -301,9 +274,14 @@ func TestControlHandler_UpdateSource(t *testing.T) {
 }
 
 func TestControlHandler_DeleteSource(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
 	t.Run("success", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
-		mockManager.On("DeleteSource", resource.Source("source1")).Return(nil)
+		mockManager := mocks.NewMockResourceManager(ctrl)
+		mockManager.EXPECT().
+			DeleteSource(resource.Source("source1")).
+			Return(nil)
 
 		handler := NewFeedsManagerHandler(mockManager)
 
@@ -329,12 +307,11 @@ func TestControlHandler_DeleteSource(t *testing.T) {
 	})
 
 	t.Run("invalid request payload", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
+		mockManager := mocks.NewMockResourceManager(ctrl)
 		handler := NewFeedsManagerHandler(mockManager)
 
 		req := httptest.NewRequest(http.MethodDelete, "/sources", bytes.NewReader([]byte("invalid json")))
 		w := httptest.NewRecorder()
-
 		handler.Handle(w, req)
 
 		resp := w.Result()
@@ -349,8 +326,10 @@ func TestControlHandler_DeleteSource(t *testing.T) {
 	})
 
 	t.Run("deletion error", func(t *testing.T) {
-		mockManager := new(MockResourceManager)
-		mockManager.On("DeleteSource", resource.Source("source1")).Return(fmt.Errorf("deletion error"))
+		mockManager := mocks.NewMockResourceManager(ctrl)
+		mockManager.EXPECT().
+			DeleteSource(resource.Source("source1")).
+			Return(fmt.Errorf("deletion error"))
 
 		handler := NewFeedsManagerHandler(mockManager)
 
