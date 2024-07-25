@@ -6,6 +6,11 @@ import (
 	"news-aggregator/cmd/web_server/handler"
 )
 
+const (
+	// DefaultHttpsPort is the default port number for the server.
+	DefaultHttpsPort = "8443"
+)
+
 // ServerBuilder is a builder pattern for creating a new http.Server instance.
 type ServerBuilder struct {
 	port     string
@@ -15,7 +20,7 @@ type ServerBuilder struct {
 // NewServerBuilder creates a new ServerBuilder instance.
 func NewServerBuilder() *ServerBuilder {
 	return &ServerBuilder{
-		port:     "8000",
+		port:     DefaultHttpsPort,
 		handlers: make(map[string]http.HandlerFunc),
 	}
 }

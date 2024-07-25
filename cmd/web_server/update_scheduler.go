@@ -5,10 +5,6 @@ import (
 	"time"
 )
 
-type Manager interface {
-	UpdateAllSources() error
-}
-
 // UpdateScheduler schedules updates based on a timeout duration.
 type UpdateScheduler struct {
 	manager Manager
