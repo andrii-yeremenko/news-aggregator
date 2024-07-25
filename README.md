@@ -107,27 +107,27 @@ Also docker image provides the following environment variables to configure the 
 ### Client API
 
 1. **Fetch Articles**: Retrieve articles from the server.
-   - **URL**: `/articles`
-   - **Method**: `GET`
-   - **Query Parameters**:
-      - `source`: Filter articles by source.
-      - `keywords`: Filter articles by keywords.
-      - `date-start`: Filter articles by start date.
-      - `date-end`: Filter articles by end date.
-      - `sort`: Sort articles by a specific field.
-   - **Response**: Returns a JSON formatted text of articles that match the specified criteria.
+    - **URL**: `/articles`
+    - **Method**: `GET`
+    - **Query Parameters**:
+        - `source`: Filter articles by source.
+        - `keywords`: Filter articles by keywords.
+        - `date-start`: Filter articles by start date.
+        - `date-end`: Filter articles by end date.
+        - `sort`: Sort articles by a specific field.
+    - **Response**: Returns a JSON formatted text of articles that match the specified criteria.
 
 ### Admin API
 
 1. **Add Source**: Add a new source to the system.
-   - **URL**: `/source`
-   - **Method**: `POST`
-   - **Request Body**: JSON object containing the source information.
-      - `name`: The name of the source.
-      - `url`: The URL of the source.
-      - `format`: The format of the source data (JSON, RSS, HTML).
-   - **Response**: `201 Created` if the source was added successfully.
-     Example:
+    - **URL**: `/source`
+    - **Method**: `POST`
+    - **Request Body**: JSON object containing the source information.
+        - `name`: The name of the source.
+        - `url`: The URL of the source.
+        - `format`: The format of the source data (JSON, RSS, HTML).
+    - **Response**: `201 Created` if the source was added successfully.
+      Example:
     ```json
     {
       "name": "abc-news",
@@ -136,9 +136,9 @@ Also docker image provides the following environment variables to configure the 
     }
     ```
 2. **Delete Source**: Remove a source from the system.
-   - **URL**: `/source`
-   - **Method**: `DELETE`
-   - **Response**: `200 Ok` if the source was deleted successfully.
+    - **URL**: `/source`
+    - **Method**: `DELETE`
+    - **Response**: `200 Ok` if the source was deleted successfully.
 
    Example:
     ```json
@@ -148,13 +148,13 @@ Also docker image provides the following environment variables to configure the 
     ```   
 
 3. **Update Source**: Update an existing source in the system.
-   - **URL**: `/source`
-   - **Method**: `PUT`
-   - **Request Body**: JSON object containing the source information.
-      - `name`: The name of the source.
-      - `url`: The URL of the source.
-      - `format`: The format of the source data (JSON, RSS, HTML).
-   - **Response**: `200 Ok` if the source was updated successfully.
+    - **URL**: `/source`
+    - **Method**: `PUT`
+    - **Request Body**: JSON object containing the source information.
+        - `name`: The name of the source.
+        - `url`: The URL of the source.
+        - `format`: The format of the source data (JSON, RSS, HTML).
+    - **Response**: `200 Ok` if the source was updated successfully.
 
    Example:
     ```json
@@ -166,9 +166,9 @@ Also docker image provides the following environment variables to configure the 
     ```
 
 4. **Update Feed**: Fetch articles from the internet and update the database.
-   - **URL**: `/update`
-   - **Method**: `GET`
-   - **Response**: `200 Ok` if the feed was updated successfully.
+    - **URL**: `/update`
+    - **Method**: `GET`
+    - **Response**: `200 Ok` if the feed was updated successfully.
 
 # Contribution
 
