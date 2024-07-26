@@ -119,3 +119,9 @@ tasks:
       - kubectl delete -f $K8S_TEMPLATES_PATH/deployment.yaml -n news-aggregator-namespace
       - kubectl delete -f $K8S_TEMPLATES_PATH/namespace.yaml
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
+
+  port-forward:
+    desc: "Port-forward to access the news-aggregator app"
+    cmds:
+      - kubectl port-forward service/news-aggregator $LOCAL_PORT:$SERVICE_PORT -n news-aggregator-namespace > port-forward.log 2>&1 &
+      - echo "Port forwarding started on localhost:$LOCAL_PORT. Check port-forward.log for details."
