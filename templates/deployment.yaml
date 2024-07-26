@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: news-aggregator
+  namespace: news-aggregator-namespace
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: news-aggregator
+  template:
+    metadata:
+      labels:
+        app: news-aggregator
+    spec:
+      containers:
+        - name: news-aggregator
+          image: ayeremenko/news-aggregator:1.0.0 # Need be updated to the latest version
+          ports:
+            - containerPort: 8443
