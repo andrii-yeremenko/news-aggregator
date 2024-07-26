@@ -8,6 +8,9 @@ env:
   SERVER_EXPOSE_PORT: "8443"
   DOCKER_RUN_PORT: "443"
   DOCKER_TAG: "1.0.0"
+  K8S_TEMPLATES_PATH: "./templates"
+  LOCAL_PORT: "8888"
+  SERVICE_PORT: "80"
 
 output:
   group:
@@ -21,7 +24,6 @@ includes:
     taskfile: ./cmd/cli/Taskfile.yml
 
 tasks:
-
   download:
     desc: "Download all dependencies"
     cmd: |
@@ -101,3 +103,19 @@ tasks:
       - task web_server:clean
       - task cli:clean
       - find . -type d -name mocks -exec rm -rf {} +
+
+  deploy:
+    desc: "Deploy the news-aggregator app on the Kubernetes cluster"
+    cmds:
+      - kubectl apply -f $K8S_TEMPLATES_PATH/namespace.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/deployment.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/service.yaml
+      - echo "The news-aggregator app has been deployed"
+
+  undeploy:
+    desc: "Remove the news-aggregator app from the Kubernetes cluster"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/service.yaml -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/deployment.yaml -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace.yaml
+      - echo "The news-aggregator app has been removed from the Kubernetes cluster"
