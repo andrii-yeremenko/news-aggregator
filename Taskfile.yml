@@ -125,3 +125,10 @@ tasks:
     cmds:
       - kubectl port-forward service/news-aggregator $LOCAL_PORT:$SERVICE_PORT -n news-aggregator-namespace > port-forward.log 2>&1 &
       - echo "Port forwarding started on localhost:$LOCAL_PORT. Check port-forward.log for details."
+
+  port-remove:
+    desc: "Stop port-forwarding for the news-aggregator app"
+    cmds:
+      - pkill -f 'kubectl port-forward'
+      - rm port-forward.log
+      - echo "Stopped port-forwarding."
