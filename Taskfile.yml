@@ -108,6 +108,9 @@ tasks:
     desc: "Deploy the news-aggregator app on the Kubernetes cluster"
     cmds:
       - kubectl apply -f $K8S_TEMPLATES_PATH/namespace.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/serviceaccount.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/role.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/rolebinding.yaml
       - kubectl apply -f $K8S_TEMPLATES_PATH/deployment.yaml
       - kubectl apply -f $K8S_TEMPLATES_PATH/service.yaml
       - echo "The news-aggregator app has been deployed"
@@ -117,6 +120,9 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/service.yaml -n news-aggregator-namespace
       - kubectl delete -f $K8S_TEMPLATES_PATH/deployment.yaml -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/rolebinding.yaml -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/role.yaml -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/serviceaccount.yaml -n news-aggregator-namespace
       - kubectl delete -f $K8S_TEMPLATES_PATH/namespace.yaml
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
 

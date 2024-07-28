@@ -13,6 +13,7 @@ spec:
       labels:
         app: news-aggregator
     spec:
+      serviceAccountName: news-aggregator-sa
       containers:
         - name: news-aggregator
           image: ayeremenko/news-aggregator:1.0.0 # Need be updated to the latest version
