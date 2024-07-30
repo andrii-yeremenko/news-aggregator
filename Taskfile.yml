@@ -107,17 +107,15 @@ tasks:
   deploy:
     desc: "Deploy the news-aggregator app on the Kubernetes cluster"
     cmds:
-      - kubectl apply -f $K8S_TEMPLATES_PATH/namespace.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/deployment.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/service.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/namespace
+      - kubectl apply -f $K8S_TEMPLATES_PATH/app
       - echo "The news-aggregator app has been deployed"
 
   undeploy:
     desc: "Remove the news-aggregator app from the Kubernetes cluster"
     cmds:
-      - kubectl delete -f $K8S_TEMPLATES_PATH/service.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/deployment.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace.yaml
+      - kubectl delete -f $K8S_TEMPLATES_PATH/app -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
 
   port-forward:
