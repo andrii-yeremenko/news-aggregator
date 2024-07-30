@@ -10,7 +10,7 @@ env:
   DOCKER_TAG: "1.0.0"
   K8S_TEMPLATES_PATH: "./templates"
   LOCAL_PORT: "8888"
-  SERVICE_PORT: "80"
+  SERVICE_PORT: "443"
 
 output:
   group:
@@ -105,56 +105,45 @@ tasks:
       - find . -type d -name mocks -exec rm -rf {} +
 
   create-namespace:
-    desc: "Create the news-aggregator namespace"
+    desc: "Create a namespace for the news-aggregator app"
     cmds:
-      - kubectl apply -f $K8S_TEMPLATES_PATH/namespace.yaml
-      - echo "The news-aggregator namespace has been created"
+      - kubectl apply -f $K8S_TEMPLATES_PATH/namespace
+      - echo "Namespace created"
 
   delete-namespace:
-    desc: "Delete the news-aggregator namespace"
+    desc: "Delete the namespace for the news-aggregator app"
     cmds:
-      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace.yaml
-      - echo "The news-aggregator namespace has been deleted"
+      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace
+      - echo "Namespace deleted"
 
   create-volumes:
-    desc: "Create PersistentVolume and PersistentVolumeClaim resources"
+    desc: "Create a PersistentVolume and PersistentVolumeClaim"
     deps:
       - create-namespace
     cmds:
-      - kubectl apply -f $K8S_TEMPLATES_PATH/persistent-volume-resources.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/persistent-volume-config.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/persistent-volume-claim-resources.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/persistent-volume-claim-config.yaml
-      - echo "PersistentVolume and PersistentVolumeClaim resources have been created"
+      - kubectl apply -f $K8S_TEMPLATES_PATH/volume
+      - echo "Volumes created"
 
   delete-volumes:
-    desc: "Delete PersistentVolume and PersistentVolumeClaim resources"
+    desc: "Delete the PersistentVolume and PersistentVolumeClaim"
     cmds:
-      - kubectl delete -f $K8S_TEMPLATES_PATH/persistent-volume-claim-config.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/persistent-volume-claim-resources.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/persistent-volume-config.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/persistent-volume-resources.yaml -n news-aggregator-namespace
-      - echo "PersistentVolume and PersistentVolumeClaim resources have been deleted"
+      - kubectl delete -f $K8S_TEMPLATES_PATH/volume
+      - echo "Volumes deleted"
 
   deploy:
     desc: "Deploy the news-aggregator app on the Kubernetes cluster"
+    deps:
+      - create-namespace
     cmds:
-      - kubectl apply -f $K8S_TEMPLATES_PATH/namespace.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/serviceaccount.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/role.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/rolebinding.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/deployment.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/service.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/app
+      - kubectl apply -f $K8S_TEMPLATES_PATH/rbac
       - echo "The news-aggregator app has been deployed"
 
   undeploy:
     desc: "Remove the news-aggregator app from the Kubernetes cluster"
     cmds:
-      - kubectl delete -f $K8S_TEMPLATES_PATH/service.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/deployment.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/rolebinding.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/role.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/serviceaccount.yaml -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/app -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/rbac -n news-aggregator-namespace
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
 
   port-forward:
