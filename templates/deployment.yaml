@@ -19,3 +19,15 @@ spec:
           image: ayeremenko/news-aggregator:1.0.0 # Need be updated to the latest version
           ports:
             - containerPort: 8443
+          volumeMounts:
+            - mountPath: "/resources"
+              name: news-aggregator-resources-storage
+            - mountPath: "/config"
+              name: news-aggregator-config-storage
+      volumes:
+        - name: news-aggregator-resources-storage
+          persistentVolumeClaim:
+            claimName: news-aggregator-resources-pvc
+        - name: news-aggregator-config-storage
+          persistentVolumeClaim:
+            claimName: news-aggregator-config-pvc
