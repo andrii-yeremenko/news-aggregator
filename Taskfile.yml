@@ -104,6 +104,38 @@ tasks:
       - task cli:clean
       - find . -type d -name mocks -exec rm -rf {} +
 
+  create-namespace:
+    desc: "Create the news-aggregator namespace"
+    cmds:
+      - kubectl apply -f $K8S_TEMPLATES_PATH/namespace.yaml
+      - echo "The news-aggregator namespace has been created"
+
+  delete-namespace:
+    desc: "Delete the news-aggregator namespace"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace.yaml
+      - echo "The news-aggregator namespace has been deleted"
+
+  create-volumes:
+    desc: "Create PersistentVolume and PersistentVolumeClaim resources"
+    deps:
+      - create-namespace
+    cmds:
+      - kubectl apply -f $K8S_TEMPLATES_PATH/persistent-volume-resources.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/persistent-volume-config.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/persistent-volume-claim-resources.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/persistent-volume-claim-config.yaml
+      - echo "PersistentVolume and PersistentVolumeClaim resources have been created"
+
+  delete-volumes:
+    desc: "Delete PersistentVolume and PersistentVolumeClaim resources"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/persistent-volume-claim-config.yaml -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/persistent-volume-claim-resources.yaml -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/persistent-volume-config.yaml -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/persistent-volume-resources.yaml -n news-aggregator-namespace
+      - echo "PersistentVolume and PersistentVolumeClaim resources have been deleted"
+
   deploy:
     desc: "Deploy the news-aggregator app on the Kubernetes cluster"
     cmds:
@@ -123,7 +155,6 @@ tasks:
       - kubectl delete -f $K8S_TEMPLATES_PATH/rolebinding.yaml -n news-aggregator-namespace
       - kubectl delete -f $K8S_TEMPLATES_PATH/role.yaml -n news-aggregator-namespace
       - kubectl delete -f $K8S_TEMPLATES_PATH/serviceaccount.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace.yaml
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
 
   port-forward:
