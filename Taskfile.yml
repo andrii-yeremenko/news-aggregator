@@ -10,7 +10,7 @@ env:
   DOCKER_TAG: "1.0.0"
   K8S_TEMPLATES_PATH: "./templates"
   LOCAL_PORT: "8888"
-  SERVICE_PORT: "80"
+  SERVICE_PORT: "443"
 
 output:
   group:
@@ -107,23 +107,17 @@ tasks:
   deploy:
     desc: "Deploy the news-aggregator app on the Kubernetes cluster"
     cmds:
-      - kubectl apply -f $K8S_TEMPLATES_PATH/namespace.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/serviceaccount.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/role.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/rolebinding.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/deployment.yaml
-      - kubectl apply -f $K8S_TEMPLATES_PATH/service.yaml
+      - kubectl apply -f $K8S_TEMPLATES_PATH/namespace
+      - kubectl apply -f $K8S_TEMPLATES_PATH/app
+      - kubectl apply -f $K8S_TEMPLATES_PATH/rbac
       - echo "The news-aggregator app has been deployed"
 
   undeploy:
     desc: "Remove the news-aggregator app from the Kubernetes cluster"
     cmds:
-      - kubectl delete -f $K8S_TEMPLATES_PATH/service.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/deployment.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/rolebinding.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/role.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/serviceaccount.yaml -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace.yaml
+      - kubectl delete -f $K8S_TEMPLATES_PATH/app -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/rbac -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
 
   port-forward:

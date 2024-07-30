@@ -4,7 +4,7 @@ metadata:
   name: news-aggregator
   namespace: news-aggregator-namespace
 spec:
-  replicas: 5
+  replicas: 1
   selector:
     matchLabels:
       app: news-aggregator
