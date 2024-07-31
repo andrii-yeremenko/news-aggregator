@@ -14,7 +14,7 @@ COPY model/ ./model/
 
 RUN go build -o news-updater main.go
 
-FROM alpine:3.9
+FROM alpine:3.20.2
 LABEL maintainer="Andrii Yeremenko"
 
 COPY --from=base /app/news-updater news-updater
