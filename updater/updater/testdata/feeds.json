@@ -13,10 +13,5 @@
     "source": "bbc-world",
     "format": "RSS",
     "link": "https://feeds.bbci.co.uk/news/rss.xml"
-  },
-  {
-    "source": "usa-today",
-    "format": "HTML",
-    "link": "https://eu.usatoday.com/news/world/"
   }
 ]

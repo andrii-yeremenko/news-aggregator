@@ -2,7 +2,7 @@ FROM golang:1.22-alpine AS base
 LABEL maintainer="Andrii Yeremenko"
 WORKDIR /app
 
-COPY go.mod ./
+COPY go.mod go.sum ./
 
 RUN go mod download
 RUN apk --no-cache add ca-certificates
