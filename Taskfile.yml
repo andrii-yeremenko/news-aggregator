@@ -158,3 +158,17 @@ tasks:
       - pkill -f 'kubectl port-forward'
       - rm port-forward.log
       - echo "Stopped port-forwarding."
+
+  start-cronjob:
+    desc: "Create a cronjob for the news-updater"
+    deps:
+      - create-namespace
+    cmds:
+      - kubectl apply -f $K8S_TEMPLATES_PATH/cronjob
+      - echo "Cronjob created"
+
+  stop-cronjob:
+    desc: "Delete the cronjob for the news-updater"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/cronjob
+      - echo "Cronjob deleted"
