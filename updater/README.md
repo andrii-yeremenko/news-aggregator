@@ -61,19 +61,19 @@ The following is an example of a configuration file:
 ```json
 [
   {
-    "source": "abc-news",
+    "name": "abc-news",
     "format": "RSS",
-    "link": "https://feeds.abcnews.com/abcnews/internationalheadlines"
+    "url": "https://feeds.abcnews.com/abcnews/internationalheadlines"
   },
   {
-    "source": "washington-times",
+    "name": "washington-times",
     "format": "RSS",
-    "link": "https://www.washingtontimes.com/rss/headlines/news/world/"
+    "url": "https://www.washingtontimes.com/rss/headlines/news/world/"
   },
   {
-    "source": "bbc-world",
+    "name": "bbc-world",
     "format": "RSS",
-    "link": "https://feeds.bbci.co.uk/news/rss.xml"
+    "url": "https://feeds.bbci.co.uk/news/rss.xml"
   }
 ]
 ```
