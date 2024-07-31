@@ -20,6 +20,4 @@ LABEL maintainer="Andrii Yeremenko"
 COPY --from=base /app/news-updater news-updater
 COPY --from=base /etc/ssl/certs /etc/ssl/certs
 
-VOLUME ["/resources", "/config"]
-
 ENTRYPOINT ["./news-updater"]
