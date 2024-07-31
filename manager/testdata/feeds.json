@@ -1,1 +1,12 @@
-[{"source":"supported_source","format":"HTML","link":"http://supported_source.com/source"},{"source":"test","format":"HTML","link":"http://test.com/source"}]
+[
+  {
+    "source": "supported_source",
+    "format": "HTML",
+    "link": "http://supported_source.com/source"
+  },
+  {
+    "source": "test",
+    "format": "HTML",
+    "link": "http://test.com/source"
+  }
+]
