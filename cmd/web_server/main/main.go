@@ -94,7 +94,6 @@ func startServer(port, certFilePath, keyFilePath string, m *manager.ResourceMana
 	server := web_server.NewServerBuilder().
 		SetPort(port).
 		AddHandler("/news", handler.NewNewsHandler(m).Handle).
-		AddHandler("/update", handler.NewUpdateHandler(m).Handle).
 		AddHandler("/sources", handler.NewFeedsManagerHandler(m).Handle).
 		Build()
 
