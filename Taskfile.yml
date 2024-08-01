@@ -109,12 +109,14 @@ tasks:
     cmds:
       - kubectl apply -f $K8S_TEMPLATES_PATH/namespace
       - kubectl apply -f $K8S_TEMPLATES_PATH/app
+      - kubectl apply -f $K8S_TEMPLATES_PATH/rbac
       - echo "The news-aggregator app has been deployed"
 
   undeploy:
     desc: "Remove the news-aggregator app from the Kubernetes cluster"
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/app -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/rbac -n news-aggregator-namespace
       - kubectl delete -f $K8S_TEMPLATES_PATH/namespace
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
 
