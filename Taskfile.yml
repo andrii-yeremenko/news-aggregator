@@ -8,6 +8,9 @@ env:
   SERVER_EXPOSE_PORT: "8443"
   DOCKER_RUN_PORT: "443"
   DOCKER_TAG: "1.0.0"
+  K8S_TEMPLATES_PATH: "./templates"
+  LOCAL_PORT: "8888"
+  SERVICE_PORT: "443"
 
 output:
   group:
@@ -21,7 +24,6 @@ includes:
     taskfile: ./cmd/cli/Taskfile.yml
 
 tasks:
-
   download:
     desc: "Download all dependencies"
     cmd: |
@@ -101,3 +103,30 @@ tasks:
       - task web_server:clean
       - task cli:clean
       - find . -type d -name mocks -exec rm -rf {} +
+
+  deploy:
+    desc: "Deploy the news-aggregator app on the Kubernetes cluster"
+    cmds:
+      - kubectl apply -f $K8S_TEMPLATES_PATH/namespace
+      - kubectl apply -f $K8S_TEMPLATES_PATH/app
+      - echo "The news-aggregator app has been deployed"
+
+  undeploy:
+    desc: "Remove the news-aggregator app from the Kubernetes cluster"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/app -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace
+      - echo "The news-aggregator app has been removed from the Kubernetes cluster"
+
+  port-forward:
+    desc: "Port-forward to access the news-aggregator app"
+    cmds:
+      - kubectl port-forward service/news-aggregator $LOCAL_PORT:$SERVICE_PORT -n news-aggregator-namespace > port-forward.log 2>&1 &
+      - echo "Port forwarding started on localhost:$LOCAL_PORT. Check port-forward.log for details."
+
+  port-remove:
+    desc: "Stop port-forwarding for the news-aggregator app"
+    cmds:
+      - pkill -f 'kubectl port-forward'
+      - rm port-forward.log
+      - echo "Stopped port-forwarding."
