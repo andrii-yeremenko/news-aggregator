@@ -1,0 +1,9 @@
+apiVersion: news-aggregator.com.teamdev/v1
+kind: Feed
+metadata:
+  name: washington-times-feed
+spec:
+  name: washington-times
+  link: "https://www.washingtontimes.com/rss/headlines/news/world/"
+status:
+  conditions:
