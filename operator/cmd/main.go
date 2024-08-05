@@ -117,7 +117,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controller.FeedReconciler{
+	if err = (&controller.FeedReconcile{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {

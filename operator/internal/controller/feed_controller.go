@@ -17,15 +17,19 @@ import (
 	newsaggregatorv1 "com.teamdev/news-aggregator/api/v1"
 )
 
-// FeedReconciler reconciles a Feed object
-type FeedReconciler struct {
+const (
+	serviceURL = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
+)
+
+// FeedReconcile reconciles a Feed object.
+type FeedReconcile struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to
+// Reconcile is part of the main Kubernetes reconciliation loop, which aims to
 // move the current state of the cluster closer to the desired state.
-func (r *FeedReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *FeedReconcile) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
 	var feed newsaggregatorv1.Feed
@@ -45,49 +49,50 @@ func (r *FeedReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.
 		return ctrl.Result{}, err
 	}
 
-	serviceURL := "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
-
 	if err := r.addSource(serviceURL, dataBytes); err != nil {
 		logger.Error(err, "Failed to add source")
 		return ctrl.Result{}, err
 	}
 
 	logger.Info("Successfully added source")
-
 	return ctrl.Result{}, nil
 }
 
-// Create a custom HTTP client with insecure transport
+// newInsecureHTTPClient creates a custom HTTP client with insecure transport.
 func newInsecureHTTPClient() *http.Client {
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	return &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		},
 	}
-	return &http.Client{Transport: tr}
 }
 
-// Update your addSource method to use this custom client
-func (r *FeedReconciler) addSource(serviceURL string, data []byte) error {
-	url := fmt.Sprintf("%s/source", serviceURL)
-	client := newInsecureHTTPClient()
-	resp, err := client.Post(url, "application/json", bytes.NewBuffer(data))
+// addSource sends a POST request to add a source.
+func (r *FeedReconcile) addSource(serviceURL string, data []byte) error {
+	url := fmt.Sprintf("%s/sources", serviceURL)
+	httpClient := newInsecureHTTPClient()
+	resp, err := httpClient.Post(url, "application/json", bytes.NewBuffer(data))
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to send POST request: %w", err)
 	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.Log.Error(err, "Failed to close response body")
-		}
-	}(resp.Body)
+	defer closeResponseBody(resp.Body)
 
 	if resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("failed to add source: %s", resp.Status)
 	}
+
 	return nil
 }
 
+// closeResponseBody ensures that the response body is closed and logs any errors.
+func closeResponseBody(body io.ReadCloser) {
+	if err := body.Close(); err != nil {
+		log.Log.Error(err, "Failed to close response body")
+	}
+}
+
 // SetupWithManager sets up the controller with the Manager.
-func (r *FeedReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *FeedReconcile) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&newsaggregatorv1.Feed{}).
 		Complete(r)

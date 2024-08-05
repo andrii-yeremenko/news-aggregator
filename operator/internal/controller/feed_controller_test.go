@@ -52,7 +52,7 @@ var _ = Describe("Feed Controller", func() {
 		})
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &FeedReconciler{
+			controllerReconciler := &FeedReconcile{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
