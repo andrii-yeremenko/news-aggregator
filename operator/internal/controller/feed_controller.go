@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -18,7 +19,8 @@ import (
 )
 
 const (
-	serviceURL = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
+	serviceURL      = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
+	sourcesEndpoint = "/sources"
 )
 
 // FeedReconcile reconciles a Feed object.
@@ -49,7 +51,7 @@ func (r *FeedReconcile) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	if err := r.addSource(serviceURL, dataBytes); err != nil {
+	if err := r.addSource(dataBytes); err != nil {
 		logger.Error(err, "Failed to add source")
 		return ctrl.Result{}, err
 	}
@@ -68,10 +70,16 @@ func newInsecureHTTPClient() *http.Client {
 }
 
 // addSource sends a POST request to add a source.
-func (r *FeedReconcile) addSource(serviceURL string, data []byte) error {
-	url := fmt.Sprintf("%s/sources", serviceURL)
+func (r *FeedReconcile) addSource(data []byte) error {
+	u, err := url.JoinPath(serviceURL, sourcesEndpoint)
+
+	if err != nil {
+		return fmt.Errorf("failed to join URL path: %w", err)
+	}
+
 	httpClient := newInsecureHTTPClient()
-	resp, err := httpClient.Post(url, "application/json", bytes.NewBuffer(data))
+
+	resp, err := httpClient.Post(u, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return fmt.Errorf("failed to send POST request: %w", err)
 	}
