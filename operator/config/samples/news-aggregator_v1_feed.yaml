@@ -1,9 +1,9 @@
 apiVersion: news-aggregator.com.teamdev/v1
 kind: Feed
 metadata:
-  name: washington-times-feed
+  name: bbc-news
 spec:
-  name: washington-times
+  name: bbc-news
   link: "https://www.washingtontimes.com/rss/headlines/news/world/"
 status:
-  conditions:
+

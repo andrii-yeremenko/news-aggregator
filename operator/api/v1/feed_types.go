@@ -13,19 +13,13 @@ type FeedSpec struct {
 
 // FeedStatus defines the observed state of Feed
 type FeedStatus struct {
-	Conditions []Condition `json:"conditions,omitempty"`
+	LastUpdated  string `json:"lastUpdated"`
+	CurrentState string `json:"state"`
+	Message      string `json:"message"`
 }
 
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
-
-type Condition struct {
-	Type           ConditionType `json:"type"`
-	Status         bool          `json:"status"`
-	Reason         string        `json:"reason,omitempty"`
-	Message        string        `json:"message,omitempty"`
-	LastUpdateTime metav1.Time   `json:"lastUpdateTime,omitempty"`
-}
 
 // Feed is the Schema for the feeds API
 type Feed struct {
