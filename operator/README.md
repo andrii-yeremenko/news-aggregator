@@ -1,114 +1,133 @@
-# operator
-// TODO(user): Add simple overview of use/purpose
+# News Aggregator Operator
+
+The News Aggregator Operator manages the lifecycle of news feed resources in a Kubernetes cluster. It automates the addition, update, and deletion of news sources by interacting with a backend service that handles news aggregation.
 
 ## Description
-// TODO(user): An in-depth paragraph about your project and overview of use
+
+This operator is designed to manage `Feed` resources, which represent individual news sources. It provides functionality to add, update, and remove these sources, ensuring that the backend service remains synchronized with the state of the `Feed` resources in your Kubernetes cluster.
 
 ## Getting Started
 
 ### Prerequisites
-- go version v1.22.0+
-- docker version 17.03+.
-- kubectl version v1.11.3+.
-- Access to a Kubernetes v1.11.3+ cluster.
 
-### To Deploy on the cluster
-**Build and push your image to the location specified by `IMG`:**
+Before deploying the operator, ensure you have the following tools installed:
 
-```sh
-make docker-build docker-push IMG=<some-registry>/operator:tag
-```
+- **Go**: Version 1.22.0+
+- **Docker**: Version 17.03+
+- **kubectl**: Version 1.11.3+
+- **Kubernetes Cluster**: Version 1.11.3+ (Ensure you have access to a Kubernetes cluster)
 
-**NOTE:** This image ought to be published in the personal registry you specified.
-And it is required to have access to pull the image from the working environment.
-Make sure you have the proper permission to the registry if the above commands don’t work.
+### Deployment
 
-**Install the CRDs into the cluster:**
+1. **Build and Push the Docker Image**
 
-```sh
-make install
-```
+   Build and push your operator image to your container registry:
 
-**Deploy the Manager to the cluster with the image specified by `IMG`:**
+   ```sh
+   make docker-build docker-push IMG=<some-registry>/operator:tag
+   ```
 
-```sh
-make deploy IMG=<some-registry>/operator:tag
-```
+   **Note:** Ensure the image is published in the registry specified and that you have access to pull the image.
 
-> **NOTE**: If you encounter RBAC errors, you may need to grant yourself cluster-admin
-privileges or be logged in as admin.
+2. **Install Custom Resource Definitions (CRDs)**
 
-**Create instances of your solution**
-You can apply the samples (examples) from the config/sample:
+   Apply the Custom Resource Definitions (CRDs) to your cluster:
 
-```sh
-kubectl apply -k config/samples/
-```
+   ```sh
+   make install
+   ```
 
->**NOTE**: Ensure that the samples has default values to test it out.
+3. **Deploy the Operator**
 
-### To Uninstall
-**Delete the instances (CRs) from the cluster:**
+   Deploy the operator using the image built in the previous step:
 
-```sh
-kubectl delete -k config/samples/
-```
+   ```sh
+   make deploy IMG=<some-registry>/operator:tag
+   ```
 
-**Delete the APIs(CRDs) from the cluster:**
+   **Note:** If you encounter RBAC (Role-Based Access Control) errors, you might need to grant cluster-admin privileges or ensure you are logged in as an admin.
 
-```sh
-make uninstall
-```
+4. **Create `Feed` Instances**
 
-**UnDeploy the controller from the cluster:**
+   Apply sample `Feed` resources to test the operator:
 
-```sh
-make undeploy
-```
+   ```sh
+   kubectl apply -k config/samples/
+   ```
+
+   **Note:** Verify that the samples have default values set for proper testing.
+
+### Uninstalling
+
+1. **Delete Instances**
+
+   Remove the `Feed` resources from the cluster:
+
+   ```sh
+   kubectl delete -k config/samples/
+   ```
+
+2. **Remove CRDs**
+
+   Uninstall the CRDs:
+
+   ```sh
+   make uninstall
+   ```
+
+3. **Undeploy the Operator**
+
+   Remove the operator from the cluster:
+
+   ```sh
+   make undeploy
+   ```
 
 ## Project Distribution
 
-Following are the steps to build the installer and distribute this project to users.
+To distribute the operator, follow these steps:
 
-1. Build the installer for the image built and published in the registry:
+1. **Build the Installer**
 
-```sh
-make build-installer IMG=<some-registry>/operator:tag
-```
+   Build the installer for your operator image:
 
-NOTE: The makefile target mentioned above generates an 'install.yaml'
-file in the dist directory. This file contains all the resources built
-with Kustomize, which are necessary to install this project without
-its dependencies.
+   ```sh
+   make build-installer IMG=<some-registry>/operator:tag
+   ```
 
-2. Using the installer
+   **Note:** This generates an `install.yaml` file in the `dist` directory, which contains the necessary resources to install the operator.
 
-Users can just run kubectl apply -f <URL for YAML BUNDLE> to install the project, i.e.:
+---
 
-```sh
-kubectl apply -f https://raw.githubusercontent.com/<org>/operator/<tag or branch>/dist/install.yaml
-```
+### CRD Definitions
 
-## Contributing
-// TODO(user): Add detailed information on how you would like others to contribute to this project
+#### `Feed` Custom Resource
 
-**NOTE:** Run `make help` for more information on all potential `make` targets
+**Spec:**
+- `name` (string): The name of the news source.
+- `link` (string): The URL of the news feed.
 
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
+**Status:**
+- `conditions` (array of `Condition`): The status conditions of the `Feed`.
+
+**Condition Types:**
+- `Added`: The feed has been added successfully.
+- `Updated`: The feed has been updated successfully.
+- `Deleted`: The feed has been deleted successfully.
+
+**Condition Structure:**
+- `type` (string): The type of condition.
+- `status` (boolean): The status of the condition.
+- `reason` (string, optional): The reason for the condition.
+- `message` (string, optional): A message describing the condition.
+- `lastUpdateTime` (Time): The last update time of the condition.
 
 ## License
 
 Copyright 2024.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
     http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
