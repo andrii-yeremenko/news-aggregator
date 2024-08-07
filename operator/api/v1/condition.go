@@ -12,6 +12,8 @@ const (
 	ConditionUpdated ConditionType = "Updated"
 	// ConditionDeleted means the feed has been deleted successfully
 	ConditionDeleted ConditionType = "Deleted"
+	// ConditionFailed means the feed has failed to be added, updated or deleted
+	ConditionFailed ConditionType = "Failed"
 )
 
 type Condition struct {

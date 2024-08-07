@@ -37,20 +37,28 @@ spec:
           metadata:
             type: object
           spec:
-            description: FeedSpec defines the desired state of Feed
+            description: Spec defines the desired state of Feed
             properties:
               link:
+                description: Link is the URL of the news feed.
+                format: uri
                 type: string
               name:
+                description: Name is the name of the news feed.
+                maxLength: 100
+                minLength: 1
+                pattern: ^[a-zA-Z0-9-_]+$
                 type: string
             required:
             - link
             - name
             type: object
           status:
-            description: FeedStatus defines the observed state of Feed
+            description: Status defines the observed state of Feed
             properties:
               conditions:
+                description: Conditions represent the latest available observations
+                  of an object's state.
                 items:
                   properties:
                     lastUpdateTime:

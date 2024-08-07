@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	newsaggregatorv1 "com.teamdev/news-aggregator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -47,6 +49,14 @@ func (r *FeedReconcile) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 // processFeed handles the main reconciliation logic based on the Feed's state.
 func (r *FeedReconcile) processFeed(feed *newsaggregatorv1.Feed) error {
+
+	if feed.ObjectMeta.DeletionTimestamp.IsZero() {
+		err := r.ensureFinalizer(feed)
+		if err != nil {
+			return err
+		}
+	}
+
 	if len(feed.Status.Conditions) == 0 {
 		return r.handleFeedCreation(feed)
 	}
@@ -56,10 +66,15 @@ func (r *FeedReconcile) processFeed(feed *newsaggregatorv1.Feed) error {
 		return nil
 	}
 
-	if feed.ObjectMeta.DeletionTimestamp.IsZero() {
-		return r.ensureFinalizer(feed)
+	if !feed.ObjectMeta.DeletionTimestamp.IsZero() {
+		return r.handleFeedDeletion(feed)
 	}
-	return r.handleFeedDeletion(feed)
+
+	if !feed.CreationTimestamp.IsZero() {
+		return r.handleFeedUpdation(feed)
+	}
+
+	return fmt.Errorf("unexpected state for Feed %s", feed.Spec.Name)
 }
 
 // ensureFinalizer ensures that the finalizer is added to the Feed if not already present.
@@ -77,9 +92,17 @@ func (r *FeedReconcile) ensureFinalizer(feed *newsaggregatorv1.Feed) error {
 // handleFeedCreation handles the logic for when a Feed is created.
 func (r *FeedReconcile) handleFeedCreation(feed *newsaggregatorv1.Feed) error {
 	if err := r.addSource(feed); err != nil {
-		return err
+		return r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
 	}
 	return r.updateStatus(feed, newsaggregatorv1.ConditionAdded, true, "Feed added successfully")
+}
+
+// handleFeedUpdation handles the logic for when a Feed is updated.
+func (r *FeedReconcile) handleFeedUpdation(feed *newsaggregatorv1.Feed) error {
+	if err := r.updateSource(feed); err != nil {
+		return r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
+	}
+	return r.updateStatus(feed, newsaggregatorv1.ConditionUpdated, true, "Feed updated successfully")
 }
 
 // handleFeedDeletion handles the logic for when a Feed is deleted.
@@ -127,6 +150,16 @@ func (r *FeedReconcile) addSource(feed *newsaggregatorv1.Feed) error {
 	return r.postSource(data)
 }
 
+// updateSource sends a PUT request to update a source.
+func (r *FeedReconcile) updateSource(feed *newsaggregatorv1.Feed) error {
+	data, err := r.prepareSourceData(feed)
+	if err != nil {
+		return err
+	}
+
+	return r.putSource(data)
+}
+
 // prepareSourceData prepares the source data to be sent in the POST request.
 func (r *FeedReconcile) prepareSourceData(feed *newsaggregatorv1.Feed) ([]byte, error) {
 	data := map[string]string{
@@ -156,6 +189,34 @@ func (r *FeedReconcile) postSource(data []byte) error {
 		return fmt.Errorf("failed to add source: %s", resp.Status)
 	}
 
+	return nil
+}
+
+func (r *FeedReconcile) putSource(data []byte) error {
+
+	u, err := url.JoinPath(serviceURL, sourcesEndpoint)
+	if err != nil {
+		return fmt.Errorf("failed to join URL path: %w", err)
+	}
+
+	httpClient := newInsecureHTTPClient()
+	req, err := http.NewRequest(http.MethodPut, u, bytes.NewBuffer(data))
+	if err != nil {
+		return fmt.Errorf("failed to create PUT request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send PUT request: %w", err)
+	}
+	defer closeResponseBody(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to update source: %s", resp.Status)
+	}
+
+	log.Log.Info("Source updated successfully")
 	return nil
 }
 
@@ -234,9 +295,19 @@ func removeFinalizer(finalizers []string, finalizer string) []string {
 	return finalizers
 }
 
-// SetupWithManager sets up the controller with the Manager.
 func (r *FeedReconcile) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&newsaggregatorv1.Feed{}).
+		WithEventFilter(predicate.Funcs{
+			CreateFunc: func(e event.CreateEvent) bool {
+				return true
+			},
+			DeleteFunc: func(e event.DeleteEvent) bool {
+				return !e.DeleteStateUnknown
+			},
+			UpdateFunc: func(e event.UpdateEvent) bool {
+				return e.ObjectNew.GetGeneration() != e.ObjectOld.GetGeneration()
+			},
+		}).
 		Complete(r)
 }
