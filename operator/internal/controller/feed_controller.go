@@ -192,6 +192,7 @@ func (r *FeedReconcile) postSource(data []byte) error {
 	return nil
 }
 
+// putSource sends a PUT request to update a source.
 func (r *FeedReconcile) putSource(data []byte) error {
 
 	u, err := url.JoinPath(serviceURL, sourcesEndpoint)
@@ -295,6 +296,7 @@ func removeFinalizer(finalizers []string, finalizer string) []string {
 	return finalizers
 }
 
+// SetupWithManager sets up the controller with the Manager.
 func (r *FeedReconcile) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&newsaggregatorv1.Feed{}).
