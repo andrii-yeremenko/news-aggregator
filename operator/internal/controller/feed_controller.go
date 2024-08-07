@@ -2,26 +2,26 @@ package controller
 
 import (
 	"bytes"
-	newsaggregatorv1 "com.teamdev/news-aggregator/api/v1"
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"net/http"
 	"net/url"
 	ctrl "sigs.k8s.io/controller-runtime"
+
+	newsaggregatorv1 "com.teamdev/news-aggregator/api/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
 const (
 	serviceURL      = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
 	sourcesEndpoint = "/sources"
+	finalizer       = "feed.finalizer.news-aggregator.teamdev.com"
 )
 
 // FeedReconcile reconciles a Feed object.
@@ -30,95 +30,122 @@ type FeedReconcile struct {
 	Scheme *runtime.Scheme
 }
 
-// Reconcile is part of the main Kubernetes reconciliation loop, which aims to
-// move the current state of the cluster closer to the desired state.
+// Reconcile performs the reconciliation logic for Feed objects.
 func (r *FeedReconcile) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	var feed newsaggregatorv1.Feed
-	if err := r.Get(ctx, req.NamespacedName, &feed); err != nil {
-		err := r.handleDelete(req.Name)
+
+	if err := r.Client.Get(ctx, req.NamespacedName, &feed); err != nil {
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
+
+	if err := r.processFeed(&feed); err != nil {
 		return ctrl.Result{}, err
 	}
 
-	err := r.handleAdd(ctx, &feed)
-
-	return ctrl.Result{}, err
+	return ctrl.Result{}, nil
 }
 
-func (r *FeedReconcile) handleAdd(ctx context.Context, feed *newsaggregatorv1.Feed) error {
+// processFeed handles the main reconciliation logic based on the Feed's state.
+func (r *FeedReconcile) processFeed(feed *newsaggregatorv1.Feed) error {
+	if len(feed.Status.Conditions) == 0 {
+		return r.handleFeedCreation(feed)
+	}
+
+	lastCondition := feed.Status.Conditions[len(feed.Status.Conditions)-1]
+	if lastCondition.Type == newsaggregatorv1.ConditionDeleted {
+		return nil
+	}
+
+	if feed.ObjectMeta.DeletionTimestamp.IsZero() {
+		return r.ensureFinalizer(feed)
+	}
+	return r.handleFeedDeletion(feed)
+}
+
+// ensureFinalizer ensures that the finalizer is added to the Feed if not already present.
+func (r *FeedReconcile) ensureFinalizer(feed *newsaggregatorv1.Feed) error {
+	if !containsFinalizer(feed.Finalizers, finalizer) {
+		feed.Finalizers = append(feed.Finalizers, finalizer)
+		if err := r.Client.Update(context.Background(), feed); err != nil {
+			return err
+		}
+		log.Log.Info("Added finalizer", "name", feed.Spec.Name)
+	}
+	return nil
+}
+
+// handleFeedCreation handles the logic for when a Feed is created.
+func (r *FeedReconcile) handleFeedCreation(feed *newsaggregatorv1.Feed) error {
+	if err := r.addSource(feed); err != nil {
+		return err
+	}
+	return r.updateStatus(feed, newsaggregatorv1.ConditionAdded, true, "Feed added successfully")
+}
+
+// handleFeedDeletion handles the logic for when a Feed is deleted.
+func (r *FeedReconcile) handleFeedDeletion(feed *newsaggregatorv1.Feed) error {
+	if containsFinalizer(feed.Finalizers, finalizer) {
+		if err := r.deleteSource(feed.Spec.Name); err != nil {
+			return err
+		}
+
+		if err := r.updateStatus(feed, newsaggregatorv1.ConditionDeleted, true,
+			"Feed deleted successfully"); err != nil {
+			return err
+		}
+
+		feed.Finalizers = removeFinalizer(feed.Finalizers, finalizer)
+		if err := r.Client.Update(context.Background(), feed); err != nil {
+			return err
+		}
+		log.Log.Info("Removed finalizer", "name", feed.Spec.Name)
+	}
+	return nil
+}
+
+// updateStatus updates the status of the Feed object.
+func (r *FeedReconcile) updateStatus(feed *newsaggregatorv1.Feed, conditionType newsaggregatorv1.ConditionType,
+	status bool, message string) error {
+	condition := newsaggregatorv1.Condition{
+		Type:           conditionType,
+		Status:         status,
+		Message:        message,
+		LastUpdateTime: metav1.Now(),
+	}
+
+	feed.Status.Conditions = append(feed.Status.Conditions, condition)
+	return r.Client.Status().Update(context.Background(), feed)
+}
+
+// addSource sends a POST request to add a source.
+func (r *FeedReconcile) addSource(feed *newsaggregatorv1.Feed) error {
+	data, err := r.prepareSourceData(feed)
+	if err != nil {
+		return err
+	}
+
+	return r.postSource(data)
+}
+
+// prepareSourceData prepares the source data to be sent in the POST request.
+func (r *FeedReconcile) prepareSourceData(feed *newsaggregatorv1.Feed) ([]byte, error) {
 	data := map[string]string{
 		"name":   feed.Spec.Name,
 		"url":    feed.Spec.Link,
 		"format": "RSS",
 	}
 
-	dataBytes, err := json.Marshal(data)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %w", err)
-	}
-
-	var httpErr error
-
-	switch feed.Status.CurrentState {
-	case "":
-		httpErr = r.addSource(dataBytes)
-		feed.Status.CurrentState = "Added"
-	case "Failed":
-		httpErr = r.addSource(dataBytes)
-		feed.Status.CurrentState = "Added"
-	case "Added":
-		return nil
-	}
-
-	if httpErr != nil {
-		feed.Status.CurrentState = "Failed"
-		feed.Status.Message = httpErr.Error()
-		return fmt.Errorf("failed to add source: %w", httpErr)
-	} else {
-		feed.Status.Message = "Source " + feed.Spec.Name + " added successfully"
-	}
-
-	feed.Status.LastUpdated = metav1.Now().String()
-
-	if err := r.Client.Status().Update(ctx, feed); err != nil {
-		return fmt.Errorf("failed to update status: %w", err)
-	}
-
-	return err
+	return json.Marshal(data)
 }
 
-func (r *FeedReconcile) handleDelete(feedName string) error {
-
-	log.Log.Info("Trying deleting source", "name", feedName)
-
-	data := map[string]string{
-		"name": feedName,
-	}
-
-	dataBytes, err := json.Marshal(data)
-	if err != nil {
-		return fmt.Errorf("failed to marshal data: %w", err)
-	}
-
-	if err := r.deleteSource(dataBytes); err != nil {
-		return fmt.Errorf("failed to delete source: %w", err)
-	}
-
-	return nil
-}
-
-// addSource sends a POST request to add a source.
-func (r *FeedReconcile) addSource(data []byte) error {
-
-	log.Log.Info("Trying adding source", "data", string(data))
-
+// postSource sends the POST request to add the source.
+func (r *FeedReconcile) postSource(data []byte) error {
 	u, err := url.JoinPath(serviceURL, sourcesEndpoint)
 	if err != nil {
 		return fmt.Errorf("failed to join URL path: %w", err)
 	}
 
 	httpClient := newInsecureHTTPClient()
-
 	resp, err := httpClient.Post(u, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return fmt.Errorf("failed to send POST request: %w", err)
@@ -133,14 +160,18 @@ func (r *FeedReconcile) addSource(data []byte) error {
 }
 
 // deleteSource sends a DELETE request to remove a source.
-func (r *FeedReconcile) deleteSource(data []byte) error {
+func (r *FeedReconcile) deleteSource(feedName string) error {
+	data, err := r.prepareDeleteData(feedName)
+	if err != nil {
+		return err
+	}
+
 	u, err := url.JoinPath(serviceURL, sourcesEndpoint)
 	if err != nil {
 		return fmt.Errorf("failed to join URL path: %w", err)
 	}
 
 	httpClient := newInsecureHTTPClient()
-
 	req, err := http.NewRequest(http.MethodDelete, u, bytes.NewBuffer(data))
 	if err != nil {
 		return fmt.Errorf("failed to create DELETE request: %w", err)
@@ -158,11 +189,16 @@ func (r *FeedReconcile) deleteSource(data []byte) error {
 	}
 
 	log.Log.Info("Source deleted successfully")
-
 	return nil
 }
 
-// newInsecureHTTPClient creates a custom HTTP client with insecure transport.
+// prepareDeleteData prepares the data for the DELETE request.
+func (r *FeedReconcile) prepareDeleteData(feedName string) ([]byte, error) {
+	data := map[string]string{"name": feedName}
+	return json.Marshal(data)
+}
+
+// newInsecureHTTPClient creates an HTTP client with insecure transport.
 func newInsecureHTTPClient() *http.Client {
 	return &http.Client{
 		Transport: &http.Transport{
@@ -178,23 +214,29 @@ func closeResponseBody(body io.ReadCloser) {
 	}
 }
 
+// containsFinalizer checks if a finalizer is present in the list.
+func containsFinalizer(finalizers []string, finalizer string) bool {
+	for _, f := range finalizers {
+		if f == finalizer {
+			return true
+		}
+	}
+	return false
+}
+
+// removeFinalizer removes a finalizer from the list.
+func removeFinalizer(finalizers []string, finalizer string) []string {
+	for i, f := range finalizers {
+		if f == finalizer {
+			return append(finalizers[:i], finalizers[i+1:]...)
+		}
+	}
+	return finalizers
+}
+
 // SetupWithManager sets up the controller with the Manager.
 func (r *FeedReconcile) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&newsaggregatorv1.Feed{}).
-		WithEventFilter(predicate.Funcs{
-			CreateFunc: func(e event.CreateEvent) bool {
-				log.Log.Info("Create event", "feed", e.Object)
-				return true
-			},
-			UpdateFunc: func(e event.UpdateEvent) bool {
-				log.Log.Info("Update event", "feed", e.ObjectNew)
-				return true
-			},
-			DeleteFunc: func(e event.DeleteEvent) bool {
-				log.Log.Info("Delete event", "feed", e.Object)
-				return true
-			},
-		}).
 		Complete(r)
 }

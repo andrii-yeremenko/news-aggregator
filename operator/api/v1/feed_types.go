@@ -13,9 +13,7 @@ type FeedSpec struct {
 
 // FeedStatus defines the observed state of Feed
 type FeedStatus struct {
-	LastUpdated  string `json:"lastUpdated"`
-	CurrentState string `json:"state"`
-	Message      string `json:"message"`
+	Conditions []Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

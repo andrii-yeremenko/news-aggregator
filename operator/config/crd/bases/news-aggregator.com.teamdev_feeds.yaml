@@ -50,16 +50,26 @@ spec:
           status:
             description: FeedStatus defines the observed state of Feed
             properties:
-              lastUpdated:
-                type: string
-              message:
-                type: string
-              state:
-                type: string
-            required:
-            - lastUpdated
-            - message
-            - state
+              conditions:
+                items:
+                  properties:
+                    lastUpdateTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: boolean
+                    type:
+                      description: ConditionType defines the type of the condition
+                      type: string
+                  required:
+                  - status
+                  - type
+                  type: object
+                type: array
             type: object
         type: object
     served: true
