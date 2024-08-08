@@ -126,8 +126,8 @@ func checkNameUniqueness(feed *Feed) error {
 	}
 
 	for _, existingFeed := range feedList.Items {
-		if existingFeed.Name == feed.Name && existingFeed.Namespace == feed.Namespace && existingFeed.UID != feed.UID {
-			return fmt.Errorf("a Feed with name '%s' already exists in namespace '%s'", feed.Name, feed.Namespace)
+		if existingFeed.Spec.Name == feed.Spec.Name && existingFeed.Namespace == feed.Namespace && existingFeed.UID != feed.UID {
+			return fmt.Errorf("a Feed with name '%s' already exists in namespace '%s'", feed.Spec.Name, feed.Namespace)
 		}
 	}
 
