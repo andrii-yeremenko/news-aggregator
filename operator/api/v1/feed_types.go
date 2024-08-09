@@ -44,12 +44,12 @@ type Feed struct {
 	Status FeedStatus `json:"status,omitempty"`
 }
 
-func (in *Feed) DeepCopyObject() runtime.Object {
-	if in == nil {
+func (r *Feed) DeepCopyObject() runtime.Object {
+	if r == nil {
 		return nil
 	}
 	out := new(Feed)
-	in.DeepCopyInto(out)
+	r.DeepCopyInto(out)
 	return out
 }
 
