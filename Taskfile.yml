@@ -172,3 +172,15 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/cronjob
       - echo "Cronjob deleted"
+
+  setup-feeds:
+    desc: "Setup the news feeds"
+    cmds:
+      - kubectl apply -f $K8S_TEMPLATES_PATH/feed
+      - echo "Feeds setup"
+
+  teardown-feeds:
+    desc: "Delete the news feeds"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/feed
+      - echo "Feeds deleted"

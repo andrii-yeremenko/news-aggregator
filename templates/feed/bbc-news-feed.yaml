@@ -1,0 +1,8 @@
+apiVersion: news-aggregator.com.teamdev/v1
+kind: Feed
+metadata:
+  name: bbc-world
+spec:
+  name: bbc-world
+  link: "https://feeds.bbci.co.uk/news/rss.xml"
+status:
