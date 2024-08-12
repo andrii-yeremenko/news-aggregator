@@ -20,7 +20,6 @@ import (
 )
 
 const (
-	serviceURL      = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
 	sourcesEndpoint = "/sources"
 	finalizer       = "feed.finalizer.news-aggregator.teamdev.com"
 )
@@ -35,6 +34,7 @@ type FeedReconcile struct {
 	client.Client
 	Scheme     *runtime.Scheme
 	HTTPClient HTTPClient
+	ServiceURL string
 }
 
 // Reconcile performs the reconciliation logic for Feed objects.
@@ -179,7 +179,7 @@ func (r *FeedReconcile) prepareSourceData(feed *newsaggregatorv1.Feed) ([]byte, 
 
 // postSource sends the POST request to add the source.
 func (r *FeedReconcile) postSource(data []byte) error {
-	u, err := url.JoinPath(serviceURL, sourcesEndpoint)
+	u, err := url.JoinPath(r.ServiceURL, sourcesEndpoint)
 	if err != nil {
 		return fmt.Errorf("failed to join URL path: %w", err)
 	}
@@ -199,7 +199,7 @@ func (r *FeedReconcile) postSource(data []byte) error {
 
 // putSource sends a PUT request to update a source.
 func (r *FeedReconcile) putSource(data []byte) error {
-	u, err := url.JoinPath(serviceURL, sourcesEndpoint)
+	u, err := url.JoinPath(r.ServiceURL, sourcesEndpoint)
 	if err != nil {
 		return fmt.Errorf("failed to join URL path: %w", err)
 	}
@@ -231,7 +231,7 @@ func (r *FeedReconcile) deleteSource(feedName string) error {
 		return err
 	}
 
-	u, err := url.JoinPath(serviceURL, sourcesEndpoint)
+	u, err := url.JoinPath(r.ServiceURL, sourcesEndpoint)
 	if err != nil {
 		return fmt.Errorf("failed to join URL path: %w", err)
 	}
