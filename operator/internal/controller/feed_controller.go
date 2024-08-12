@@ -21,7 +21,6 @@ import (
 
 const (
 	sourcesEndpoint = "/sources"
-	finalizer       = "feed.finalizer.news-aggregator.teamdev.com"
 )
 
 //go:generate mockgen -destination=mocks/mock_http_client.go -package=mocks com.teamdev/news-aggregator/internal/controller HTTPClient
@@ -35,6 +34,7 @@ type FeedReconcile struct {
 	Scheme     *runtime.Scheme
 	HTTPClient HTTPClient
 	ServiceURL string
+	Finalizer  string
 }
 
 // Reconcile performs the reconciliation logic for Feed objects.
@@ -84,8 +84,8 @@ func (r *FeedReconcile) processFeed(feed *newsaggregatorv1.Feed) error {
 
 // ensureFinalizer ensures that the finalizer is added to the Feed if not already present.
 func (r *FeedReconcile) ensureFinalizer(feed *newsaggregatorv1.Feed) error {
-	if !containsFinalizer(feed.Finalizers, finalizer) {
-		feed.Finalizers = append(feed.Finalizers, finalizer)
+	if !containsFinalizer(feed.Finalizers, r.Finalizer) {
+		feed.Finalizers = append(feed.Finalizers, r.Finalizer)
 		if err := r.Client.Update(context.Background(), feed); err != nil {
 			return err
 		}
@@ -113,7 +113,7 @@ func (r *FeedReconcile) handleFeedUpdation(feed *newsaggregatorv1.Feed) error {
 
 // handleFeedDeletion handles the logic for when a Feed is deleted.
 func (r *FeedReconcile) handleFeedDeletion(feed *newsaggregatorv1.Feed) error {
-	if containsFinalizer(feed.Finalizers, finalizer) {
+	if containsFinalizer(feed.Finalizers, r.Finalizer) {
 		if err := r.deleteSource(feed.Spec.Name); err != nil {
 			return err
 		}
@@ -123,7 +123,7 @@ func (r *FeedReconcile) handleFeedDeletion(feed *newsaggregatorv1.Feed) error {
 			return err
 		}
 
-		feed.Finalizers = removeFinalizer(feed.Finalizers, finalizer)
+		feed.Finalizers = removeFinalizer(feed.Finalizers, r.Finalizer)
 		if err := r.Client.Update(context.Background(), feed); err != nil {
 			return err
 		}

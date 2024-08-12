@@ -18,6 +18,11 @@ import (
 	"testing"
 )
 
+const (
+	finalizer  = "feed.finalizer.news-aggregator.teamdev.com"
+	serviceURL = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
+)
+
 func TestFeedReconcile(t *testing.T) {
 	scheme := runtime.NewScheme()
 	_ = clientgoscheme.AddToScheme(scheme)
@@ -60,6 +65,8 @@ func TestFeedReconcile(t *testing.T) {
 		Client:     client,
 		Scheme:     scheme,
 		HTTPClient: mockHTTPClient,
+		ServiceURL: serviceURL,
+		Finalizer:  finalizer,
 	}
 
 	req := reconcile.Request{
