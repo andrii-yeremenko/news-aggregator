@@ -3,7 +3,6 @@ package controller
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -26,10 +25,16 @@ const (
 	finalizer       = "feed.finalizer.news-aggregator.teamdev.com"
 )
 
-// FeedReconcile reconciles a Feed object.
+//go:generate mockgen -destination=mocks/mock_http_client.go -package=mocks com.teamdev/news-aggregator/internal/controller HTTPClient
+type HTTPClient interface {
+	Do(req *http.Request) (*http.Response, error)
+	Post(url string, contentType string, body io.Reader) (*http.Response, error)
+}
+
 type FeedReconcile struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme     *runtime.Scheme
+	HTTPClient HTTPClient
 }
 
 // Reconcile performs the reconciliation logic for Feed objects.
@@ -91,7 +96,8 @@ func (r *FeedReconcile) ensureFinalizer(feed *newsaggregatorv1.Feed) error {
 
 // handleFeedCreation handles the logic for when a Feed is created.
 func (r *FeedReconcile) handleFeedCreation(feed *newsaggregatorv1.Feed) error {
-	if err := r.addSource(feed); err != nil {
+	err := r.addSource(feed)
+	if err != nil {
 		return r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
 	}
 	return r.updateStatus(feed, newsaggregatorv1.ConditionAdded, true, "Feed added successfully")
@@ -178,8 +184,7 @@ func (r *FeedReconcile) postSource(data []byte) error {
 		return fmt.Errorf("failed to join URL path: %w", err)
 	}
 
-	httpClient := newInsecureHTTPClient()
-	resp, err := httpClient.Post(u, "application/json", bytes.NewBuffer(data))
+	resp, err := r.HTTPClient.Post(u, "application/json", bytes.NewBuffer(data))
 	if err != nil {
 		return fmt.Errorf("failed to send POST request: %w", err)
 	}
@@ -194,20 +199,18 @@ func (r *FeedReconcile) postSource(data []byte) error {
 
 // putSource sends a PUT request to update a source.
 func (r *FeedReconcile) putSource(data []byte) error {
-
 	u, err := url.JoinPath(serviceURL, sourcesEndpoint)
 	if err != nil {
 		return fmt.Errorf("failed to join URL path: %w", err)
 	}
 
-	httpClient := newInsecureHTTPClient()
 	req, err := http.NewRequest(http.MethodPut, u, bytes.NewBuffer(data))
 	if err != nil {
 		return fmt.Errorf("failed to create PUT request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := httpClient.Do(req)
+	resp, err := r.HTTPClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send PUT request: %w", err)
 	}
@@ -233,14 +236,13 @@ func (r *FeedReconcile) deleteSource(feedName string) error {
 		return fmt.Errorf("failed to join URL path: %w", err)
 	}
 
-	httpClient := newInsecureHTTPClient()
 	req, err := http.NewRequest(http.MethodDelete, u, bytes.NewBuffer(data))
 	if err != nil {
 		return fmt.Errorf("failed to create DELETE request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := httpClient.Do(req)
+	resp, err := r.HTTPClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send DELETE request: %w", err)
 	}
@@ -258,15 +260,6 @@ func (r *FeedReconcile) deleteSource(feedName string) error {
 func (r *FeedReconcile) prepareDeleteData(feedName string) ([]byte, error) {
 	data := map[string]string{"name": feedName}
 	return json.Marshal(data)
-}
-
-// newInsecureHTTPClient creates an HTTP client with insecure transport.
-func newInsecureHTTPClient() *http.Client {
-	return &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
-	}
 }
 
 // closeResponseBody ensures that the response body is closed and logs any errors.
