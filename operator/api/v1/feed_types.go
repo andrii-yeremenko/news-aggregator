@@ -8,14 +8,12 @@ import (
 // FeedSpec defines the desired state of Feed
 type FeedSpec struct {
 	// Name is the name of the news feed.
-	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:MaxLength=100
 	// +kubebuilder:validation:Pattern=`^[a-zA-Z0-9-_]+$`
 	Name string `json:"name"`
 
 	// Link is the URL of the news feed.
-	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:Format=uri
 	Link string `json:"link"`
 }
