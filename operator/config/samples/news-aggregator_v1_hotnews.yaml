@@ -18,5 +18,5 @@ spec:
   feedGroups:
     - usa
   summaryConfig:
-    titlesCount: 10
+    titlesCount: 0
 status:

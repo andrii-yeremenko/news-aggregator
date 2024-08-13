@@ -136,7 +136,7 @@ func (r *HotNewsReconciler) collectUniqueSources(spec newsaggregatorv1.HotNewsSp
 }
 
 func formatDateForURL(t time.Time) string {
-	return t.Format("2006-01-02")
+	return t.Format("2006-02-01")
 }
 
 func (r *HotNewsReconciler) fetchNews(url string) ([]string, error) {
@@ -179,7 +179,7 @@ func (r *HotNewsReconciler) updateHotNewsStatus(ctx context.Context, hotNews *ne
 	}
 
 	hotNews.Status = newsaggregatorv1.HotNewsStatus{
-		ArticlesCount:  len(titles),
+		ArticlesCount:  titlesCount,
 		NewsLink:       url,
 		ArticlesTitles: titles,
 	}

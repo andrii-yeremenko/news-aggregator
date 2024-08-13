@@ -62,13 +62,11 @@ spec:
                   of observed hot news.
                 properties:
                   titlesCount:
+                    default: 10
                     type: integer
-                required:
-                - titlesCount
                 type: object
             required:
             - keywords
-            - summaryConfig
             type: object
           status:
             description: HotNewsStatus defines the observed state of HotNews
@@ -81,6 +79,10 @@ spec:
                 type: array
               newsLink:
                 type: string
+            required:
+              - articlesCount
+              - articlesTitles
+              - newsLink
             type: object
         type: object
     served: true

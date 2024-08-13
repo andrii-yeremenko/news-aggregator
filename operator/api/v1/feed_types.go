@@ -2,7 +2,6 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 )
 
 // FeedSpec defines the desired state of Feed
@@ -40,24 +39,6 @@ type Feed struct {
 	// Status defines the observed state of Feed
 	// +kubebuilder:validation:Optional
 	Status FeedStatus `json:"status,omitempty"`
-}
-
-func (r *Feed) DeepCopyObject() runtime.Object {
-	if r == nil {
-		return nil
-	}
-	out := new(Feed)
-	r.DeepCopyInto(out)
-	return out
-}
-
-func (in *FeedList) DeepCopyObject() runtime.Object {
-	if in == nil {
-		return nil
-	}
-	out := new(FeedList)
-	in.DeepCopyInto(out)
-	return out
 }
 
 // +kubebuilder:object:root=true
