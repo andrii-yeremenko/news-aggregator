@@ -89,7 +89,7 @@ func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (
 
 	baseURL := fmt.Sprintf("%s%s", r.NewsAggregatorURL, newsEndpoint)
 
-	sources, err := r.getFeedSources(context.Background())
+	sources, err := r.GetFeedSources(context.Background())
 	if err != nil {
 		return "", fmt.Errorf("failed to get feed sources: %w", err)
 	}
@@ -190,7 +190,7 @@ func (r *HotNewsReconciler) updateHotNewsStatus(ctx context.Context, hotNews *ne
 	return nil
 }
 
-func (r *HotNewsReconciler) getFeedSources(ctx context.Context) (map[string][]string, error) {
+func (r *HotNewsReconciler) GetFeedSources(ctx context.Context) (map[string][]string, error) {
 	var configMap v1.ConfigMap
 	if err := r.Get(ctx, client.ObjectKey{
 		Name:      r.ConfigMapName,
