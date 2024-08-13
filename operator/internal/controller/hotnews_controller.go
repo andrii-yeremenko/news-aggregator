@@ -7,10 +7,13 @@ import (
 	"io"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sort"
 	"strings"
 	"time"
 
+	newsaggregatorv1 "com.teamdev/news-aggregator/api/v1"
 	"k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -18,9 +21,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
-
-	newsaggregatorv1 "com.teamdev/news-aggregator/api/v1"
 )
 
 const newsEndpoint = "/news"
@@ -213,11 +213,11 @@ func (r *HotNewsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		For(&newsaggregatorv1.HotNews{}).
 		Watches(
 			&newsaggregatorv1.Feed{},
-			&handler.EnqueueRequestForObject{},
+			handler.EnqueueRequestsFromMapFunc(r.reconcileAllHotNews),
 		).
 		Watches(
 			&v1.ConfigMap{},
-			&handler.EnqueueRequestForObject{},
+			handler.EnqueueRequestsFromMapFunc(r.reconcileAllHotNews),
 		).
 		WithEventFilter(predicate.Funcs{
 			CreateFunc: func(e event.CreateEvent) bool {
@@ -228,4 +228,24 @@ func (r *HotNewsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 			},
 		}).
 		Complete(r)
+}
+
+func (r *HotNewsReconciler) reconcileAllHotNews(context.Context, client.Object) []reconcile.Request {
+	var hotNewsList newsaggregatorv1.HotNewsList
+	if err := r.List(context.TODO(), &hotNewsList); err != nil {
+		log.Log.Error(err, "Failed to list HotNews resources")
+		return nil
+	}
+
+	var requests []ctrl.Request
+	for _, hotNews := range hotNewsList.Items {
+		requests = append(requests, ctrl.Request{
+			NamespacedName: client.ObjectKey{
+				Name:      hotNews.Name,
+				Namespace: hotNews.Namespace,
+			},
+		})
+	}
+
+	return requests
 }
