@@ -73,7 +73,7 @@ func (r *HotNews) validateHotNews() error {
 	return nil
 }
 
-// validateFeedGroups checks if the feedGroups exist in the specified ConfigMap.
+// validateFeedGroups checks if the feed groups specified in the HotNews resource exist in the ConfigMap.
 func (r *HotNews) validateFeedGroups() error {
 	configMapName := "hotnews-feeds-group"
 	configMapNamespace := "news-aggregator-namespace"
@@ -84,6 +84,10 @@ func (r *HotNews) validateFeedGroups() error {
 		Name:      configMapName,
 	}, &cm); err != nil {
 		return fmt.Errorf("failed to retrieve ConfigMap %s/%s: %v", configMapNamespace, configMapName, err)
+	}
+
+	if r.Spec.FeedGroups == nil {
+		return nil
 	}
 
 	for _, group := range r.Spec.FeedGroups {

@@ -1,47 +1,171 @@
-/*
-Copyright 2024.
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
-
 package v1
 
 import (
-	. "github.com/onsi/ginkgo/v2"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+	v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-var _ = Describe("HotNews Webhook", func() {
+func TestMain(m *testing.M) {
+	k8sClient = fake.NewClientBuilder().WithObjects(&v1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "hotnews-feeds-group",
+			Namespace: "news-aggregator-namespace",
+		},
+		Data: map[string]string{
+			"group1": "feed1",
+			"group2": "feed2",
+		},
+	}).Build()
 
-	Context("When creating HotNews under Defaulting Webhook", func() {
-		It("Should fill in the default value if a required field is empty", func() {
+	m.Run()
+}
 
-			// TODO(user): Add your logic here
+func TestValidateHotNews(t *testing.T) {
+	tests := []struct {
+		name      string
+		hotNews   HotNews
+		expectErr bool
+		errMsg    string
+	}{
+		{
+			name: "valid HotNews",
+			hotNews: HotNews{
+				Spec: HotNewsSpec{
+					Keywords:  []string{"news", "update"},
+					DateStart: &metav1.Time{Time: time.Now()},
+					DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
+				},
+			},
+			expectErr: false,
+		},
+		{
+			name: "empty keywords",
+			hotNews: HotNews{
+				Spec: HotNewsSpec{
+					Keywords:  []string{},
+					DateStart: &metav1.Time{Time: time.Now()},
+					DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
+				},
+			},
+			expectErr: true,
+			errMsg:    "keywords must not be empty",
+		},
+		{
+			name: "dateEnd before dateStart",
+			hotNews: HotNews{
+				Spec: HotNewsSpec{
+					Keywords:  []string{"news"},
+					DateStart: &metav1.Time{Time: time.Now()},
+					DateEnd:   &metav1.Time{Time: time.Now().Add(-24 * time.Hour)},
+				},
+			},
+			expectErr: true,
+			errMsg:    "dateEnd must be after dateStart",
+		},
+		{
+			name: "dateStart without dateEnd",
+			hotNews: HotNews{
+				Spec: HotNewsSpec{
+					Keywords:  []string{"news"},
+					DateStart: &metav1.Time{Time: time.Now()},
+				},
+			},
+			expectErr: true,
+			errMsg:    "dateEnd must be provided if dateStart is specified",
+		},
+	}
 
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.hotNews.validateHotNews()
+			if tt.expectErr {
+				assert.Error(t, err)
+				assert.Equal(t, tt.errMsg, err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
 		})
-	})
+	}
+}
 
-	Context("When creating HotNews under Validating Webhook", func() {
-		It("Should deny if a required field is empty", func() {
+func TestValidateFeedGroups(t *testing.T) {
+	tests := []struct {
+		name      string
+		hotNews   HotNews
+		expectErr bool
+		errMsg    string
+	}{
+		{
+			name: "valid feed groups",
+			hotNews: HotNews{
+				Spec: HotNewsSpec{
+					FeedGroups: []string{"group1", "group2"},
+				},
+			},
+			expectErr: false,
+		},
+		{
+			name: "non-existent feed group",
+			hotNews: HotNews{
+				Spec: HotNewsSpec{
+					FeedGroups: []string{"group1", "group3"},
+				},
+			},
+			expectErr: true,
+			errMsg:    "feedGroup group3 does not exist in ConfigMap news-aggregator-namespace/hotnews-feeds-group",
+		},
+	}
 
-			// TODO(user): Add your logic here
-
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.hotNews.validateFeedGroups()
+			if tt.expectErr {
+				assert.Error(t, err)
+				assert.Equal(t, tt.errMsg, err.Error())
+			} else {
+				assert.NoError(t, err)
+			}
 		})
+	}
+}
 
-		It("Should admit if all required fields are provided", func() {
+func TestValidateCreate(t *testing.T) {
+	hotNews := HotNews{
+		Spec: HotNewsSpec{
+			Keywords:  []string{"news"},
+			DateStart: &metav1.Time{Time: time.Now()},
+			DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
+		},
+	}
 
-			// TODO(user): Add your logic here
+	warnings, err := hotNews.ValidateCreate()
+	assert.NoError(t, err)
+	assert.Nil(t, warnings)
+}
 
-		})
-	})
+func TestValidateUpdate(t *testing.T) {
+	hotNews := HotNews{
+		Spec: HotNewsSpec{
+			Keywords:  []string{"news"},
+			DateStart: &metav1.Time{Time: time.Now()},
+			DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
+		},
+	}
 
-})
+	warnings, err := hotNews.ValidateUpdate(nil)
+	assert.NoError(t, err)
+	assert.Nil(t, warnings)
+}
+
+func TestValidateDelete(t *testing.T) {
+	hotNews := HotNews{}
+
+	warnings, err := hotNews.ValidateDelete()
+	assert.NoError(t, err)
+	assert.Nil(t, warnings)
+}
