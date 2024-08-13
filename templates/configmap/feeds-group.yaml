@@ -4,6 +4,8 @@ metadata:
   name: hotnews-feeds-group
   namespace: news-aggregator-namespace
 data:
-  all: "bbc-world,abc-news,washington-times,time-politics,aljazeera"
-  usa: "abc-news,washington-times"
-  world: "bbc-world,aljazeera"
+  all: "bbc-world,abc,washington-times,time-politics,aljazeera"
+  usa: "abc,washington-times"
+  world: "bbc-world,aljazeera-world"
+  ukraine: "bbc-world,aljazeera-world,abc"
+  economics: "time-politics"
