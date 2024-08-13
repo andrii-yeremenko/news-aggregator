@@ -1,0 +1,22 @@
+apiVersion: news-aggregator.com.teamdev/v1
+kind: HotNews
+metadata:
+  name: usa-elections
+spec:
+  keywords:
+    - trump
+    - biden
+    - kamala
+    - harris
+    - elections
+    - poll
+  dateStart: "2024-06-01T00:00:00Z"
+  dateEnd: "2024-11-05T00:00:00Z"
+  feeds:
+    - abc-news
+    - washington-times
+  feedGroups:
+    - usa
+  summaryConfig:
+    titlesCount: 10
+status:

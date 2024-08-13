@@ -24,4 +24,5 @@ resources:
 # if you do not want those helpers be installed with your Project.
 - feed_editor_role.yaml
 - feed_viewer_role.yaml
-
+- hotnews_editor_role.yaml
+- hotnews_viewer_role.yaml

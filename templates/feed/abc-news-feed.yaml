@@ -3,6 +3,6 @@ kind: Feed
 metadata:
   name: abc-news
 spec:
-  name: abc-news
+  name: abc
   link: "https://feeds.abcnews.com/abcnews/internationalheadlines"
 status:

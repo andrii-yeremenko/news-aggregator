@@ -1,0 +1,8 @@
+apiVersion: news-aggregator.com.teamdev/v1
+kind: Feed
+metadata:
+  name: time-politics
+spec:
+  name: time-politics
+  link: "http://time.com/feed"
+status:

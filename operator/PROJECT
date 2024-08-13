@@ -20,4 +20,13 @@ resources:
   webhooks:
     validation: true
     webhookVersion: v1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: com.teamdev
+  group: news-aggregator
+  kind: HotNews
+  path: com.teamdev/news-aggregator/api/v1
+  version: v1
 version: "3"

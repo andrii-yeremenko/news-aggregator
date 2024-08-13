@@ -184,3 +184,15 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/feed
       - echo "Feeds deleted"
+
+  setup-feed-groups:
+    desc: "Setup the feed groups"
+    cmds:
+      - kubectl apply -f $K8S_TEMPLATES_PATH/configmap
+      - echo "Feed groups setup"
+
+  teardown-feed-groups:
+    desc: "Delete the feed groups"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/configmap
+      - echo "Feed groups deleted"
