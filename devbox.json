@@ -4,6 +4,10 @@
     "go@1.22.3",
     "docker@24.0.9",
     "go-task@3.38.0",
-    "mockgen@1.6.0"
+    "mockgen@1.6.0",
+    "kustomize@5.4.1",
+    "kubernetes-helm@3.15.0",
+    "kubebuilder@3.15.0",
+    "kubectl@1.30.1"
   ]
 }
