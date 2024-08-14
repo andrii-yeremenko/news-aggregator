@@ -9,7 +9,6 @@ spec:
     - kamala
     - harris
     - elections
-    - poll
   dateStart: "2024-06-01T00:00:00Z"
   dateEnd: "2024-11-05T00:00:00Z"
   feeds:

@@ -3,6 +3,6 @@ kind: Feed
 metadata:
   name: aljazeera
 spec:
-  name: aljazeera-world
+  name: aljazeera
   link: "https://www.aljazeera.com/xml/rss/all.xml"
 status:
