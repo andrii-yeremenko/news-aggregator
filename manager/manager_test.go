@@ -103,6 +103,14 @@ func TestAvailableSources(t *testing.T) {
 	assert.Equal(t, expectedSources, rm.AvailableSources())
 }
 
+func TestAvailableFeeds(t *testing.T) {
+	rm, err := manager.New(testStoragePath, testFeedDictionary)
+	assert.NoError(t, err)
+
+	expectedSources := "supported_source,test"
+	assert.Equal(t, expectedSources, rm.AvailableFeeds())
+}
+
 func TestGetAllResources(t *testing.T) {
 	rm, err := manager.New(testStoragePath, testFeedDictionary)
 	assert.NoError(t, err)
