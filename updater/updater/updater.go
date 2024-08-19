@@ -30,15 +30,14 @@ func New(feedsConfigPath string, storage StorageInterface) (Updater, error) {
 	}, err
 }
 
-// UpdateAllFeeds updates all feeds.
-func (u *Updater) UpdateAllFeeds() error {
+// UpdateAllFeeds updates all feeds. If some feed fails to update, it will continue with the next one.
+func (u *Updater) UpdateAllFeeds() {
 	for _, f := range u.feeds {
 		err := u.UpdateFeed(string(f.Source()))
 		if err != nil {
-			return fmt.Errorf("error updating feed %s: %v", f.Source(), err)
+			fmt.Printf("error updating feed %s: %v\n", f.Source(), err)
 		}
 	}
-	return nil
 }
 
 // UpdateFeed updates a specific feeds.

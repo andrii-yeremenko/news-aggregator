@@ -35,10 +35,7 @@ func main() {
 	}
 
 	if *resource == "" {
-		err := u.UpdateAllFeeds()
-		if err != nil {
-			log.Fatalf("Error of resources updation: %v", err)
-		}
+		u.UpdateAllFeeds()
 	} else {
 		err := u.UpdateFeed(*resource)
 		if err != nil {
