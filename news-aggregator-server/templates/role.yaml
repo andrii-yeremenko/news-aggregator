@@ -1,15 +1,15 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: { { .Values.rbac.role.name } }
-  namespace: { { .Values.namespace.name } }
+  name: {{ .Values.rbac.role.name }}
+  namespace: {{ .Values.namespace.name }}
 rules:
-  - apiGroups: [ "" ]
-    resources: [ "pods", "services", "endpoints" ]
-    verbs: [ "get", "patch", "list", "watch" ]
-  - apiGroups: [ "" ]
-    resources: [ "pods/portforward" ]
-    verbs: [ "create" ]
-  - apiGroups: [ "apps" ]
-    resources: [ "deployments" ]
-    verbs: [ "get", "list", "watch" ]
+  - apiGroups: [""]
+    resources: ["pods","services","endpoints"]
+    verbs: ["get","patch","list","watch"]
+  - apiGroups: [""]
+    resources: ["pods/portforward"]
+    verbs: ["create"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get","list","watch"]
