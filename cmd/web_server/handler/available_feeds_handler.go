@@ -5,16 +5,19 @@ import (
 	"net/http"
 )
 
+// AvailableFeedsHandler is a handler that returns available feeds.
 type AvailableFeedsHandler struct {
 	manager ResourceManager
 }
 
+// NewAvailableFeedsHandler creates a new AvailableFeedsHandler.
 func NewAvailableFeedsHandler(manager ResourceManager) *AvailableFeedsHandler {
 	return &AvailableFeedsHandler{
 		manager: manager,
 	}
 }
 
+// Handle handles the request.
 func (ch *AvailableFeedsHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -24,6 +27,7 @@ func (ch *AvailableFeedsHandler) Handle(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// GetSources returns available feeds.
 func (ch *AvailableFeedsHandler) GetSources(w http.ResponseWriter) {
 	feeds := ch.manager.AvailableFeeds()
 	w.Header().Set("Content-Type", "application/json")
