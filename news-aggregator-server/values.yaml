@@ -1,7 +1,7 @@
 # Configurations for the news-aggregator-server Helm chart
 
 # The number of pod replicas to run. Adjust this value for scaling the application.
-replicaCount: 2
+replicaCount: 1
 
 image:
   # The Docker image repository for the News Aggregator application.
