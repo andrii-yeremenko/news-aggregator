@@ -137,6 +137,7 @@ tasks:
     cmds:
       - kubectl apply -f $K8S_TEMPLATES_PATH/app
       - kubectl apply -f $K8S_TEMPLATES_PATH/rbac
+      - kubectl apply -f $K8S_TEMPLATES_PATH/cronjob
       - echo "The news-aggregator app has been deployed"
 
   undeploy:
@@ -144,6 +145,7 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/app -n news-aggregator-namespace
       - kubectl delete -f $K8S_TEMPLATES_PATH/rbac -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/cronjob -n news-aggregator-namespace
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
 
   port-forward:
@@ -158,17 +160,3 @@ tasks:
       - pkill -f 'kubectl port-forward'
       - rm port-forward.log
       - echo "Stopped port-forwarding."
-
-  start-cronjob:
-    desc: "Create a cronjob for the news-updater"
-    deps:
-      - create-namespace
-    cmds:
-      - kubectl apply -f $K8S_TEMPLATES_PATH/cronjob
-      - echo "Cronjob created"
-
-  stop-cronjob:
-    desc: "Delete the cronjob for the news-updater"
-    cmds:
-      - kubectl delete -f $K8S_TEMPLATES_PATH/cronjob
-      - echo "Cronjob deleted"
