@@ -40,13 +40,6 @@ tasks:
       - go install github.com/golang/mock/mockgen@v1.6.0
       - go generate ./...
 
-  test:
-    desc: "Run all tests"
-    deps:
-      - generate
-    cmd: |
-      go test ./...
-
   fmt:
     desc: "Run go fmt on all Go files"
     cmd: |
@@ -220,3 +213,23 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/configmap/feeds-group.yaml
       - echo "Feeds map unconfigured"
+
+  createChart:
+    desc: "Creates a Helm chart with all needed resources for the news-aggregator"
+    cmds:
+      - helm package ./news-aggregator-server
+      - mkdir -p ./charts
+      - mv *.tgz ./charts/
+    silent: true
+
+  installChart:
+    desc: "Installs chart on Kubernetes cluster"
+    cmds:
+      - helm install news-aggregator ./charts/news-aggregator-*.tgz --namespace default
+    silent: true
+
+  uninstallChart:
+    desc: "Uninstalls chart from Kubernetes cluster"
+    cmds:
+      - helm uninstall news-aggregator --namespace default
+    silent: true
