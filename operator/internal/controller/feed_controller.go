@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	newsaggregatorv1 "com.teamdev/news-aggregator/api/v1"
@@ -303,16 +302,6 @@ func removeFinalizer(finalizers []string, finalizer string) []string {
 func (r *FeedReconcile) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&newsaggregatorv1.Feed{}).
-		WithEventFilter(predicate.Funcs{
-			CreateFunc: func(e event.CreateEvent) bool {
-				return true
-			},
-			DeleteFunc: func(e event.DeleteEvent) bool {
-				return !e.DeleteStateUnknown
-			},
-			UpdateFunc: func(e event.UpdateEvent) bool {
-				return e.ObjectNew.GetGeneration() != e.ObjectOld.GetGeneration()
-			},
-		}).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
 }
