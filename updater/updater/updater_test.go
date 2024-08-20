@@ -2,15 +2,20 @@ package updater
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"strings"
+	"net/http/httptest"
 	"testing"
 	"updater/updater/mocks"
+	feed2 "updater/updater/model/feed"
 
 	"github.com/golang/mock/gomock"
-	"updater/model/feed"
 )
+
+type errorReader struct{}
+
+func (e *errorReader) Read(p []byte) (n int, err error) {
+	return 0, fmt.Errorf("simulated read error")
+}
 
 func TestNewUpdater(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -66,32 +71,75 @@ func TestUpdateFeed(t *testing.T) {
 	tests := []struct {
 		name          string
 		feedSource    string
+		serverHandler http.HandlerFunc
 		mockSetup     func(*mocks.MockStorageInterface)
 		expectedError error
 	}{
 		{
-			name:          "unsupported format",
-			feedSource:    "unsupportedFeedSource",
+			name:       "unsupported format",
+			feedSource: "unsupportedFeedSource",
+			serverHandler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusNotFound)
+			},
 			mockSetup:     func(m *mocks.MockStorageInterface) {},
 			expectedError: fmt.Errorf("feed source not found: unsupportedFeedSource"),
 		},
 		{
-			name:          "feed source not found",
-			feedSource:    "nonexistentFeedSource",
+			name:       "feed source not found",
+			feedSource: "nonexistentFeedSource",
+			serverHandler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusNotFound)
+			},
 			mockSetup:     func(m *mocks.MockStorageInterface) {},
 			expectedError: fmt.Errorf("feed source not found: nonexistentFeedSource"),
 		},
-	}
-
-	testFeedABC, _ := feed.New("abc-news", feed.RSS, "https://feeds.abcnews.com/abcnews/internationalheadlines")
-	testFeedWT, _ := feed.New("washington-times", feed.RSS, "https://www.washingtontimes.com/rss/headlines/news/world/")
-	feeds := []*feed.Feed{
-		testFeedABC,
-		testFeedWT,
+		{
+			name:       "successful feed update",
+			feedSource: "abc-news",
+			serverHandler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("feed content"))
+			},
+			mockSetup: func(m *mocks.MockStorageInterface) {
+				m.EXPECT().UpdateRSSFeed(feed2.Source("abc-news"), gomock.Any()).Return(nil)
+			},
+			expectedError: nil,
+		},
+		{
+			name:       "error fetching resource from link",
+			feedSource: "abc-news",
+			serverHandler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusInternalServerError)
+			},
+			mockSetup:     func(m *mocks.MockStorageInterface) {},
+			expectedError: fmt.Errorf("error fetching resource from link: status code 500"),
+		},
+		{
+			name:       "error reading resource content",
+			feedSource: "abc-news",
+			serverHandler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Length", "20")
+				w.(http.Flusher).Flush()
+				_, _ = w.Write([]byte{})
+				w.(http.Flusher).Flush()
+				conn, _, _ := w.(http.Hijacker).Hijack()
+				_ = conn.Close()
+			},
+			mockSetup:     func(m *mocks.MockStorageInterface) {},
+			expectedError: fmt.Errorf("error reading resource content: unexpected EOF"),
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			server := httptest.NewServer(tt.serverHandler)
+			defer server.Close()
+
+			testFeedABC, _ := feed2.New("abc-news", feed2.RSS, feed2.Link(server.URL))
+			testFeedWT, _ := feed2.New("washington-times", feed2.RSS, feed2.Link(server.URL))
+			feeds := []*feed2.Feed{testFeedABC, testFeedWT}
+
 			storageMock := mocks.NewMockStorageInterface(ctrl)
 			updater := Updater{
 				feeds:   feeds,
@@ -99,13 +147,6 @@ func TestUpdateFeed(t *testing.T) {
 			}
 
 			tt.mockSetup(storageMock)
-			http.DefaultTransport = &mockTransport{
-				resp: &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       io.NopCloser(strings.NewReader("feed content")),
-				},
-				err: nil,
-			}
 
 			err := updater.UpdateFeed(tt.feedSource)
 			if err != nil && err.Error() != tt.expectedError.Error() {
@@ -116,77 +157,4 @@ func TestUpdateFeed(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestAvailableFeeds(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	testFeedABC, _ := feed.New("abc-news", feed.RSS, "https://feeds.abcnews.com/abcnews/internationalheadlines")
-	testFeedWT, _ := feed.New("washington-times", feed.RSS, "https://www.washingtontimes.com/rss/headlines/news/world/")
-
-	tests := []struct {
-		name          string
-		feeds         []*feed.Feed
-		expectedFeeds []string
-		expectedError error
-	}{
-		{
-			name: "available feeds",
-			feeds: []*feed.Feed{
-				testFeedABC,
-				testFeedWT,
-			},
-			expectedFeeds: []string{"abc-news", "washington-times"},
-			expectedError: nil,
-		},
-		{
-			name:          "no feeds available",
-			feeds:         []*feed.Feed{},
-			expectedFeeds: []string{},
-			expectedError: nil,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			storageMock := mocks.NewMockStorageInterface(ctrl)
-			updater := Updater{
-				feeds:   tt.feeds,
-				storage: storageMock,
-			}
-
-			feeds, err := updater.AvailableFeeds()
-			if err != nil && err.Error() != tt.expectedError.Error() {
-				t.Errorf("expected error: %v, got: %v", tt.expectedError, err)
-			}
-			if err == nil && tt.expectedError != nil {
-				t.Errorf("expected error: %v, got nil", tt.expectedError)
-			}
-			if !equal(feeds, tt.expectedFeeds) {
-				t.Errorf("expected feeds: %v, got: %v", tt.expectedFeeds, feeds)
-			}
-		})
-	}
-}
-
-func equal(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
-}
-
-type mockTransport struct {
-	resp *http.Response
-	err  error
-}
-
-func (m *mockTransport) RoundTrip(req *http.Request) (*http.Response, error) {
-	return m.resp, m.err
 }

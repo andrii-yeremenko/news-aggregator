@@ -10,10 +10,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	"strings"
 )
 
 // log is for logging in this package.
-var feedlog = log.Log.WithName("feed-resource")
+var feedLog = log.Log.WithName("feed-resource")
 
 // Client for querying Kubernetes API
 var k8sClient client.Client
@@ -32,7 +33,7 @@ var _ webhook.Validator = &Feed{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Feed) ValidateCreate() (admission.Warnings, error) {
-	feedlog.Info("validate create", "name", r.Name)
+	feedLog.Info("validate create", "name", r.Name)
 
 	if err := validateFeed(r); err != nil {
 		return nil, err
@@ -43,7 +44,7 @@ func (r *Feed) ValidateCreate() (admission.Warnings, error) {
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *Feed) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
-	feedlog.Info("validate update", "name", r.Name)
+	feedLog.Info("validate update", "name", r.Name)
 
 	if err := validateFeed(r); err != nil {
 		return nil, err
@@ -54,35 +55,41 @@ func (r *Feed) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (r *Feed) ValidateDelete() (admission.Warnings, error) {
-	feedlog.Info("validate delete", "name", r.Name)
+	feedLog.Info("validate delete", "name", r.Name)
 
 	return nil, nil
 }
 
 // validateFeed performs the validation checks on the Feed object.
 func validateFeed(feed *Feed) error {
+	var validationErrors []string
+
 	if feed.Spec.Name == "" {
-		return fmt.Errorf("name field cannot be empty")
+		validationErrors = append(validationErrors, "name field cannot be empty")
 	}
 
 	if len(feed.Spec.Name) > 20 {
-		return fmt.Errorf("name field cannot be more than 20 characters")
+		validationErrors = append(validationErrors, "name field cannot be more than 20 characters")
 	}
 
 	if !isValidName(feed.Spec.Name) {
-		return fmt.Errorf("name field contains invalid characters")
+		validationErrors = append(validationErrors, "name field contains invalid characters")
 	}
 
 	if feed.Spec.Link == "" {
-		return fmt.Errorf("link field cannot be empty")
+		validationErrors = append(validationErrors, "link field cannot be empty")
 	}
 
 	if err := validateURL(feed.Spec.Link); err != nil {
-		return err
+		validationErrors = append(validationErrors, fmt.Sprintf("link field error: %v", err))
 	}
 
 	if err := checkNameUniqueness(feed); err != nil {
-		return err
+		validationErrors = append(validationErrors, fmt.Sprintf("name uniqueness error: %v", err))
+	}
+
+	if len(validationErrors) > 0 {
+		return fmt.Errorf("validation failed: %v", strings.Join(validationErrors, "; "))
 	}
 
 	return nil

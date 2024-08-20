@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	feedlog = zap.New(zap.UseDevMode(true))
+	feedLog = zap.New(zap.UseDevMode(true))
 }
 
 func TestValidateFeedName(t *testing.T) {

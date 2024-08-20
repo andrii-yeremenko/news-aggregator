@@ -1,7 +1,7 @@
 package updater
 
 import (
-	"updater/model/feed"
+	"updater/updater/model/feed"
 )
 
 // StorageInterface is an interface for storing feed data.
