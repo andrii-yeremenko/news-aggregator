@@ -39,15 +39,25 @@ type FeedReconcile struct {
 
 // Reconcile performs the reconciliation logic for Feed objects.
 func (r *FeedReconcile) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	l := ctrl.LoggerFrom(ctx)
+
 	var feed newsaggregatorv1.Feed
 
 	if err := r.Client.Get(ctx, req.NamespacedName, &feed); err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		if client.IgnoreNotFound(err) == nil {
+			l.Info("Feed resource not found. It might have been deleted.", "name", req.NamespacedName)
+			return ctrl.Result{}, nil
+		}
+		l.Error(err, "Failed to get Feed resource", "name", req.NamespacedName)
+		return ctrl.Result{}, err
 	}
 
 	if err := r.processFeed(&feed, ctx); err != nil {
+		l.Error(err, "Failed to process Feed", "name", req.NamespacedName)
 		return ctrl.Result{}, err
 	}
+
+	l.Info("Successfully reconciled Feed", "name", req.NamespacedName)
 
 	return ctrl.Result{}, nil
 }
