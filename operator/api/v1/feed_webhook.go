@@ -10,6 +10,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	"strings"
 )
 
 // log is for logging in this package.
@@ -61,28 +62,34 @@ func (r *Feed) ValidateDelete() (admission.Warnings, error) {
 
 // validateFeed performs the validation checks on the Feed object.
 func validateFeed(feed *Feed) error {
+	var validationErrors []string
+
 	if feed.Spec.Name == "" {
-		return fmt.Errorf("name field cannot be empty")
+		validationErrors = append(validationErrors, "name field cannot be empty")
 	}
 
 	if len(feed.Spec.Name) > 20 {
-		return fmt.Errorf("name field cannot be more than 20 characters")
+		validationErrors = append(validationErrors, "name field cannot be more than 20 characters")
 	}
 
 	if !isValidName(feed.Spec.Name) {
-		return fmt.Errorf("name field contains invalid characters")
+		validationErrors = append(validationErrors, "name field contains invalid characters")
 	}
 
 	if feed.Spec.Link == "" {
-		return fmt.Errorf("link field cannot be empty")
+		validationErrors = append(validationErrors, "link field cannot be empty")
 	}
 
 	if err := validateURL(feed.Spec.Link); err != nil {
-		return err
+		validationErrors = append(validationErrors, fmt.Sprintf("link field error: %v", err))
 	}
 
 	if err := checkNameUniqueness(feed); err != nil {
-		return err
+		validationErrors = append(validationErrors, fmt.Sprintf("name uniqueness error: %v", err))
+	}
+
+	if len(validationErrors) > 0 {
+		return fmt.Errorf("validation failed: %v", strings.Join(validationErrors, "; "))
 	}
 
 	return nil
