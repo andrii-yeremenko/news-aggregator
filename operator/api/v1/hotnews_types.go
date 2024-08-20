@@ -6,24 +6,18 @@ import (
 
 // HotNewsSpec defines the desired state of HotNews
 type HotNewsSpec struct {
-	// +kubebuilder:validation:Required
 	Keywords []string `json:"keywords"`
 
-	// +kubebuilder:validation:Required
 	DateStart *metav1.Time `json:"dateStart,omitempty"`
 
-	// +kubebuilder:validation:Required
 	DateEnd *metav1.Time `json:"dateEnd,omitempty"`
 
-	// +kubebuilder:validation:Required
 	Feeds []string `json:"feeds,omitempty"`
 
 	// +optional
-	// +kubebuilder:validation:Required
 	FeedGroups []string `json:"feedGroups,omitempty"`
 
 	// +optional
-	// +kubebuilder:validation:Required
 	SummaryConfig SummaryConfig `json:"summaryConfig"`
 }
 
@@ -37,11 +31,11 @@ type SummaryConfig struct {
 
 // HotNewsStatus defines the observed state of HotNews
 type HotNewsStatus struct {
-	// +kubebuilder:validation:Required
+	// This is the link to the news source.
 	NewsLink string `json:"newsLink"`
-	// +kubebuilder:validation:Required
+	// This is the titles of fetched news articles.
 	ArticlesTitles []string `json:"articlesTitles"`
-	// +kubebuilder:validation:Required
+	// This is the count of fetched news articles.
 	ArticlesCount int `json:"articlesCount"`
 }
 
@@ -53,14 +47,12 @@ type HotNews struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	// +kubebuilder:validation:Required
+	// Spec defines the desired state of HotNews
 	Spec HotNewsSpec `json:"spec,omitempty"`
 
-	// +kubebuilder:validation:Optional
+	// Status defines the observed state of HotNews
 	Status HotNewsStatus `json:"status,omitempty"`
 }
-
-// +kubebuilder:object:root=true
 
 // HotNewsList contains a list of HotNews
 type HotNewsList struct {
