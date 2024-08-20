@@ -27,7 +27,12 @@ func main() {
 		*resourcesPath = defaultResourcesPath
 	}
 
-	s := storage.New(*resourcesPath)
+	s, err := storage.New(*resourcesPath)
+
+	if err != nil {
+		log.Fatalf("Error of storage creation: %v", err)
+	}
+
 	u, err := updater.New(*feedsConfig, s)
 
 	if err != nil {

@@ -14,22 +14,26 @@ type Storage struct {
 }
 
 // New creates a new Storage.
-func New(basePath string) *Storage {
+func New(basePath string) (*Storage, error) {
 
 	if basePath == "" {
 		basePath = "/resources"
 	}
 
-	if _, err := os.Stat(basePath); os.IsNotExist(err) {
+	_, err := os.Stat(basePath)
+
+	if os.IsNotExist(err) {
 		err := os.MkdirAll(basePath, os.ModePerm)
 		if err != nil {
-			fmt.Printf("error creating directory: %v\n", err)
+			return &Storage{
+				basePath: basePath,
+			}, fmt.Errorf("error creating directory: %v", err)
 		}
 	}
 
 	return &Storage{
 		basePath: basePath,
-	}
+	}, nil
 }
 
 // UpdateRSSFeed creates a new XML file with the content of the source.
