@@ -14,7 +14,7 @@ import (
 )
 
 // log is for logging in this package.
-var feedlog = log.Log.WithName("feed-resource")
+var feedLog = log.Log.WithName("feed-resource")
 
 // Client for querying Kubernetes API
 var k8sClient client.Client
@@ -33,7 +33,7 @@ var _ webhook.Validator = &Feed{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Feed) ValidateCreate() (admission.Warnings, error) {
-	feedlog.Info("validate create", "name", r.Name)
+	feedLog.Info("validate create", "name", r.Name)
 
 	if err := validateFeed(r); err != nil {
 		return nil, err
@@ -44,7 +44,7 @@ func (r *Feed) ValidateCreate() (admission.Warnings, error) {
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *Feed) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
-	feedlog.Info("validate update", "name", r.Name)
+	feedLog.Info("validate update", "name", r.Name)
 
 	if err := validateFeed(r); err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (r *Feed) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (r *Feed) ValidateDelete() (admission.Warnings, error) {
-	feedlog.Info("validate delete", "name", r.Name)
+	feedLog.Info("validate delete", "name", r.Name)
 
 	return nil, nil
 }
