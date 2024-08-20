@@ -45,18 +45,18 @@ func (r *FeedReconcile) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	if err := r.processFeed(&feed); err != nil {
+	if err := r.processFeed(&feed, ctx); err != nil {
 		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
 }
 
-// processFeed handles the main reconciliation logic based on the Feed's state.
-func (r *FeedReconcile) processFeed(feed *newsaggregatorv1.Feed) error {
+// processFeed handles the logic for the Feed object based on its state.
+func (r *FeedReconcile) processFeed(feed *newsaggregatorv1.Feed, ctx context.Context) error {
 
 	if feed.ObjectMeta.DeletionTimestamp.IsZero() {
-		err := r.ensureFinalizer(feed)
+		err := r.ensureFinalizer(feed, ctx)
 		if err != nil {
 			return err
 		}
@@ -83,10 +83,10 @@ func (r *FeedReconcile) processFeed(feed *newsaggregatorv1.Feed) error {
 }
 
 // ensureFinalizer ensures that the finalizer is added to the Feed if not already present.
-func (r *FeedReconcile) ensureFinalizer(feed *newsaggregatorv1.Feed) error {
+func (r *FeedReconcile) ensureFinalizer(feed *newsaggregatorv1.Feed, ctx context.Context) error {
 	if !containsFinalizer(feed.Finalizers, r.Finalizer) {
 		feed.Finalizers = append(feed.Finalizers, r.Finalizer)
-		if err := r.Client.Update(context.Background(), feed); err != nil {
+		if err := r.Client.Update(ctx, feed); err != nil {
 			return err
 		}
 		log.Log.Info("Added finalizer", "name", feed.Spec.Name)
