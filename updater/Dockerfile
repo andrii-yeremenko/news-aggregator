@@ -10,7 +10,6 @@ RUN apk --no-cache add ca-certificates
 COPY main.go ./
 COPY updater/ ./updater/
 COPY storage/ ./storage/
-COPY model/ ./model/
 
 RUN go build -o news-updater main.go
 
