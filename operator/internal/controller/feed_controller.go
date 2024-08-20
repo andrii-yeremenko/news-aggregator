@@ -171,7 +171,7 @@ func (r *FeedReconcile) prepareSourceData(feed *newsaggregatorv1.Feed) ([]byte, 
 	data := map[string]string{
 		"name":   feed.Spec.Name,
 		"url":    feed.Spec.Link,
-		"format": "RSS",
+		"format": "RSS", // By default, the format is set to RSS
 	}
 
 	return json.Marshal(data)
