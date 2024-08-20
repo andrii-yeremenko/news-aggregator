@@ -11,6 +11,12 @@ import (
 	"github.com/golang/mock/gomock"
 )
 
+type errorReader struct{}
+
+func (e *errorReader) Read(p []byte) (n int, err error) {
+	return 0, fmt.Errorf("simulated read error")
+}
+
 func TestNewUpdater(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -98,6 +104,30 @@ func TestUpdateFeed(t *testing.T) {
 				m.EXPECT().UpdateRSSFeed(feed2.Source("abc-news"), gomock.Any()).Return(nil)
 			},
 			expectedError: nil,
+		},
+		{
+			name:       "error fetching resource from link",
+			feedSource: "abc-news",
+			serverHandler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusInternalServerError)
+			},
+			mockSetup:     func(m *mocks.MockStorageInterface) {},
+			expectedError: fmt.Errorf("error fetching resource from link: status code 500"),
+		},
+		{
+			name:       "error reading resource content",
+			feedSource: "abc-news",
+			serverHandler: func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				w.Header().Set("Content-Length", "20")
+				w.(http.Flusher).Flush()
+				_, _ = w.Write([]byte{})
+				w.(http.Flusher).Flush()
+				conn, _, _ := w.(http.Hijacker).Hijack()
+				_ = conn.Close()
+			},
+			mockSetup:     func(m *mocks.MockStorageInterface) {},
+			expectedError: fmt.Errorf("error reading resource content: unexpected EOF"),
 		},
 	}
 

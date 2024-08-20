@@ -6,13 +6,13 @@ import (
 	"io"
 	"net/http"
 	"os"
-	feed2 "updater/updater/model/feed"
+	"updater/updater/model/feed"
 )
 
 type Updater struct {
 	feedsConfigPath string
 	storage         StorageInterface
-	feeds           []*feed2.Feed
+	feeds           []*feed.Feed
 }
 
 func New(feedsConfigPath string, storage StorageInterface) (Updater, error) {
@@ -43,12 +43,12 @@ func (u *Updater) UpdateAllFeeds() {
 // UpdateFeed updates a specific feeds.
 func (u *Updater) UpdateFeed(feedSource string) error {
 
-	source := feed2.Source(feedSource)
+	source := feed.Source(feedSource)
 	if source == "" {
 		return fmt.Errorf("feed source not provided")
 	}
 
-	var targetFeed *feed2.Feed
+	var targetFeed *feed.Feed
 	for _, f := range u.feeds {
 		if f.Source() == source {
 			targetFeed = f
@@ -81,9 +81,9 @@ func (u *Updater) UpdateFeed(feedSource string) error {
 	}
 
 	switch targetFeed.Format() {
-	case feed2.RSS:
+	case feed.RSS:
 		return u.storage.UpdateRSSFeed(targetFeed.Source(), body)
-	case feed2.HTML:
+	case feed.HTML:
 		return u.storage.UpdateHTMLFeed(targetFeed.Source(), body)
 	default:
 		return fmt.Errorf("unsupported format")
@@ -99,7 +99,7 @@ func (u *Updater) AvailableFeeds() ([]string, error) {
 	return sources, nil
 }
 
-func loadFeedsInfo(path string) ([]*feed2.Feed, error) {
+func loadFeedsInfo(path string) ([]*feed.Feed, error) {
 
 	file, err := os.Open(path)
 	if err != nil {
@@ -123,14 +123,14 @@ func loadFeedsInfo(path string) ([]*feed2.Feed, error) {
 		return nil, fmt.Errorf("can't parse JSON: %v", err)
 	}
 
-	var feeds []*feed2.Feed
+	var feeds []*feed.Feed
 	for _, feedJSON := range feedsJSON {
-		format, err := feed2.ParseFormat(feedJSON.Format)
+		format, err := feed.ParseFormat(feedJSON.Format)
 		if err != nil {
 			return nil, fmt.Errorf("unknown format: %v", err)
 		}
 
-		newFeed, err := feed2.New(feed2.Source(feedJSON.Source), format, feed2.Link(feedJSON.Link))
+		newFeed, err := feed.New(feed.Source(feedJSON.Source), format, feed.Link(feedJSON.Link))
 		if err != nil {
 			return nil, fmt.Errorf("can't create feed: %v", err)
 		}
