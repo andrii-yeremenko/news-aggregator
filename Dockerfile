@@ -11,7 +11,6 @@ COPY aggregator aggregator
 COPY cmd/web_server cmd/web_server
 COPY storage storage
 COPY manager manager
-COPY certificates certificates
 COPY print print
 
 RUN go build -o /app/server/bin ./cmd/web_server/main
@@ -23,7 +22,6 @@ ENV PORT=8443
 ENV TIMEOUT=12h
 
 COPY --from=base /app/server/bin /app/bin
-COPY --from=base /app/certificates certificates
 
 VOLUME ["/resources", "/config"]
 
