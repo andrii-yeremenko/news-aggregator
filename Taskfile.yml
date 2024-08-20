@@ -164,6 +164,20 @@ tasks:
   setup-feeds:
     desc: "Setup the news feeds"
     cmds:
+      - |
+        if ! kubectl get crd feeds.news-aggregator.com.teamdev >/dev/null 2>&1; then
+          echo "Error: Feed CRD is not installed. Cannot proceed with feed setup."
+          exit 1
+        else
+          echo "Feed CRD is installed."
+        fi
+      - |
+        if ! kubectl get deployment operator-controller-manager -n operator-system >/dev/null 2>&1; then
+          echo "Error: Operator Feed operator is not installed. Cannot proceed with feed setup."
+          exit 1
+        else
+          echo "Operator is installed."
+        fi
       - kubectl apply -f $K8S_TEMPLATES_PATH/feed
       - echo "Feeds setup"
 
