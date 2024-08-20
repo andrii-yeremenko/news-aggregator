@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-	"updater/model/feed"
+	"updater/updater/model/feed"
 )
 
 // Storage is a component enabling the retrieval and manipulation of known files from a file system.

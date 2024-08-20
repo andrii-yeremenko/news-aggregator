@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
-	"updater/model/feed"
+	"updater/updater/model/feed"
 )
 
 func TestNew(t *testing.T) {

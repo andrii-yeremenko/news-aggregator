@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 	"updater/updater/mocks"
+	feed2 "updater/updater/model/feed"
 
 	"github.com/golang/mock/gomock"
-	"updater/model/feed"
 )
 
 func TestNewUpdater(t *testing.T) {
@@ -83,9 +83,9 @@ func TestUpdateFeed(t *testing.T) {
 		},
 	}
 
-	testFeedABC, _ := feed.New("abc-news", feed.RSS, "https://feeds.abcnews.com/abcnews/internationalheadlines")
-	testFeedWT, _ := feed.New("washington-times", feed.RSS, "https://www.washingtontimes.com/rss/headlines/news/world/")
-	feeds := []*feed.Feed{
+	testFeedABC, _ := feed2.New("abc-news", feed2.RSS, "https://feeds.abcnews.com/abcnews/internationalheadlines")
+	testFeedWT, _ := feed2.New("washington-times", feed2.RSS, "https://www.washingtontimes.com/rss/headlines/news/world/")
+	feeds := []*feed2.Feed{
 		testFeedABC,
 		testFeedWT,
 	}
@@ -122,18 +122,18 @@ func TestAvailableFeeds(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	testFeedABC, _ := feed.New("abc-news", feed.RSS, "https://feeds.abcnews.com/abcnews/internationalheadlines")
-	testFeedWT, _ := feed.New("washington-times", feed.RSS, "https://www.washingtontimes.com/rss/headlines/news/world/")
+	testFeedABC, _ := feed2.New("abc-news", feed2.RSS, "https://feeds.abcnews.com/abcnews/internationalheadlines")
+	testFeedWT, _ := feed2.New("washington-times", feed2.RSS, "https://www.washingtontimes.com/rss/headlines/news/world/")
 
 	tests := []struct {
 		name          string
-		feeds         []*feed.Feed
+		feeds         []*feed2.Feed
 		expectedFeeds []string
 		expectedError error
 	}{
 		{
 			name: "available feeds",
-			feeds: []*feed.Feed{
+			feeds: []*feed2.Feed{
 				testFeedABC,
 				testFeedWT,
 			},
@@ -142,7 +142,7 @@ func TestAvailableFeeds(t *testing.T) {
 		},
 		{
 			name:          "no feeds available",
-			feeds:         []*feed.Feed{},
+			feeds:         []*feed2.Feed{},
 			expectedFeeds: []string{},
 			expectedError: nil,
 		},
