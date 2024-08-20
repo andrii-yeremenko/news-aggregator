@@ -14,7 +14,7 @@ import (
 )
 
 // log is for logging in this package.
-var hotnewslog = logf.Log.WithName("hotnews-resource")
+var hotnewsLog = logf.Log.WithName("hotnews-resource")
 
 // SetupWebhookWithManager sets up the webhook with the manager.
 func (r *HotNews) SetupWebhookWithManager(mgr ctrl.Manager) error {
@@ -28,7 +28,7 @@ var _ webhook.Validator = &HotNews{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type.
 func (r *HotNews) ValidateCreate() (admission.Warnings, error) {
-	hotnewslog.Info("validate create", "name", r.Name)
+	hotnewsLog.Info("validate create", "name", r.Name)
 
 	if err := r.validateHotNews(); err != nil {
 		return nil, err
@@ -38,7 +38,7 @@ func (r *HotNews) ValidateCreate() (admission.Warnings, error) {
 
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type.
 func (r *HotNews) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
-	hotnewslog.Info("validate update", "name", r.Name)
+	hotnewsLog.Info("validate update", "name", r.Name)
 
 	if err := r.validateHotNews(); err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func (r *HotNews) ValidateUpdate(old runtime.Object) (admission.Warnings, error)
 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type.
 func (r *HotNews) ValidateDelete() (admission.Warnings, error) {
-	hotnewslog.Info("validate delete", "name", r.Name)
+	hotnewsLog.Info("validate delete", "name", r.Name)
 	return nil, nil
 }
 
