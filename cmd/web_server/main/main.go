@@ -26,10 +26,10 @@ const (
 	DefaultStoragePath = "resources"
 
 	// DefaultCertFilePath is the default path to the certificate file.
-	DefaultCertFilePath = "certificates/cert.pem"
+	DefaultCertFilePath = "/etc/tls/tls.crt"
 
 	// DefaultKeyFilePath is the default path to the key file.
-	DefaultKeyFilePath = "certificates/key.pem"
+	DefaultKeyFilePath = "/etc/tls/tls.key"
 )
 
 func main() {

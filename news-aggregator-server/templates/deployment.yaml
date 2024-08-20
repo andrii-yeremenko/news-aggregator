@@ -31,6 +31,9 @@ spec:
               name: {{ .Values.resourcesStorage.name }}
             - mountPath: "/config"
               name: {{ .Values.configStorage.name }}
+            - mountPath: "/etc/tls"
+              name: tls-certs
+              readOnly: true
       volumes:
         - name: {{ .Values.resourcesStorage.name }}
           persistentVolumeClaim:

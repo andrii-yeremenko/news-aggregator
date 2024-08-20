@@ -5,6 +5,11 @@ type: application
 version: 0.1.0
 appVersion: "2.0"
 
+dependencies:
+  - name: cert-manager
+    version: 1.15.3
+    repository: https://charts.jetstack.io
+
 maintainers:
   - name: Andrii Yeremenko
     email: andrii.yeremenko@teamdev.com
