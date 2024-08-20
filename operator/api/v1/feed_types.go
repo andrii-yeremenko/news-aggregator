@@ -41,8 +41,6 @@ type Feed struct {
 	Status FeedStatus `json:"status,omitempty"`
 }
 
-// +kubebuilder:object:root=true
-
 // FeedList contains a list of Feed
 type FeedList struct {
 	metav1.TypeMeta `json:",inline"`
