@@ -231,12 +231,15 @@ tasks:
 
   installChart:
     desc: "Installs chart on Kubernetes cluster"
+    deps:
+      - createChart
     cmds:
-      - helm install news-aggregator ./charts/news-aggregator-*.tgz --namespace default
+      - helm install news-aggregator ./charts/news-aggregator-*.tgz --namespace news-aggregator-namespace --create-namespace
     silent: true
 
   uninstallChart:
-    desc: "Uninstalls chart from Kubernetes cluster"
+    desc: "Uninstalls chart from Kubernetes cluster and deletes namespace"
     cmds:
-      - helm uninstall news-aggregator --namespace default
+      - helm uninstall news-aggregator --namespace news-aggregator-namespace
+      - kubectl delete namespace news-aggregator-namespace --ignore-not-found --wait=false
     silent: true
