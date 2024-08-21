@@ -41,3 +41,6 @@ spec:
         - name: {{ .Values.configStorage.name }}
           persistentVolumeClaim:
             claimName: {{ .Values.configStorage.persistentVolumeClaim }}
+        - name: tls-certs
+          secret:
+            secretName: news-aggregator-tls-secret
