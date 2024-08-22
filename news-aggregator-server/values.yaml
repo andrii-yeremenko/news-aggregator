@@ -1,7 +1,7 @@
 # Configurations for the news-aggregator-server Helm chart
 
 # The number of pod replicas to run. Adjust this value for scaling the application.
-replicaCount: 1
+replicaCount: 2
 
 image:
   # The Docker image repository for the News Aggregator application.
@@ -24,11 +24,11 @@ resources:
   # Requests define the minimum amount of CPU and memory the container needs.
   requests:
     memory: "256Mi"
-    cpu: "250m"
+    cpu: "100m"
   # Limits define the maximum amount of CPU and memory the container can use.
   limits:
     memory: "512Mi"
-    cpu: "500m"
+    cpu: "1500m"
 
 # The name of the ServiceAccount to use for the News Aggregator application.
 serviceAccountName: news-aggregator-sa
@@ -107,7 +107,22 @@ rbac:
     # The name of the RoleBinding that associates the Role with a ServiceAccount.
     name: news-aggregator-rolebinding
 
+vpa:
+  # Enable Vertical Pod Autoscaler for the deployment.
+  enabled: true
+  # Update mode for the Vertical Pod Autoscaler. Can be "Auto" or "Initial".
+  updateMode: "Auto"
+  # Resource requirements for the Vertical Pod Autoscaler.
+  minAllowed:
+    cpu: 200m
+    memory: 256Mi
+  # The maximum CPU and memory limits for the Vertical Pod Autoscaler.
+  maxAllowed:
+    cpu: 2
+    memory: 2Gi
+
 hpa:
+  # Enable Horizontal Pod Autoscaler for the deployment.
   enabled: true
   # Minimum and maximum number of replicas for the Horizontal Pod Autoscaler.
   minReplicas: 1

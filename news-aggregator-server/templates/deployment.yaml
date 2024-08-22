@@ -15,7 +15,7 @@ spec:
     spec:
       serviceAccountName: {{ .Values.serviceAccountName }}
       containers:
-        - name: {{ .Chart.Name }}
+        - name: {{ .Release.Name }}-deployment
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           ports:
               - containerPort: {{ .Values.service.port }}
