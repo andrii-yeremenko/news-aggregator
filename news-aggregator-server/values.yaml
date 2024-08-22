@@ -1,7 +1,7 @@
 # Configurations for the news-aggregator-server Helm chart
 
 # The number of pod replicas to run. Adjust this value for scaling the application.
-replicaCount: 2
+replicaCount: 1
 
 image:
   # The Docker image repository for the News Aggregator application.
@@ -28,7 +28,7 @@ resources:
   # Limits define the maximum amount of CPU and memory the container can use.
   limits:
     memory: "512Mi"
-    cpu: "1500m"
+    cpu: "150m"
 
 # The name of the ServiceAccount to use for the News Aggregator application.
 serviceAccountName: news-aggregator-sa
