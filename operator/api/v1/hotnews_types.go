@@ -6,17 +6,24 @@ import (
 
 // HotNewsSpec defines the desired state of HotNews
 type HotNewsSpec struct {
+	// Keywords are the search terms for the news.
 	Keywords []string `json:"keywords"`
 
+	// DateStart is the start date for the news search.
 	DateStart *metav1.Time `json:"dateStart,omitempty"`
 
+	// DateEnd is the end date for the news search.
 	DateEnd *metav1.Time `json:"dateEnd,omitempty"`
 
+	// Feeds are the news sources.
+	// +optional
 	Feeds []string `json:"feeds,omitempty"`
 
+	// FeedGroups are the groups of news sources.
 	// +optional
 	FeedGroups []string `json:"feedGroups,omitempty"`
 
+	// SummaryConfig defines how the status will show the summary of observed hot news.
 	// +optional
 	SummaryConfig SummaryConfig `json:"summaryConfig"`
 }
