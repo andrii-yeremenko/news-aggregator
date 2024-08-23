@@ -82,9 +82,6 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 }
 
 func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (string, error) {
-	if len(spec.Feeds) == 0 && len(spec.FeedGroups) == 0 {
-		return "", fmt.Errorf("both Feeds and FeedGroups are empty; at least one must be specified")
-	}
 
 	baseURL := fmt.Sprintf("%s%s", r.NewsAggregatorURL, newsEndpoint)
 
