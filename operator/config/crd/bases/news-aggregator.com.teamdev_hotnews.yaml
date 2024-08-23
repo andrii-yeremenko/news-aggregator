@@ -37,7 +37,7 @@ spec:
           metadata:
             type: object
           spec:
-            description: HotNewsSpec defines the desired state of HotNews
+            description: Spec defines the desired state of HotNews
             properties:
               dateEnd:
                 format: date-time
@@ -69,20 +69,23 @@ spec:
             - keywords
             type: object
           status:
-            description: HotNewsStatus defines the observed state of HotNews
+            description: Status defines the observed state of HotNews
             properties:
               articlesCount:
+                description: This is the count of fetched news articles.
                 type: integer
               articlesTitles:
+                description: This is the titles of fetched news articles.
                 items:
                   type: string
                 type: array
               newsLink:
+                description: This is the link to the news source.
                 type: string
             required:
-              - articlesCount
-              - articlesTitles
-              - newsLink
+            - articlesCount
+            - articlesTitles
+            - newsLink
             type: object
         type: object
     served: true

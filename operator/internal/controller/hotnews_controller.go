@@ -232,6 +232,9 @@ func (r *HotNewsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 func (r *HotNewsReconciler) reconcileAllHotNews(context.Context, client.Object) []reconcile.Request {
 	var hotNewsList newsaggregatorv1.HotNewsList
+
+	log.Log.Info("Reconciling all HotNews resources")
+
 	if err := r.List(context.TODO(), &hotNewsList); err != nil {
 		log.Log.Error(err, "Failed to list HotNews resources")
 		return nil
@@ -239,6 +242,9 @@ func (r *HotNewsReconciler) reconcileAllHotNews(context.Context, client.Object) 
 
 	var requests []ctrl.Request
 	for _, hotNews := range hotNewsList.Items {
+
+		log.Log.Info("Enqueueing HotNews resource", "HotNews", hotNews.Name)
+
 		requests = append(requests, ctrl.Request{
 			NamespacedName: client.ObjectKey{
 				Name:      hotNews.Name,
