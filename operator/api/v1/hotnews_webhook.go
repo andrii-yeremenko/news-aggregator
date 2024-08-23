@@ -26,6 +26,7 @@ func (r *HotNews) SetupWebhookWithManager(mgr ctrl.Manager, mapName string) erro
 }
 
 // +kubebuilder:webhook:path=/validate-news-aggregator-com-teamdev-v1-hotnews,mutating=false,failurePolicy=fail,sideEffects=None,groups=news-aggregator.com.teamdev,resources=hotnews,verbs=create;update,versions=v1,name=vhotnews.kb.io,admissionReviewVersions=v1
+
 var _ webhook.Validator = &HotNews{}
 
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type.
