@@ -25,8 +25,10 @@ import (
 )
 
 const (
-	defaultServiceURL = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
-	defaultFinalizer  = "feed.finalizer.news-aggregator.teamdev.com"
+	defaultServiceURL    = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
+	defaultFinalizer     = "feed.finalizer.news-aggregator.teamdev.com"
+	defaultConfigMapName = "hotnews-feeds-group"
+	defaultNamespace     = "news-aggregator-namespace"
 )
 
 var (
@@ -50,12 +52,16 @@ func main() {
 	var tlsOpts []func(*tls.Config)
 	var serviceURL string
 	var finalizer string
+	var configMapName string
+	var namespace string
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.StringVar(&serviceURL, "service-url", defaultServiceURL, "The URL of the service to send HTTP requests to.")
 	flag.StringVar(&finalizer, "finalizer", defaultFinalizer, "The finalizer to add to Feed objects.")
+	flag.StringVar(&configMapName, "config-map-name", defaultConfigMapName, "The name of the ConfigMap to read HotNews keywords from.")
+	flag.StringVar(&namespace, "config-map-namespace", defaultNamespace, "The namespace")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -148,18 +154,19 @@ func main() {
 		Scheme:             mgr.GetScheme(),
 		HTTPClient:         controller.NewDefaultHTTPClient(),
 		NewsAggregatorURL:  serviceURL,
-		ConfigMapName:      "hotnews-feeds-group",
-		ConfigMapNamespace: "news-aggregator-namespace",
+		ConfigMapName:      configMapName,
+		ConfigMapNamespace: namespace,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "HotNews")
 		os.Exit(1)
 	}
 	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
-		if err = (&newsaggregatorv1.HotNews{}).SetupWebhookWithManager(mgr); err != nil {
+		if err = (&newsaggregatorv1.HotNews{}).SetupWebhookWithManager(mgr, configMapName); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "HotNews")
 			os.Exit(1)
 		}
 	}
+
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
