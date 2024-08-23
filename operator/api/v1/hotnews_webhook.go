@@ -2,7 +2,6 @@ package v1
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -57,24 +56,30 @@ func (r *HotNews) ValidateDelete() (admission.Warnings, error) {
 
 // validateHotNews contains the core validation logic for HotNews.
 func (r *HotNews) validateHotNews() error {
+	var errors []string
+
 	if len(r.Spec.Keywords) == 0 {
-		return errors.New("keywords must not be empty")
+		errors = append(errors, "keywords must be provided")
 	}
 
 	if r.Spec.DateStart != nil && r.Spec.DateEnd != nil {
 		if !r.Spec.DateEnd.After(r.Spec.DateStart.Time) {
-			return errors.New("dateEnd must be after dateStart")
+			errors = append(errors, "dateEnd must be after dateStart")
 		}
 	} else if r.Spec.DateStart == nil || r.Spec.DateEnd == nil {
-		return errors.New("dateStart and dateEnd must be provided")
+		errors = append(errors, "both dateStart and dateEnd must be provided")
 	}
 
 	if err := r.validateFeedGroups(); err != nil {
-		return err
+		errors = append(errors, err.Error())
 	}
 
 	if err := r.validateFeeds(); err != nil {
-		return err
+		errors = append(errors, err.Error())
+	}
+
+	if len(errors) > 0 {
+		return fmt.Errorf(strings.Join(errors, ", "))
 	}
 
 	return nil
