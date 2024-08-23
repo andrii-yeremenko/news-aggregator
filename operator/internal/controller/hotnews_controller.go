@@ -45,6 +45,7 @@ type ArticlesResponse []Article
 // +kubebuilder:rbac:groups=news-aggregator.com.teamdev,resources=hotnews/finalizers,verbs=update
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 
+// Reconcile reconciles the HotNews object.
 func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 
@@ -89,15 +90,17 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 
-	logger.Info("Successfully reconciled HotNews", "HotNews", hotNews.Name, "ArticlesCount", hotNews.Status.ArticlesCount)
+	logger.Info("Successfully reconciled HotNews", "HotNews", hotNews.Name, "ArticlesCount",
+		hotNews.Status.ArticlesCount)
 	return ctrl.Result{}, r.updateStatus(&hotNews, newsaggregatorv1.ConditionUpdated)
 }
 
+// buildRequestURL builds the URL for the request to the News Aggregator service.
 func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (string, error) {
 
 	baseURL := fmt.Sprintf("%s%s", r.NewsAggregatorURL, newsEndpoint)
 
-	sources, err := r.GetFeedSources(context.Background())
+	sources, err := r.GetFeedSourcesFromConfig(context.Background())
 	if err != nil {
 		return "", fmt.Errorf("failed to get feed sources: %w", err)
 	}
@@ -123,30 +126,35 @@ func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (
 	return url, nil
 }
 
+// collectUniqueSources collects unique sources from the HotNews spec and feed groups.
 func (r *HotNewsReconciler) collectUniqueSources(spec newsaggregatorv1.HotNewsSpec, sources map[string][]string) []string {
 	uniqueSources := make(map[string]struct{})
+
 	for _, feed := range spec.Feeds {
 		uniqueSources[feed] = struct{}{}
 	}
+
 	for _, group := range spec.FeedGroups {
-		if groupFeeds, ok := sources[group]; ok {
-			for _, feed := range groupFeeds {
-				uniqueSources[feed] = struct{}{}
-			}
+		for _, feed := range sources[group] {
+			uniqueSources[feed] = struct{}{}
 		}
 	}
-	var allFeeds []string
+
+	allFeeds := make([]string, 0, len(uniqueSources))
 	for feed := range uniqueSources {
 		allFeeds = append(allFeeds, feed)
 	}
+
 	sort.Strings(allFeeds)
 	return allFeeds
 }
 
+// formatDateForURL formats the time to the required format for the URL.
 func formatDateForURL(t time.Time) string {
 	return t.Format("2006-02-01")
 }
 
+// fetchNews fetches news articles from the given URL.
 func (r *HotNewsReconciler) fetchNews(url string) ([]string, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -180,7 +188,8 @@ func (r *HotNewsReconciler) fetchNews(url string) ([]string, error) {
 
 	return titles, nil
 }
-func (r *HotNewsReconciler) updateHotNewsStatus(ctx context.Context, hotNews *newsaggregatorv1.HotNews, titles []string, url string) error {
+func (r *HotNewsReconciler) updateHotNewsStatus(ctx context.Context, hotNews *newsaggregatorv1.HotNews, titles []string,
+	url string) error {
 	titlesCount := hotNews.Spec.SummaryConfig.TitlesCount
 	if len(titles) > titlesCount {
 		titles = titles[:titlesCount]
@@ -198,7 +207,7 @@ func (r *HotNewsReconciler) updateHotNewsStatus(ctx context.Context, hotNews *ne
 	return nil
 }
 
-func (r *HotNewsReconciler) GetFeedSources(ctx context.Context) (map[string][]string, error) {
+func (r *HotNewsReconciler) GetFeedSourcesFromConfig(ctx context.Context) (map[string][]string, error) {
 	var configMap v1.ConfigMap
 	if err := r.Get(ctx, client.ObjectKey{
 		Name:      r.ConfigMapName,
