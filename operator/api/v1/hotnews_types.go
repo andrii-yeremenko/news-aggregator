@@ -44,6 +44,8 @@ type HotNewsStatus struct {
 	ArticlesTitles []string `json:"articlesTitles"`
 	// This is the count of fetched news articles.
 	ArticlesCount int `json:"articlesCount"`
+	// Conditions are the conditions for the HotNews resource.
+	Conditions []ConditionType `json:"conditions"`
 }
 
 // +kubebuilder:object:root=true

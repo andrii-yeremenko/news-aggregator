@@ -63,22 +63,34 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	url, err := r.buildRequestURL(hotNews.Spec)
 	if err != nil {
 		logger.Error(err, "Failed to build request URL")
+		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
+		if statusErr != nil {
+			logger.Error(statusErr, "Failed to update HotNews status")
+		}
 		return ctrl.Result{}, err
 	}
 
 	titles, err := r.fetchNews(url)
 	if err != nil {
 		logger.Error(err, "Failed to fetch news")
+		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
+		if statusErr != nil {
+			logger.Error(statusErr, "Failed to update HotNews status")
+		}
 		return ctrl.Result{}, err
 	}
 
 	if err := r.updateHotNewsStatus(ctx, &hotNews, titles, url); err != nil {
 		logger.Error(err, "Failed to update HotNews status")
+		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
+		if statusErr != nil {
+			logger.Error(statusErr, "Failed to update HotNews status")
+		}
 		return ctrl.Result{}, err
 	}
 
 	logger.Info("Successfully reconciled HotNews", "HotNews", hotNews.Name, "ArticlesCount", hotNews.Status.ArticlesCount)
-	return ctrl.Result{}, nil
+	return ctrl.Result{}, r.updateStatus(&hotNews, newsaggregatorv1.ConditionUpdated)
 }
 
 func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (string, error) {
@@ -201,6 +213,13 @@ func (r *HotNewsReconciler) GetFeedSources(ctx context.Context) (map[string][]st
 	}
 
 	return sources, nil
+}
+
+// updateStatus updates the status of the HotNews object.
+func (r *HotNewsReconciler) updateStatus(hotnews *newsaggregatorv1.HotNews, conditionType newsaggregatorv1.ConditionType) error {
+
+	hotnews.Status.Conditions = append(hotnews.Status.Conditions, conditionType)
+	return r.Client.Status().Update(context.Background(), hotnews)
 }
 
 // SetupWithManager sets up the controller with the Manager.
