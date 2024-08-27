@@ -107,7 +107,11 @@ func (r *FeedReconcile) ensureFinalizer(feed *newsaggregatorv1.Feed, ctx context
 func (r *FeedReconcile) handleFeedCreation(feed *newsaggregatorv1.Feed) error {
 	err := r.addSource(feed)
 	if err != nil {
-		return r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
+		statusErr := r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
+		if statusErr != nil {
+			return fmt.Errorf("failed to update status: %w", err)
+		}
+		return err
 	}
 	return r.updateStatus(feed, newsaggregatorv1.ConditionAdded, true, "Feed added successfully")
 }
@@ -115,7 +119,11 @@ func (r *FeedReconcile) handleFeedCreation(feed *newsaggregatorv1.Feed) error {
 // handleFeedUpdation handles the logic for when a Feed is updated.
 func (r *FeedReconcile) handleFeedUpdation(feed *newsaggregatorv1.Feed) error {
 	if err := r.updateSource(feed); err != nil {
-		return r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
+		statusErr := r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
+		if statusErr != nil {
+			return fmt.Errorf("failed to update status: %w", err)
+		}
+		return err
 	}
 	return r.updateStatus(feed, newsaggregatorv1.ConditionUpdated, true, "Feed updated successfully")
 }
@@ -152,7 +160,7 @@ func (r *FeedReconcile) updateStatus(feed *newsaggregatorv1.Feed, conditionType 
 	}
 
 	feed.Status.Conditions = append(feed.Status.Conditions, condition)
-	return r.Client.Status().Update(context.Background(), feed)
+	return r.Client.Update(context.Background(), feed)
 }
 
 // addSource sends a POST request to add a source.
