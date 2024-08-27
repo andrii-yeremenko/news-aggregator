@@ -1,48 +1,51 @@
 package predicates
 
 import (
-	"github.com/onsi/ginkgo/v2"
-	"github.com/onsi/gomega"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"testing"
 )
 
+// TestConfigMapPredicates is the test suite for ConfigMap predicates
 func TestFeedPredicates(t *testing.T) {
-	gomega.RegisterFailHandler(ginkgo.Fail)
-	ginkgo.RunSpecs(t, "Feed Predicates Suite")
+	RegisterFailHandler(Fail)
+	RunSpecs(t, "Feed Predicates Suite")
 }
 
-var _ = ginkgo.Describe("Feed Predicates", func() {
+var _ = Describe("Feed Predicates", func() {
 	var (
 		namespace = "test-namespace"
 		predicate predicate.Predicate
 		obj       *unstructured.Unstructured
 	)
 
-	ginkgo.BeforeEach(func() {
+	BeforeEach(func() {
 		predicate = NewFeedPredicate(namespace)
 
 		obj = &unstructured.Unstructured{}
 		obj.SetNamespace(namespace)
 	})
 
-	ginkgo.It("should allow events from the correct namespace", func() {
-		obj.SetNamespace(namespace)
-		createEvent := event.CreateEvent{Object: obj}
-		updateEvent := event.UpdateEvent{ObjectNew: obj}
+	Context("when validating Feed predicates", func() {
+		It("should allow events from the correct namespace", func() {
+			obj.SetNamespace(namespace)
+			createEvent := event.CreateEvent{Object: obj}
+			updateEvent := event.UpdateEvent{ObjectNew: obj}
 
-		gomega.Expect(predicate.Create(createEvent)).To(gomega.BeTrue())
-		gomega.Expect(predicate.Update(updateEvent)).To(gomega.BeTrue())
-	})
+			Expect(predicate.Create(createEvent)).To(BeTrue())
+			Expect(predicate.Update(updateEvent)).To(BeTrue())
+		})
 
-	ginkgo.It("should deny events from other namespaces", func() {
-		obj.SetNamespace("other-namespace")
-		createEvent := event.CreateEvent{Object: obj}
-		updateEvent := event.UpdateEvent{ObjectNew: obj}
+		It("should deny events from other namespaces", func() {
+			obj.SetNamespace("other-namespace")
+			createEvent := event.CreateEvent{Object: obj}
+			updateEvent := event.UpdateEvent{ObjectNew: obj}
 
-		gomega.Expect(predicate.Create(createEvent)).To(gomega.BeFalse())
-		gomega.Expect(predicate.Update(updateEvent)).To(gomega.BeFalse())
+			Expect(predicate.Create(createEvent)).To(BeFalse())
+			Expect(predicate.Update(updateEvent)).To(BeFalse())
+		})
 	})
 })
