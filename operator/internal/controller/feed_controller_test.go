@@ -116,6 +116,32 @@ var _ = Describe("Feed Controller", func() {
 			Expect(feed.Status.Conditions).To(HaveLen(2), "Expected second condition to be added")
 			Expect(feed.Status.Conditions[1].Type).To(Equal(v1.ConditionUpdated), "Expected ConditionUpdated status")
 		})
+
+		It("Should reconcile successfully when Feed is deleted", func() {
+
+			feed.Status.Conditions = append(feed.Status.Conditions, v1.Condition{Type: v1.ConditionAdded})
+			feed.CreationTimestamp = metav1.Now()
+			feed.Finalizers = append(feed.Finalizers, finalizer, "test-finalizer")
+			Expect(fakeClient.Create(ctx, feed)).To(Succeed())
+
+			httpClient.EXPECT().
+				Do(gomock.Any()).Times(1).
+				Return(&http.Response{
+					StatusCode: http.StatusOK,
+					Body:       io.NopCloser(bytes.NewBufferString("")),
+				}, nil)
+
+			Expect(fakeClient.Delete(ctx, feed)).To(Succeed())
+
+			result, err := reconciler.Reconcile(ctx, ctrl.Request{NamespacedName: client.ObjectKeyFromObject(feed)})
+
+			Expect(err).To(BeNil(), "Expected no error during reconciliation")
+			Expect(result).To(Equal(ctrl.Result{}), "Expected successful reconciliation result")
+
+			Expect(fakeClient.Get(ctx, client.ObjectKeyFromObject(feed), feed)).To(Succeed())
+			Expect(feed.Status.Conditions).To(HaveLen(2), "Expected second condition to be added")
+			Expect(feed.Status.Conditions[1].Type).To(Equal(v1.ConditionDeleted), "Expected ConditionDeleted status")
+		})
 	})
 
 	Context("Test Error Reconciliation", func() {
