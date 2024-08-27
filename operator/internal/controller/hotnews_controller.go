@@ -190,13 +190,15 @@ func (r *HotNewsReconciler) fetchNews(url string) ([]string, error) {
 }
 func (r *HotNewsReconciler) updateHotNewsStatus(ctx context.Context, hotNews *newsaggregatorv1.HotNews, titles []string,
 	url string) error {
+	actualFeedCount := len(titles)
 	titlesCount := hotNews.Spec.SummaryConfig.TitlesCount
 	if len(titles) > titlesCount {
+		actualFeedCount = titlesCount
 		titles = titles[:titlesCount]
 	}
 
 	hotNews.Status = newsaggregatorv1.HotNewsStatus{
-		ArticlesCount:  titlesCount,
+		ArticlesCount:  actualFeedCount,
 		NewsLink:       url,
 		ArticlesTitles: titles,
 	}
