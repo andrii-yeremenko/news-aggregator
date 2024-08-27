@@ -232,6 +232,10 @@ func (r *HotNewsReconciler) GetFeedSourcesFromConfig(ctx context.Context) (map[s
 // updateStatus updates the status of the HotNews object.
 func (r *HotNewsReconciler) updateStatus(hotnews *newsaggregatorv1.HotNews, conditionType newsaggregatorv1.ConditionType) error {
 
+	if hotnews.DeletionTimestamp != nil {
+		return nil
+	}
+
 	hotnews.Status.Conditions = append(hotnews.Status.Conditions, conditionType)
 	return r.Client.Status().Update(context.Background(), hotnews)
 }
