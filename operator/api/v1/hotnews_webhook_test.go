@@ -1,171 +1,135 @@
 package v1
 
 import (
-	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-func TestMain(m *testing.M) {
-	k8sClient = fake.NewClientBuilder().WithObjects(&v1.ConfigMap{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "hotnews-feeds-group",
-			Namespace: "news-aggregator-namespace",
-		},
-		Data: map[string]string{
-			"group1": "feed1",
-			"group2": "feed2",
-		},
-	}).Build()
-
-	m.Run()
-}
-
-func TestValidateHotNews(t *testing.T) {
-	tests := []struct {
-		name      string
-		hotNews   HotNews
-		expectErr bool
-		errMsg    string
-	}{
-		{
-			name: "valid HotNews",
-			hotNews: HotNews{
-				Spec: HotNewsSpec{
-					Keywords:  []string{"news", "update"},
-					DateStart: &metav1.Time{Time: time.Now()},
-					DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
-				},
+var _ = Describe("HotNews Validation", func() {
+	BeforeEach(func() {
+		k8sClient = fake.NewClientBuilder().WithObjects(&v1.ConfigMap{
+			Data: map[string]string{
+				"group1": "feed1",
+				"group2": "feed2",
 			},
-			expectErr: false,
-		},
-		{
-			name: "empty keywords",
-			hotNews: HotNews{
-				Spec: HotNewsSpec{
-					Keywords:  []string{},
-					DateStart: &metav1.Time{Time: time.Now()},
-					DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
-				},
-			},
-			expectErr: true,
-			errMsg:    "keywords must not be empty",
-		},
-		{
-			name: "dateEnd before dateStart",
-			hotNews: HotNews{
+		}).Build()
+	})
+
+	Describe("ValidateHotNews", func() {
+		Context("when validating HotNews", func() {
+
+			It("should validate a valid HotNews", func() {
+				hotNews := HotNews{
+					Spec: HotNewsSpec{
+						Keywords:  []string{"news", "update"},
+						DateStart: &metav1.Time{Time: time.Now()},
+						DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
+					},
+				}
+				err := hotNews.validateHotNews()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("should not validate with empty keywords", func() {
+				hotNews := HotNews{
+					Spec: HotNewsSpec{
+						Keywords:  []string{},
+						DateStart: &metav1.Time{Time: time.Now()},
+						DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
+					},
+				}
+				err := hotNews.validateHotNews()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("keywords must be provided"))
+			})
+
+			It("should not validate when dateEnd is before dateStart", func() {
+				hotNews := HotNews{
+					Spec: HotNewsSpec{
+						Keywords:  []string{"news"},
+						DateStart: &metav1.Time{Time: time.Now()},
+						DateEnd:   &metav1.Time{Time: time.Now().Add(-24 * time.Hour)},
+					},
+				}
+				err := hotNews.validateHotNews()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("dateEnd must be after dateStart"))
+			})
+
+			It("should not validate when dateStart is specified without dateEnd", func() {
+				hotNews := HotNews{
+					Spec: HotNewsSpec{
+						Keywords:  []string{"news"},
+						DateStart: &metav1.Time{Time: time.Now()},
+					},
+				}
+				err := hotNews.validateHotNews()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("both dateStart and dateEnd must be provided"))
+			})
+		})
+	})
+
+	Describe("ValidateFeedGroups", func() {
+		Context("when validating feed groups", func() {
+
+			It("should validate valid feed groups", func() {
+				hotNews := HotNews{
+					Spec: HotNewsSpec{
+						FeedGroups: []string{"group1", "group2"},
+					},
+				}
+				err := hotNews.validateFeedGroups()
+				Expect(err).ToNot(HaveOccurred())
+			})
+
+			It("should not validate with non-existent feed groups", func() {
+				hotNews := HotNews{
+					Spec: HotNewsSpec{
+						FeedGroups: []string{"group1", "group3"},
+					},
+				}
+				err := hotNews.validateFeedGroups()
+				Expect(err).To(HaveOccurred())
+				Expect(err.Error()).To(Equal("feedGroup group3 does not exist in ConfigMap /"))
+			})
+		})
+	})
+
+	Describe("Validation Operations", func() {
+		var hotNews HotNews
+
+		BeforeEach(func() {
+			hotNews = HotNews{
 				Spec: HotNewsSpec{
 					Keywords:  []string{"news"},
 					DateStart: &metav1.Time{Time: time.Now()},
-					DateEnd:   &metav1.Time{Time: time.Now().Add(-24 * time.Hour)},
+					DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
 				},
-			},
-			expectErr: true,
-			errMsg:    "dateEnd must be after dateStart",
-		},
-		{
-			name: "dateStart without dateEnd",
-			hotNews: HotNews{
-				Spec: HotNewsSpec{
-					Keywords:  []string{"news"},
-					DateStart: &metav1.Time{Time: time.Now()},
-				},
-			},
-			expectErr: true,
-			errMsg:    "dateEnd must be provided if dateStart is specified",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.hotNews.validateHotNews()
-			if tt.expectErr {
-				assert.Error(t, err)
-				assert.Equal(t, tt.errMsg, err.Error())
-			} else {
-				assert.NoError(t, err)
 			}
 		})
-	}
-}
 
-func TestValidateFeedGroups(t *testing.T) {
-	tests := []struct {
-		name      string
-		hotNews   HotNews
-		expectErr bool
-		errMsg    string
-	}{
-		{
-			name: "valid feed groups",
-			hotNews: HotNews{
-				Spec: HotNewsSpec{
-					FeedGroups: []string{"group1", "group2"},
-				},
-			},
-			expectErr: false,
-		},
-		{
-			name: "non-existent feed group",
-			hotNews: HotNews{
-				Spec: HotNewsSpec{
-					FeedGroups: []string{"group1", "group3"},
-				},
-			},
-			expectErr: true,
-			errMsg:    "feedGroup group3 does not exist in ConfigMap news-aggregator-namespace/hotnews-feeds-group",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := tt.hotNews.validateFeedGroups()
-			if tt.expectErr {
-				assert.Error(t, err)
-				assert.Equal(t, tt.errMsg, err.Error())
-			} else {
-				assert.NoError(t, err)
-			}
+		It("should validate creation of HotNews", func() {
+			warnings, err := hotNews.ValidateCreate()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(warnings).To(BeNil())
 		})
-	}
-}
 
-func TestValidateCreate(t *testing.T) {
-	hotNews := HotNews{
-		Spec: HotNewsSpec{
-			Keywords:  []string{"news"},
-			DateStart: &metav1.Time{Time: time.Now()},
-			DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
-		},
-	}
+		It("should validate update of HotNews", func() {
+			warnings, err := hotNews.ValidateUpdate(nil)
+			Expect(err).ToNot(HaveOccurred())
+			Expect(warnings).To(BeNil())
+		})
 
-	warnings, err := hotNews.ValidateCreate()
-	assert.NoError(t, err)
-	assert.Nil(t, warnings)
-}
-
-func TestValidateUpdate(t *testing.T) {
-	hotNews := HotNews{
-		Spec: HotNewsSpec{
-			Keywords:  []string{"news"},
-			DateStart: &metav1.Time{Time: time.Now()},
-			DateEnd:   &metav1.Time{Time: time.Now().Add(24 * time.Hour)},
-		},
-	}
-
-	warnings, err := hotNews.ValidateUpdate(nil)
-	assert.NoError(t, err)
-	assert.Nil(t, warnings)
-}
-
-func TestValidateDelete(t *testing.T) {
-	hotNews := HotNews{}
-
-	warnings, err := hotNews.ValidateDelete()
-	assert.NoError(t, err)
-	assert.Nil(t, warnings)
-}
+		It("should validate deletion of HotNews", func() {
+			warnings, err := hotNews.ValidateDelete()
+			Expect(err).ToNot(HaveOccurred())
+			Expect(warnings).To(BeNil())
+		})
+	})
+})
