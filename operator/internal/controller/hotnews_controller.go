@@ -1,11 +1,13 @@
 package controller
 
 import (
+	"com.teamdev/news-aggregator/internal/controller/predicates"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -30,6 +32,7 @@ type HotNewsReconciler struct {
 	HTTPClient         HTTPClient
 	Scheme             *runtime.Scheme
 	NewsAggregatorURL  string
+	Namespace          string
 	ConfigMapName      string
 	ConfigMapNamespace string
 }
@@ -235,15 +238,21 @@ func (r *HotNewsReconciler) updateStatus(hotnews *newsaggregatorv1.HotNews, cond
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *HotNewsReconciler) SetupWithManager(mgr ctrl.Manager) error {
+
+	feedPredicate := predicates.NewFeedPredicate(r.Namespace)
+	configMapPredicate := predicates.NewConfigMapPredicate(r.ConfigMapNamespace, r.ConfigMapName)
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&newsaggregatorv1.HotNews{}).
 		Watches(
 			&newsaggregatorv1.Feed{},
 			handler.EnqueueRequestsFromMapFunc(r.reconcileAllHotNews),
+			builder.WithPredicates(feedPredicate),
 		).
 		Watches(
 			&v1.ConfigMap{},
 			handler.EnqueueRequestsFromMapFunc(r.reconcileAllHotNews),
+			builder.WithPredicates(configMapPredicate),
 		).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)

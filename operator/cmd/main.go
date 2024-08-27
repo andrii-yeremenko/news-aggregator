@@ -154,6 +154,7 @@ func main() {
 		Scheme:             mgr.GetScheme(),
 		HTTPClient:         controller.NewDefaultHTTPClient(),
 		NewsAggregatorURL:  serviceURL,
+		Namespace:          namespace,
 		ConfigMapName:      configMapName,
 		ConfigMapNamespace: namespace,
 	}).SetupWithManager(mgr); err != nil {
