@@ -4,10 +4,11 @@ import (
 	"bytes"
 	v1 "com.teamdev/news-aggregator/api/v1"
 	"com.teamdev/news-aggregator/internal/controller"
+	"com.teamdev/news-aggregator/internal/controller/mocks"
 	"context"
+	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"github.com/stretchr/testify/mock"
 	"io"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,13 +25,15 @@ var _ = Describe("HotNews Controller", func() {
 
 	var (
 		reconcile  controller.HotNewsReconciler
-		httpClient *MockHTTPClient
+		mockCtrl   *gomock.Controller
+		httpClient *mocks.MockHTTPClient
 		fakeClient client.Client
 		hotNews    *v1.HotNews
 	)
 
 	BeforeEach(func() {
-		httpClient = new(MockHTTPClient)
+		mockCtrl = gomock.NewController(GinkgoT())
+		httpClient = mocks.NewMockHTTPClient(mockCtrl)
 		_ = v1.AddToScheme(scheme.Scheme)
 
 		hotNews = &v1.HotNews{
@@ -60,6 +63,7 @@ var _ = Describe("HotNews Controller", func() {
 	})
 
 	AfterEach(func() {
+		mockCtrl.Finish()
 	})
 
 	Context("Test Successful Reconcile", func() {
@@ -85,7 +89,7 @@ var _ = Describe("HotNews Controller", func() {
 			err := fakeClient.Create(context.TODO(), hotNews)
 			Expect(err).To(BeNil())
 
-			httpClient.On("Do", mock.Anything).Return(&http.Response{
+			httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"test title\"}]")),
 			}, nil)
@@ -106,7 +110,7 @@ var _ = Describe("HotNews Controller", func() {
 			err := fakeClient.Create(context.TODO(), hotNews)
 			Expect(err).To(BeNil())
 
-			httpClient.On("Do", mock.Anything).Return(&http.Response{
+			httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"test title\"}]")),
 			}, nil)
@@ -128,7 +132,7 @@ var _ = Describe("HotNews Controller", func() {
 			err := fakeClient.Create(context.TODO(), hotNews)
 			Expect(err).To(BeNil())
 
-			httpClient.On("Do", mock.Anything).Return(&http.Response{
+			httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"test title\"}, {\"title\": \"test title 2\"}]")),
 			}, nil)
@@ -151,7 +155,7 @@ var _ = Describe("HotNews Controller", func() {
 			err := fakeClient.Create(context.TODO(), hotNews)
 			Expect(err).To(BeNil())
 
-			httpClient.On("Do", mock.Anything).Return(&http.Response{
+			httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"!test title\"}, {\"title\": \"test title 2\"}]")),
 			}, nil)
@@ -174,7 +178,7 @@ var _ = Describe("HotNews Controller", func() {
 			err := fakeClient.Create(context.TODO(), hotNews)
 			Expect(err).To(BeNil())
 
-			httpClient.On("Do", mock.Anything).Return(&http.Response{
+			httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"test title\"}]")),
 			}, nil)
@@ -196,7 +200,7 @@ var _ = Describe("HotNews Controller", func() {
 			err := fakeClient.Create(context.TODO(), hotNews)
 			Expect(err).To(BeNil())
 
-			httpClient.On("Do", mock.Anything).Return(&http.Response{
+			httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString("[]")),
 			}, nil)
@@ -218,7 +222,7 @@ var _ = Describe("HotNews Controller", func() {
 			err := fakeClient.Create(context.TODO(), hotNews)
 			Expect(err).To(BeNil())
 
-			httpClient.On("Do", mock.Anything).Return(&http.Response{
+			httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
 				StatusCode: 200,
 				Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"a\"}, {\"title\": \"b\"}, {\"title\": \"c\"}]")),
 			}, nil)
@@ -292,7 +296,7 @@ var _ = Describe("HotNews Controller", func() {
 				err := fakeClient.Create(context.TODO(), hotNews)
 				Expect(err).To(BeNil())
 
-				httpClient.On("Do", mock.Anything).Return(&http.Response{
+				httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
 					StatusCode: 500,
 					Body:       io.NopCloser(bytes.NewBufferString("")),
 				}, nil)
@@ -312,7 +316,7 @@ var _ = Describe("HotNews Controller", func() {
 				err := fakeClient.Create(context.TODO(), hotNews)
 				Expect(err).To(BeNil())
 
-				httpClient.On("Do", mock.Anything).Return(&http.Response{
+				httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
 					StatusCode: 200,
 					Body:       io.NopCloser(bytes.NewBufferString("invalid json")),
 				}, nil)
@@ -334,7 +338,7 @@ var _ = Describe("HotNews Controller", func() {
 				err := fakeClient.Create(context.TODO(), hotNews)
 				Expect(err).To(BeNil())
 
-				httpClient.On("Do", mock.Anything).Return(nil, &url.Error{})
+				httpClient.EXPECT().Do(gomock.Any()).Times(0).Return(nil, &url.Error{})
 
 				namespacedName := types.NamespacedName{Namespace: "default", Name: "test-hotnews"}
 				_, err = reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: namespacedName})
@@ -348,17 +352,3 @@ var _ = Describe("HotNews Controller", func() {
 	})
 
 })
-
-// MockHTTPClient is a mock for HTTPClient interface.
-type MockHTTPClient struct {
-	mock.Mock
-}
-
-func (m *MockHTTPClient) Post(url string, contentType string, body io.Reader) (*http.Response, error) {
-	panic("unexpected call to Post")
-}
-
-func (m *MockHTTPClient) Do(req *http.Request) (*http.Response, error) {
-	args := m.Called(req)
-	return args.Get(0).(*http.Response), args.Error(1)
-}
