@@ -6,12 +6,7 @@ import (
 	"testing"
 )
 
-func TestFeedWebhook(t *testing.T) {
+func TestWebhooks(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Feed Validation")
-}
-
-func TestHotNewsWebhook(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "HotNews Validation")
 }

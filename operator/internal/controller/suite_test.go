@@ -6,12 +6,7 @@ import (
 	"testing"
 )
 
-func TestController(t *testing.T) {
+func TestControllers(t *testing.T) {
 	RegisterFailHandler(Fail)
 	RunSpecs(t, "Feed Controller")
-}
-
-func TestHotNewsController(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "HotNews Controller")
 }
