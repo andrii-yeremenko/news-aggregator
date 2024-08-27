@@ -160,7 +160,7 @@ func (r *FeedReconcile) updateStatus(feed *newsaggregatorv1.Feed, conditionType 
 	}
 
 	feed.Status.Conditions = append(feed.Status.Conditions, condition)
-	return r.Client.Update(context.Background(), feed)
+	return r.Client.Status().Update(context.Background(), feed)
 }
 
 // addSource sends a POST request to add a source.

@@ -59,7 +59,7 @@ var _ = Describe("Feed Controller", func() {
 			},
 		}
 
-		fakeClient = fake.NewClientBuilder().WithScheme(scheme).Build()
+		fakeClient = fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(feed).Build()
 		reconciler = &controller.FeedReconcile{
 			Client:     fakeClient,
 			Scheme:     scheme,
