@@ -5,7 +5,7 @@ metadata:
   namespace: news-aggregator-namespace
 data:
   all: "bbc-world,abc-news,washington-times,time-politics,aljazeera"
-  usa: "abc-news,washington-times"
+  usa: "abc-news,washington-times,time-politics"
   world: "bbc-world,aljazeera"
   ukraine: "bbc-world,aljazeera,abc-news"
   south-africa: "bbc-world,aljazeera"
