@@ -6,8 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"net/http"
 	"sigs.k8s.io/controller-runtime/pkg/builder"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -31,6 +33,7 @@ type HotNewsReconciler struct {
 	client.Client
 	HTTPClient         HTTPClient
 	Scheme             *runtime.Scheme
+	Finalizer          string
 	NewsAggregatorURL  string
 	Namespace          string
 	ConfigMapName      string
@@ -46,12 +49,12 @@ type ArticlesResponse []Article
 // +kubebuilder:rbac:groups=news-aggregator.com.teamdev,resources=hotnews,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups=news-aggregator.com.teamdev,resources=hotnews/status,verbs=get;update;patch
 // +kubebuilder:rbac:groups=news-aggregator.com.teamdev,resources=hotnews/finalizers,verbs=update
+// +kubebuilder:rbac:groups=news-aggregator.com.teamdev,resources=feeds,verbs=get;list;watch;create;update;patch;delete
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 
 // Reconcile reconciles the HotNews object.
 func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
-
 	logger.Info("Starting reconciliation", "HotNews", req.NamespacedName)
 
 	var hotNews newsaggregatorv1.HotNews
@@ -61,6 +64,25 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			return ctrl.Result{}, nil
 		}
 		logger.Error(err, "Failed to get HotNews resource")
+		return ctrl.Result{}, err
+	}
+
+	if !controllerutil.ContainsFinalizer(&hotNews, r.Finalizer) {
+		controllerutil.AddFinalizer(&hotNews, r.Finalizer)
+		if err := r.Update(ctx, &hotNews); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
+	if hotNews.DeletionTimestamp != nil {
+		if err := r.handleFinalizer(ctx, &hotNews); err != nil {
+			return ctrl.Result{}, err
+		}
+		return ctrl.Result{}, nil
+	}
+
+	if err := r.setOwnerReferencesOnFeeds(ctx, &hotNews); err != nil {
+		logger.Error(err, "Failed to set owner references on related feeds")
 		return ctrl.Result{}, err
 	}
 
@@ -96,6 +118,79 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	logger.Info("Successfully reconciled HotNews", "HotNews", hotNews.Name, "ArticlesCount",
 		hotNews.Status.ArticlesCount)
 	return ctrl.Result{}, r.updateStatus(&hotNews, newsaggregatorv1.ConditionUpdated)
+}
+
+// handleFinalizer handles the finalizer logic for the HotNews resource.
+func (r *HotNewsReconciler) handleFinalizer(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
+	logger := log.FromContext(ctx)
+
+	if err := r.removeOwnerReferencesFromFeeds(ctx, hotNews); err != nil {
+		return err
+	}
+
+	controllerutil.RemoveFinalizer(hotNews, r.Finalizer)
+	if err := r.Update(ctx, hotNews); err != nil {
+		logger.Error(err, "Failed to remove finalizer from HotNews")
+		return err
+	}
+
+	logger.Info("Finalizer successfully handled and removed", "HotNews", hotNews.Name)
+	return nil
+}
+
+// removeOwnerReferencesFromFeeds removes the owner references from all related Feed resources.
+func (r *HotNewsReconciler) removeOwnerReferencesFromFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
+	feeds, err := r.GetFeedSourcesFromConfig(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get feed sources: %w", err)
+	}
+
+	uniqueSources := r.collectUniqueSources(hotNews.Spec, feeds)
+	for _, feedName := range uniqueSources {
+		var feed newsaggregatorv1.Feed
+		if err := r.Get(ctx, client.ObjectKey{Name: feedName, Namespace: hotNews.Namespace}, &feed); err != nil {
+			if errors.IsNotFound(err) {
+				log.Log.Info("Feed resource not found. Skipping", "Feed", feedName)
+				continue
+			}
+			return err
+		}
+
+		feed.SetOwnerReferences([]metav1.OwnerReference{})
+
+		if err := r.Update(ctx, &feed); err != nil {
+			return fmt.Errorf("failed to remove owner reference from Feed: %w", err)
+		}
+	}
+	return nil
+}
+
+// setOwnerReferencesOnFeeds sets the owner reference on all related Feed resources
+func (r *HotNewsReconciler) setOwnerReferencesOnFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
+	feeds, err := r.GetFeedSourcesFromConfig(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get feed sources: %w", err)
+	}
+
+	uniqueSources := r.collectUniqueSources(hotNews.Spec, feeds)
+	for _, feedName := range uniqueSources {
+		var feed newsaggregatorv1.Feed
+		if err := r.Get(ctx, client.ObjectKey{Name: feedName, Namespace: hotNews.Namespace}, &feed); err != nil {
+			if errors.IsNotFound(err) {
+				log.Log.Info("Feed resource not found. Skipping", "Feed", feedName)
+				continue
+			}
+			return err
+		}
+
+		ownerRef := metav1.NewControllerRef(hotNews, newsaggregatorv1.GroupVersion.WithKind("HotNews"))
+		feed.SetOwnerReferences([]metav1.OwnerReference{*ownerRef})
+
+		if err := r.Update(ctx, &feed); err != nil {
+			return fmt.Errorf("failed to update Feed with owner reference: %w", err)
+		}
+	}
+	return nil
 }
 
 // buildRequestURL builds the URL for the request to the News Aggregator service.
@@ -248,6 +343,7 @@ func (r *HotNewsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&newsaggregatorv1.HotNews{}).
+		Owns(&newsaggregatorv1.Feed{}).
 		Watches(
 			&newsaggregatorv1.Feed{},
 			handler.EnqueueRequestsFromMapFunc(r.reconcileAllHotNews),
@@ -262,6 +358,7 @@ func (r *HotNewsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
+// reconcileAllHotNews reconciles all HotNews resources.
 func (r *HotNewsReconciler) reconcileAllHotNews(context.Context, client.Object) []reconcile.Request {
 	var hotNewsList newsaggregatorv1.HotNewsList
 

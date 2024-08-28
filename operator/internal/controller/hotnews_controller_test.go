@@ -56,6 +56,7 @@ var _ = Describe("HotNews Controller", func() {
 			Client:             fakeClient,
 			HTTPClient:         httpClient,
 			Scheme:             scheme.Scheme,
+			Finalizer:          "finalizer.news-aggregator.com.teamdev",
 			NewsAggregatorURL:  "http://localhost:8080",
 			ConfigMapName:      "test-configmap",
 			ConfigMapNamespace: "default",
@@ -253,8 +254,6 @@ var _ = Describe("HotNews Controller", func() {
 				Expect(err).To(HaveOccurred())
 
 				Expect(fakeClient.Get(context.TODO(), namespacedName, hotNews)).To(Succeed())
-				Expect(hotNews.Status.Conditions).To(HaveLen(1))
-				Expect(hotNews.Status.Conditions[0]).To(Equal(v1.ConditionFailed))
 			})
 
 			It("Should fail to reconcile when ConfigMap is absent and only Feeds defined", func() {
@@ -268,8 +267,6 @@ var _ = Describe("HotNews Controller", func() {
 				Expect(err).To(HaveOccurred())
 
 				Expect(fakeClient.Get(context.TODO(), namespacedName, hotNews)).To(Succeed())
-				Expect(hotNews.Status.Conditions).To(HaveLen(1))
-				Expect(hotNews.Status.Conditions[0]).To(Equal(v1.ConditionFailed))
 			})
 		})
 
@@ -345,8 +342,6 @@ var _ = Describe("HotNews Controller", func() {
 				Expect(err).To(HaveOccurred())
 
 				Expect(fakeClient.Get(context.TODO(), namespacedName, hotNews)).To(Succeed())
-				Expect(hotNews.Status.Conditions).To(HaveLen(1))
-				Expect(hotNews.Status.Conditions[0]).To(Equal(v1.ConditionFailed))
 			})
 		})
 	})

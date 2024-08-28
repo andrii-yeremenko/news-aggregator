@@ -25,10 +25,11 @@ import (
 )
 
 const (
-	defaultServiceURL    = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
-	defaultFinalizer     = "feed.finalizer.news-aggregator.teamdev.com"
-	defaultConfigMapName = "hotnews-feeds-group"
-	defaultNamespace     = "news-aggregator-namespace"
+	defaultServiceURL       = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
+	defaultFeedFinalizer    = "feed.finalizer.news-aggregator.teamdev.com"
+	defaultHotNewsFinalizer = "hotnews.finalizer.news-aggregator.teamdev.com"
+	defaultConfigMapName    = "hotnews-feeds-group"
+	defaultNamespace        = "news-aggregator-namespace"
 )
 
 var (
@@ -51,7 +52,8 @@ func main() {
 	var enableHTTP2 bool
 	var tlsOpts []func(*tls.Config)
 	var serviceURL string
-	var finalizer string
+	var feedFinalizer string
+	var hotNewsFinalizer string
 	var configMapName string
 	var namespace string
 
@@ -59,7 +61,8 @@ func main() {
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.StringVar(&serviceURL, "service-url", defaultServiceURL, "The URL of the service to send HTTP requests to.")
-	flag.StringVar(&finalizer, "finalizer", defaultFinalizer, "The finalizer to add to Feed objects.")
+	flag.StringVar(&feedFinalizer, "feedFinalizer", defaultFeedFinalizer, "The feedFinalizer to add to Feed objects.")
+	flag.StringVar(&hotNewsFinalizer, "hotNewsFinalizer", defaultHotNewsFinalizer, "The hotNewsFinalizer to add to HotNews objects.")
 	flag.StringVar(&configMapName, "config-map-name", defaultConfigMapName, "The name of the ConfigMap to read HotNews keywords from.")
 	flag.StringVar(&namespace, "config-map-namespace", defaultNamespace, "The namespace")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
@@ -138,7 +141,7 @@ func main() {
 		Scheme:     mgr.GetScheme(),
 		HTTPClient: controller.NewDefaultHTTPClient(),
 		ServiceURL: serviceURL,
-		Finalizer:  finalizer,
+		Finalizer:  feedFinalizer,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Feed")
 		os.Exit(1)
@@ -155,6 +158,7 @@ func main() {
 		HTTPClient:         controller.NewDefaultHTTPClient(),
 		NewsAggregatorURL:  serviceURL,
 		Namespace:          namespace,
+		Finalizer:          hotNewsFinalizer,
 		ConfigMapName:      configMapName,
 		ConfigMapNamespace: namespace,
 	}).SetupWithManager(mgr); err != nil {
