@@ -26,8 +26,8 @@ import (
 
 const (
 	defaultServiceURL       = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
-	defaultFeedFinalizer    = "feed.finalizer.news-aggregator.teamdev.com"
-	defaultHotNewsFinalizer = "hotnews.finalizer.news-aggregator.teamdev.com"
+	defaultFeedFinalizer    = "news-aggregator.teamdev.com/feeds-finalizer"
+	defaultHotNewsFinalizer = "news-aggregator.teamdev.com/hotnews-finalizer"
 	defaultConfigMapName    = "hotnews-feeds-group"
 	defaultNamespace        = "news-aggregator-namespace"
 )
