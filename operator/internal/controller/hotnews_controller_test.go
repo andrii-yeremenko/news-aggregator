@@ -238,6 +238,90 @@ var _ = Describe("HotNews Controller", func() {
 			Expect(hotNews.Status.ArticlesCount).To(Equal(3))
 			Expect(hotNews.Status.ArticlesTitles).To(Equal([]string{"a", "b", "c"}))
 		})
+
+		Context("Test Owner References", func() {
+			It("Should set Owner References for the Feed", func() {
+				feed := &v1.Feed{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test-feed",
+						Namespace: "default",
+					},
+					Spec: v1.FeedSpec{
+						Name: "test-feed",
+						Link: "http://localhost:8080",
+					},
+				}
+
+				err := fakeClient.Create(context.TODO(), feed)
+				Expect(err).To(BeNil())
+
+				hotNews.Spec.Feeds = []string{"test-feed"}
+
+				err = fakeClient.Create(context.TODO(), hotNews)
+				Expect(err).To(BeNil())
+
+				httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
+					StatusCode: 200,
+					Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"test title\"}]")),
+				}, nil)
+
+				namespacedName := types.NamespacedName{Namespace: "default", Name: "test-hotnews"}
+				_, err = reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: namespacedName})
+				Expect(err).To(BeNil())
+
+				Expect(fakeClient.Get(context.TODO(), namespacedName, hotNews)).To(Succeed())
+
+				Expect(fakeClient.Get(context.TODO(), types.NamespacedName{Namespace: "default", Name: "test-feed"}, feed)).To(Succeed())
+				Expect(feed.OwnerReferences).To(HaveLen(1))
+				Expect(feed.OwnerReferences[0].Name).To(Equal(hotNews.Name))
+			})
+
+			It("Should remove Owner References for the Feed when HotNews is deleting", func() {
+				feed := &v1.Feed{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test-feed",
+						Namespace: "default",
+					},
+					Spec: v1.FeedSpec{
+						Name: "test-feed",
+						Link: "http://localhost:8080",
+					},
+				}
+
+				err := fakeClient.Create(context.TODO(), feed)
+				Expect(err).To(BeNil())
+
+				hotNews.Spec.Feeds = []string{"test-feed"}
+
+				err = fakeClient.Create(context.TODO(), hotNews)
+				Expect(err).To(BeNil())
+
+				httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
+					StatusCode: 200,
+					Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"test title\"}]")),
+				}, nil)
+
+				namespacedName := types.NamespacedName{Namespace: "default", Name: "test-hotnews"}
+				_, err = reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: namespacedName})
+				Expect(err).To(BeNil())
+
+				Expect(fakeClient.Get(context.TODO(), namespacedName, hotNews)).To(Succeed())
+
+				Expect(fakeClient.Get(context.TODO(), types.NamespacedName{Namespace: "default", Name: "test-feed"}, feed)).To(Succeed())
+				Expect(feed.OwnerReferences).To(HaveLen(1))
+				Expect(feed.OwnerReferences[0].Name).To(Equal(hotNews.Name))
+
+				err = fakeClient.Delete(context.TODO(), hotNews)
+				Expect(err).To(BeNil())
+
+				namespacedName = types.NamespacedName{Namespace: "default", Name: "test-hotnews"}
+				_, err = reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: namespacedName})
+				Expect(err).To(BeNil())
+
+				Expect(fakeClient.Get(context.TODO(), types.NamespacedName{Namespace: "default", Name: "test-feed"}, feed)).To(Succeed())
+				Expect(feed.OwnerReferences).To(HaveLen(0))
+			})
+		})
 	})
 
 	Context("Test Failed Reconcile", func() {
