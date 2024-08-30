@@ -33,6 +33,3 @@ webhooks:
         resources:
           - configmaps
     sideEffects: None
-
-
-
