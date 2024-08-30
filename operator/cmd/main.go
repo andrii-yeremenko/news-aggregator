@@ -170,6 +170,18 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "HotNews")
 			os.Exit(1)
 		}
+
+		configMapValidator := newsaggregatorv1.ConfigMapWebhook{
+			Client:             mgr.GetClient(),
+			ConfigMapNamespace: namespace,
+			ConfigMapName:      configMapName,
+		}
+		if err = configMapValidator.SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "ConfigMap")
+			os.Exit(1)
+		}
+
+		setupLog.Info("HotNews webhooks enabled")
 	}
 
 	// +kubebuilder:scaffold:builder
