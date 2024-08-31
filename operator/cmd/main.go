@@ -3,7 +3,9 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	corev1 "k8s.io/api/core/v1"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -171,13 +173,15 @@ func main() {
 			os.Exit(1)
 		}
 
-		configMapValidator := newsaggregatorv1.ConfigMapWebhook{
-			Client:             mgr.GetClient(),
-			ConfigMapNamespace: namespace,
-			ConfigMapName:      configMapName,
-		}
-		if err = configMapValidator.SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "ConfigMap")
+		if err := builder.WebhookManagedBy(mgr).
+			For(&corev1.ConfigMap{}).
+			WithValidator(&newsaggregatorv1.ConfigMapWebhook{
+				Client:             mgr.GetClient(),
+				ConfigMapName:      configMapName,
+				ConfigMapNamespace: namespace,
+			}).
+			Complete(); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Pod")
 			os.Exit(1)
 		}
 

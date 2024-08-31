@@ -3,14 +3,14 @@ package v1
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
+	"strings"
 )
+
+// +kubebuilder:webhook:path=/validate--v1-configmap,mutating=false,failurePolicy=fail,sideEffects=None,groups="",resources=configmaps,verbs=create;update,versions=v1,name=vconfigmap.kb.io,admissionReviewVersions=v1
 
 // ConfigMapWebhook handles validation of ConfigMaps
 type ConfigMapWebhook struct {
@@ -93,12 +93,4 @@ func (r *ConfigMapWebhook) validateFeeds(ctx context.Context, namespace, feeds s
 	}
 
 	return nil
-}
-
-// SetupWebhookWithManager sets up the webhook with the manager
-func (r *ConfigMapWebhook) SetupWebhookWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewWebhookManagedBy(mgr).
-		For(&corev1.ConfigMap{}).
-		WithValidator(r).
-		Complete()
 }
