@@ -78,6 +78,34 @@ var _ = Describe("ConfigMapWebhook", func() {
 			Expect(err.Error()).To(ContainSubstring("feeds \"invalid-feed\" do not exist"))
 		})
 
+		It("should fail if configmap is has another namespace", func() {
+			configMap.Namespace = "another-namespace"
+
+			_, err := webhook.ValidateCreate(ctx, configMap)
+			Expect(err).To(BeNil())
+		})
+
+		It("should fail if configmap is has another name", func() {
+			configMap.Name = "another-name"
+
+			_, err := webhook.ValidateCreate(ctx, configMap)
+			Expect(err).To(BeNil())
+		})
+
+		It("should fail if configmap is has another name and namespace", func() {
+			configMap.Name = "another-name"
+			configMap.Namespace = "another-namespace"
+
+			_, err := webhook.ValidateCreate(ctx, configMap)
+			Expect(err).To(BeNil())
+		})
+
+		It("should fail if configmap is not v1.ConfigMap object type", func() {
+			_, err := webhook.ValidateCreate(ctx, &corev1.Pod{})
+			Expect(err).To(HaveOccurred())
+			Expect(err.Error()).To(ContainSubstring("expected a ConfigMap but got a *v1.Pod"))
+		})
+
 		It("should succeed if all fields are non-empty and feeds exist", func() {
 			_, err := webhook.ValidateCreate(ctx, configMap)
 			Expect(err).ToNot(HaveOccurred())

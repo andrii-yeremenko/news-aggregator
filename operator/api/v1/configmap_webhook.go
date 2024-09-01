@@ -26,7 +26,7 @@ func (r *ConfigMapWebhook) ValidateCreate(ctx context.Context, obj runtime.Objec
 		return nil, fmt.Errorf("expected a ConfigMap but got a %T", obj)
 	}
 
-	if cm.Namespace != r.ConfigMapNamespace && cm.Name != r.ConfigMapName {
+	if cm.Namespace != r.ConfigMapNamespace || cm.Name != r.ConfigMapName {
 		return nil, nil
 	}
 
