@@ -41,12 +41,9 @@ spec:
             properties:
               link:
                 description: Link is the URL of the news feed.
-                format: uri
                 type: string
               name:
                 description: Name is the name of the news feed.
-                maxLength: 100
-                minLength: 1
                 pattern: ^[a-zA-Z0-9-_]+$
                 type: string
             required:
