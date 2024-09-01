@@ -2,6 +2,7 @@ apiVersion: news-aggregator.com.teamdev/v1
 kind: Feed
 metadata:
   name: washington-times
+  namespace: news-aggregator-namespace
 spec:
   name: washington-times
   link: "https://www.washingtontimes.com/rss/headlines/news/world/"

@@ -37,23 +37,28 @@ spec:
           metadata:
             type: object
           spec:
-            description: HotNewsSpec defines the desired state of HotNews
+            description: Spec defines the desired state of HotNews
             properties:
               dateEnd:
+                description: DateEnd is the end date for the news search.
                 format: date-time
                 type: string
               dateStart:
+                description: DateStart is the start date for the news search.
                 format: date-time
                 type: string
               feedGroups:
+                description: FeedGroups are the groups of news sources.
                 items:
                   type: string
                 type: array
               feeds:
+                description: Feeds are the news sources.
                 items:
                   type: string
                 type: array
               keywords:
+                description: Keywords are the search terms for the news.
                 items:
                   type: string
                 type: array
@@ -69,20 +74,30 @@ spec:
             - keywords
             type: object
           status:
-            description: HotNewsStatus defines the observed state of HotNews
+            description: Status defines the observed state of HotNews
             properties:
               articlesCount:
+                description: This is the count of fetched news articles.
                 type: integer
               articlesTitles:
+                description: This is the titles of fetched news articles.
                 items:
                   type: string
                 type: array
+              conditions:
+                description: Conditions are the conditions for the HotNews resource.
+                items:
+                  description: ConditionType defines the type of the condition
+                  type: string
+                type: array
               newsLink:
+                description: This is the link to the news source.
                 type: string
             required:
-              - articlesCount
-              - articlesTitles
-              - newsLink
+            - articlesCount
+            - articlesTitles
+            - conditions
+            - newsLink
             type: object
         type: object
     served: true

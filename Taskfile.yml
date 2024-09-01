@@ -137,6 +137,7 @@ tasks:
     cmds:
       - kubectl apply -f $K8S_TEMPLATES_PATH/app
       - kubectl apply -f $K8S_TEMPLATES_PATH/rbac
+      - kubectl apply -f $K8S_TEMPLATES_PATH/cronjob
       - echo "The news-aggregator app has been deployed"
 
   undeploy:
@@ -144,6 +145,7 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/app -n news-aggregator-namespace
       - kubectl delete -f $K8S_TEMPLATES_PATH/rbac -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/cronjob -n news-aggregator-namespace
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
 
   port-forward:
@@ -159,23 +161,23 @@ tasks:
       - rm port-forward.log
       - echo "Stopped port-forwarding."
 
-  start-cronjob:
-    desc: "Create a cronjob for the news-updater"
-    deps:
-      - create-namespace
-    cmds:
-      - kubectl apply -f $K8S_TEMPLATES_PATH/cronjob
-      - echo "Cronjob created"
-
-  stop-cronjob:
-    desc: "Delete the cronjob for the news-updater"
-    cmds:
-      - kubectl delete -f $K8S_TEMPLATES_PATH/cronjob
-      - echo "Cronjob deleted"
-
   setup-feeds:
     desc: "Setup the news feeds"
     cmds:
+      - |
+        if ! kubectl get crd feeds.news-aggregator.com.teamdev >/dev/null 2>&1; then
+          echo "Error: Feed CRD is not installed. Cannot proceed with feed setup."
+          exit 1
+        else
+          echo "Feed CRD is installed."
+        fi
+      - |
+        if ! kubectl get deployment operator-controller-manager -n operator-system >/dev/null 2>&1; then
+          echo "Error: Operator Feed operator is not installed. Cannot proceed with feed setup."
+          exit 1
+        else
+          echo "Operator is installed."
+        fi
       - kubectl apply -f $K8S_TEMPLATES_PATH/feed
       - echo "Feeds setup"
 
@@ -184,18 +186,6 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/feed
       - echo "Feeds deleted"
-
-  setup-feed-groups:
-    desc: "Setup the feed groups"
-    cmds:
-      - kubectl apply -f $K8S_TEMPLATES_PATH/configmap
-      - echo "Feed groups setup"
-
-  teardown-feed-groups:
-    desc: "Delete the feed groups"
-    cmds:
-      - kubectl delete -f $K8S_TEMPLATES_PATH/configmap
-      - echo "Feed groups deleted"
 
   add-hotnews:
     desc: "Add a new HotNews object"
@@ -220,26 +210,3 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/configmap/feeds-group.yaml
       - echo "Feeds map unconfigured"
-
-  createChart:
-    desc: "Creates a Helm chart with all needed resources for the news-aggregator"
-    cmds:
-      - helm package ./news-aggregator-server
-      - mkdir -p ./charts
-      - mv *.tgz ./charts/
-    silent: true
-
-  installChart:
-    desc: "Installs chart on Kubernetes cluster"
-    deps:
-      - createChart
-    cmds:
-      - helm install news-aggregator ./charts/news-aggregator-*.tgz --namespace news-aggregator-namespace --create-namespace
-    silent: true
-
-  uninstallChart:
-    desc: "Uninstalls chart from Kubernetes cluster and deletes namespace"
-    cmds:
-      - helm uninstall news-aggregator --namespace news-aggregator-namespace
-      - kubectl delete namespace news-aggregator-namespace --ignore-not-found --wait=false
-    silent: true
