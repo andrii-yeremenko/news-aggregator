@@ -10,6 +10,26 @@ webhooks:
     service:
       name: webhook-service
       namespace: system
+      path: /validate--v1-configmap
+  failurePolicy: Fail
+  name: vconfigmap.kb.io
+  rules:
+  - apiGroups:
+    - ""
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - configmaps
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
       path: /validate-news-aggregator-com-teamdev-v1-feed
   failurePolicy: Fail
   name: vfeed.kb.io
@@ -23,4 +43,24 @@ webhooks:
     - UPDATE
     resources:
     - feeds
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-news-aggregator-com-teamdev-v1-hotnews
+  failurePolicy: Fail
+  name: vhotnews.kb.io
+  rules:
+  - apiGroups:
+    - news-aggregator.com.teamdev
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - hotnews
   sideEffects: None
