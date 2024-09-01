@@ -140,9 +140,15 @@ func (r *HotNewsReconciler) finalizeHotNews(ctx context.Context, hotNews *newsag
 
 // removeOwnerReferencesFromFeeds removes the owner references from all related Feed resources.
 func (r *HotNewsReconciler) removeOwnerReferencesFromFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
-	feeds, err := r.GetFeedSourcesFromConfig(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get feed sources: %w", err)
+
+	var feeds map[string][]string
+	var err error
+
+	if hotNews.Spec.FeedGroups != nil {
+		feeds, err = r.GetFeedSourcesFromConfig(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get feed sources: %w", err)
+		}
 	}
 
 	uniqueSources := r.collectUniqueSources(hotNews.Spec, feeds)
@@ -167,9 +173,15 @@ func (r *HotNewsReconciler) removeOwnerReferencesFromFeeds(ctx context.Context, 
 
 // addOwnerReferencesOnFeeds sets the owner reference on all related Feed resources
 func (r *HotNewsReconciler) addOwnerReferencesOnFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
-	feeds, err := r.GetFeedSourcesFromConfig(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get feed sources: %w", err)
+
+	var feeds map[string][]string
+	var err error
+
+	if hotNews.Spec.FeedGroups != nil {
+		feeds, err = r.GetFeedSourcesFromConfig(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get feed sources: %w", err)
+		}
 	}
 
 	uniqueSources := r.collectUniqueSources(hotNews.Spec, feeds)
@@ -198,9 +210,14 @@ func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (
 
 	baseURL := fmt.Sprintf("%s%s", r.NewsAggregatorURL, newsEndpoint)
 
-	sources, err := r.GetFeedSourcesFromConfig(context.Background())
-	if err != nil {
-		return "", fmt.Errorf("failed to get feed sources: %w", err)
+	var sources map[string][]string
+	var err error
+
+	if spec.FeedGroups != nil {
+		sources, err = r.GetFeedSourcesFromConfig(context.Background())
+		if err != nil {
+			return "", fmt.Errorf("failed to get feed sources: %w", err)
+		}
 	}
 
 	uniqueSources := r.collectUniqueSources(spec, sources)

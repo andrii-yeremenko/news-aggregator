@@ -340,15 +340,20 @@ var _ = Describe("HotNews Controller", func() {
 				Expect(fakeClient.Get(context.TODO(), namespacedName, hotNews)).To(Succeed())
 			})
 
-			It("Should fail to reconcile when ConfigMap is absent and only Feeds defined", func() {
+			It("Should to reconcile when ConfigMap is absent and FeedGroups not defined", func() {
 				hotNews.Spec.Feeds = []string{"test-feed"}
 
 				err := fakeClient.Create(context.TODO(), hotNews)
 				Expect(err).To(BeNil())
 
+				httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
+					StatusCode: 200,
+					Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"test title\"}]")),
+				}, nil)
+
 				namespacedName := types.NamespacedName{Namespace: "default", Name: "test-hotnews"}
 				_, err = reconcile.Reconcile(context.TODO(), ctrl.Request{NamespacedName: namespacedName})
-				Expect(err).To(HaveOccurred())
+				Expect(err).To(BeNil())
 
 				Expect(fakeClient.Get(context.TODO(), namespacedName, hotNews)).To(Succeed())
 			})
