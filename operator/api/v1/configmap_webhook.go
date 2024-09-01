@@ -74,23 +74,42 @@ func (r *ConfigMapWebhook) validateConfigMap(ctx context.Context, cm *corev1.Con
 // validateFeeds checks if the feeds listed in the ConfigMap exist as Kubernetes resources
 func (r *ConfigMapWebhook) validateFeeds(ctx context.Context, namespace, feeds string) error {
 	feedList := strings.Split(feeds, ",")
-	var notFoundFeeds []string
+	for i := range feedList {
+		feedList[i] = strings.TrimSpace(feedList[i])
+	}
 
+	availableFeeds, err := r.listAvailableFeeds(ctx, namespace)
+	if err != nil {
+		return fmt.Errorf("failed to list feeds in namespace %s: %w", namespace, err)
+	}
+
+	var notFoundFeeds []string
 	for _, feed := range feedList {
-		feedName := strings.TrimSpace(feed)
-		var f Feed
-		if err := r.Client.Get(ctx, client.ObjectKey{
-			Namespace: namespace,
-			Name:      feedName,
-		}, &f); err != nil {
-			notFoundFeeds = append(notFoundFeeds, feedName)
+		if !availableFeeds[feed] {
+			notFoundFeeds = append(notFoundFeeds, feed)
 		}
 	}
 
 	if len(notFoundFeeds) > 0 {
 		errStr := strings.Join(notFoundFeeds, ", ")
-		return fmt.Errorf("feeds \"%s\" do not exist", errStr)
+		return fmt.Errorf("feeds \"%s\" do not exist in ", errStr)
 	}
 
 	return nil
+}
+
+// listAvailableFeeds lists all available feeds in the given namespace and returns a set of their names
+func (r *ConfigMapWebhook) listAvailableFeeds(ctx context.Context, namespace string) (map[string]bool, error) {
+	feedSet := make(map[string]bool)
+
+	var feedList FeedList
+	if err := r.Client.List(ctx, &feedList, client.InNamespace(namespace)); err != nil {
+		return nil, err
+	}
+
+	for _, feed := range feedList.Items {
+		feedSet[feed.Name] = true
+	}
+
+	return feedSet, nil
 }
