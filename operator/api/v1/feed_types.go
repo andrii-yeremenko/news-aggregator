@@ -4,23 +4,41 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+// ConditionType defines the type of the condition
+type ConditionType string
+
+const (
+	// ConditionAdded means the feed has been added successfully
+	ConditionAdded ConditionType = "Added"
+	// ConditionUpdated means the feed has been updated successfully
+	ConditionUpdated ConditionType = "Updated"
+	// ConditionDeleted means the feed has been deleted successfully
+	ConditionDeleted ConditionType = "Deleted"
+	// ConditionFailed means the feed has failed to be added, updated or deleted
+	ConditionFailed ConditionType = "Failed"
+)
+
+type Condition struct {
+	Type           ConditionType `json:"type"`
+	Status         bool          `json:"status"`
+	Reason         string        `json:"reason,omitempty"`
+	Message        string        `json:"message,omitempty"`
+	LastUpdateTime metav1.Time   `json:"lastUpdateTime,omitempty"`
+}
+
 // FeedSpec defines the desired state of Feed
 type FeedSpec struct {
 	// Name is the name of the news feed.
-	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:MaxLength=100
 	// +kubebuilder:validation:Pattern=`^[a-zA-Z0-9-_]+$`
 	Name string `json:"name"`
 
 	// Link is the URL of the news feed.
-	// +kubebuilder:validation:Format=uri
 	Link string `json:"link"`
 }
 
 // FeedStatus defines the observed state of Feed
 type FeedStatus struct {
 	// Conditions represent the latest available observations of an object's state.
-	// +kubebuilder:validation:Optional
 	Conditions []Condition `json:"conditions,omitempty"`
 }
 
@@ -33,15 +51,11 @@ type Feed struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	// Spec defines the desired state of Feed
-	// +kubebuilder:validation:Required
 	Spec FeedSpec `json:"spec,omitempty"`
 
 	// Status defines the observed state of Feed
-	// +kubebuilder:validation:Optional
 	Status FeedStatus `json:"status,omitempty"`
 }
-
-// +kubebuilder:object:root=true
 
 // FeedList contains a list of Feed
 type FeedList struct {

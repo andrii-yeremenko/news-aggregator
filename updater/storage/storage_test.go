@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 	"time"
-	"updater/model/feed"
+	"updater/updater/model/feed"
 )
 
 func TestNew(t *testing.T) {
@@ -19,7 +19,11 @@ func TestNew(t *testing.T) {
 			}
 		}(basePath)
 
-		storage := New(basePath)
+		storage, err := New(basePath)
+
+		if err != nil {
+			t.Errorf("expected no error, got %v", err)
+		}
 
 		if storage.basePath != basePath {
 			t.Errorf("expected basePath %s, got %s", basePath, storage.basePath)
@@ -32,10 +36,40 @@ func TestNew(t *testing.T) {
 
 	t.Run("basePath not provided", func(t *testing.T) {
 		defaultPath := "/resources"
-		storage := New("")
+		storage, _ := New("")
 
 		if storage.basePath != defaultPath {
 			t.Errorf("expected basePath %s, got %s", defaultPath, storage.basePath)
+		}
+	})
+
+	t.Run("cannot create directory", func(t *testing.T) {
+		restrictedPath := "restrictedDir"
+		defer func(path string) {
+			err := os.RemoveAll(path)
+			if err != nil {
+				fmt.Println("Error of removing directory")
+			}
+		}(restrictedPath)
+
+		err := os.Mkdir(restrictedPath, 0555)
+		if err != nil {
+			t.Fatalf("expected to create directory %s, got error %v", restrictedPath, err)
+		}
+
+		_ = os.Chdir(restrictedPath)
+
+		_, err = New("")
+		if err == nil {
+			t.Errorf("expected error, got nil")
+		}
+
+		_ = os.Chdir("..")
+
+		_ = os.Chmod(restrictedPath, 0755)
+		err = os.Remove(restrictedPath)
+		if err != nil {
+			t.Fatalf("expected to remove directory %s, got error %v", restrictedPath, err)
 		}
 	})
 }
@@ -48,7 +82,7 @@ func TestStorage_UpdateRSSFeed(t *testing.T) {
 			fmt.Println("Error of removing directory")
 		}
 	}(basePath)
-	storage := New(basePath)
+	storage, _ := New(basePath)
 
 	source := feed.Source("test-source")
 	content := []byte("<rss>test content</rss>")
@@ -83,7 +117,7 @@ func TestStorage_UpdateHTMLFeed(t *testing.T) {
 			fmt.Println("Error of removing directory")
 		}
 	}(basePath)
-	storage := New(basePath)
+	storage, _ := New(basePath)
 
 	source := feed.Source("test-source")
 	content := []byte("<html>test content</html>")

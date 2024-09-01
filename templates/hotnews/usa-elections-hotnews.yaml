@@ -2,6 +2,7 @@ apiVersion: news-aggregator.com.teamdev/v1
 kind: HotNews
 metadata:
   name: usa-elections
+  namespace: news-aggregator-namespace
 spec:
   keywords:
     - trump
