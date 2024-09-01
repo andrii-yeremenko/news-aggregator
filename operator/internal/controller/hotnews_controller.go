@@ -106,7 +106,7 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, err
 	}
 
-	if err := r.updateHotNewsStatus(ctx, &hotNews, titles, url); err != nil {
+	if err := r.updateHotNewsArticles(ctx, &hotNews, titles, url); err != nil {
 		logger.Error(err, "Failed to update HotNews status")
 		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
 		if statusErr != nil {
@@ -318,7 +318,7 @@ func (r *HotNewsReconciler) fetchNews(url string) ([]string, error) {
 
 	return titles, nil
 }
-func (r *HotNewsReconciler) updateHotNewsStatus(ctx context.Context, hotNews *newsaggregatorv1.HotNews, titles []string,
+func (r *HotNewsReconciler) updateHotNewsArticles(ctx context.Context, hotNews *newsaggregatorv1.HotNews, titles []string,
 	url string) error {
 	actualFeedCount := len(titles)
 	titlesCount := hotNews.Spec.SummaryConfig.TitlesCount
