@@ -75,13 +75,13 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if hotNews.DeletionTimestamp != nil {
-		if err := r.handleFinalizer(ctx, &hotNews); err != nil {
+		if err := r.finalizeHotNews(ctx, &hotNews); err != nil {
 			return ctrl.Result{}, err
 		}
 		return ctrl.Result{}, nil
 	}
 
-	if err := r.setOwnerReferencesOnFeeds(ctx, &hotNews); err != nil {
+	if err := r.addOwnerReferencesOnFeeds(ctx, &hotNews); err != nil {
 		logger.Error(err, "Failed to set owner references on related feeds")
 		return ctrl.Result{}, err
 	}
@@ -120,8 +120,8 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return ctrl.Result{}, r.updateStatus(&hotNews, newsaggregatorv1.ConditionUpdated)
 }
 
-// handleFinalizer handles the finalizer logic for the HotNews resource.
-func (r *HotNewsReconciler) handleFinalizer(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
+// finalizeHotNews handles the finalizer logic for the HotNews resource.
+func (r *HotNewsReconciler) finalizeHotNews(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
 	logger := log.FromContext(ctx)
 
 	if err := r.removeOwnerReferencesFromFeeds(ctx, hotNews); err != nil {
@@ -165,8 +165,8 @@ func (r *HotNewsReconciler) removeOwnerReferencesFromFeeds(ctx context.Context, 
 	return nil
 }
 
-// setOwnerReferencesOnFeeds sets the owner reference on all related Feed resources
-func (r *HotNewsReconciler) setOwnerReferencesOnFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
+// addOwnerReferencesOnFeeds sets the owner reference on all related Feed resources
+func (r *HotNewsReconciler) addOwnerReferencesOnFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
 	feeds, err := r.GetFeedSourcesFromConfig(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get feed sources: %w", err)
