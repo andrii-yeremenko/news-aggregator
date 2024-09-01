@@ -6,14 +6,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
-	"testing"
 )
-
-// TestConfigMapPredicates is the test suite for ConfigMap predicates
-func TestFeedPredicates(t *testing.T) {
-	RegisterFailHandler(Fail)
-	RunSpecs(t, "Feed Predicates Suite")
-}
 
 var _ = Describe("Feed Predicates", func() {
 	var (
@@ -46,6 +39,20 @@ var _ = Describe("Feed Predicates", func() {
 
 			Expect(predicate.Create(createEvent)).To(BeFalse())
 			Expect(predicate.Update(updateEvent)).To(BeFalse())
+		})
+
+		It("should handle delete events from other namespaces", func() {
+			obj.SetNamespace("other-namespace")
+			deleteEvent := event.DeleteEvent{Object: obj}
+
+			Expect(predicate.Delete(deleteEvent)).To(BeFalse())
+		})
+
+		It("should handle generic events from other namespaces", func() {
+			obj.SetNamespace("other-namespace")
+			genericEvent := event.GenericEvent{Object: obj}
+
+			Expect(predicate.Generic(genericEvent)).To(BeFalse())
 		})
 	})
 })
