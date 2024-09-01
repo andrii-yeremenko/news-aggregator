@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"k8s.io/apimachinery/pkg/runtime"
 	"net/url"
+	"regexp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -120,12 +121,8 @@ func validateFeed(feed *Feed) error {
 
 // isValidName checks that the name contains only alphanumeric characters, dashes, and underscores.
 func isValidName(name string) bool {
-	for _, ch := range name {
-		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-' || ch == '_') {
-			return false
-		}
-	}
-	return true
+	var validNameRegex = regexp.MustCompile(`^[a-zA-Z0-9-_]+$`)
+	return validNameRegex.MatchString(name)
 }
 
 // validateURL checks if the URL is valid.
