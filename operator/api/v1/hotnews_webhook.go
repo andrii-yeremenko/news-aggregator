@@ -5,6 +5,7 @@ import (
 	"fmt"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/util/validation/field"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
@@ -34,7 +35,7 @@ func (r *HotNews) ValidateCreate() (admission.Warnings, error) {
 	hotnewsLog.Info("validate create", "name", r.Name)
 
 	if err := r.validateHotNews(); err != nil {
-		return nil, err
+		return nil, err.ToAggregate()
 	}
 	return nil, nil
 }
@@ -44,7 +45,7 @@ func (r *HotNews) ValidateUpdate(old runtime.Object) (admission.Warnings, error)
 	hotnewsLog.Info("validate update", "name", r.Name)
 
 	if err := r.validateHotNews(); err != nil {
-		return nil, err
+		return nil, err.ToAggregate()
 	}
 	return nil, nil
 }
@@ -56,34 +57,34 @@ func (r *HotNews) ValidateDelete() (admission.Warnings, error) {
 }
 
 // validateHotNews contains the core validation logic for HotNews.
-func (r *HotNews) validateHotNews() error {
-	var errors []string
+func (r *HotNews) validateHotNews() field.ErrorList {
+	var allErrs field.ErrorList
+	specPath := field.NewPath("spec")
 
 	if len(r.Spec.Keywords) == 0 {
-		errors = append(errors, "keywords must be provided")
+		allErrs = append(allErrs, field.Required(specPath.Child("keywords"), "keywords must be provided"))
 	}
 
-	if r.Spec.DateStart != nil && r.Spec.DateEnd != nil {
-		if !r.Spec.DateEnd.After(r.Spec.DateStart.Time) {
-			errors = append(errors, "dateEnd must be after dateStart")
+	if r.Spec.DateStart == nil || r.Spec.DateEnd == nil {
+		if r.Spec.DateStart == nil {
+			allErrs = append(allErrs, field.Required(specPath.Child("dateStart"), "dateStart must be provided"))
 		}
-	} else if r.Spec.DateStart == nil || r.Spec.DateEnd == nil {
-		errors = append(errors, "both dateStart and dateEnd must be provided")
+		if r.Spec.DateEnd == nil {
+			allErrs = append(allErrs, field.Required(specPath.Child("dateEnd"), "dateEnd must be provided"))
+		}
+	} else if !r.Spec.DateEnd.After(r.Spec.DateStart.Time) {
+		allErrs = append(allErrs, field.Invalid(specPath.Child("dateEnd"), r.Spec.DateEnd, "dateEnd must be after dateStart"))
 	}
 
 	if err := r.validateFeedGroups(); err != nil {
-		errors = append(errors, err.Error())
+		allErrs = append(allErrs, field.Invalid(specPath.Child("feedGroups"), r.Spec.FeedGroups, err.Error()))
 	}
 
 	if err := r.validateFeeds(); err != nil {
-		errors = append(errors, err.Error())
+		allErrs = append(allErrs, field.Invalid(specPath.Child("feeds"), r.Spec.Feeds, err.Error()))
 	}
 
-	if len(errors) > 0 {
-		return fmt.Errorf(strings.Join(errors, ", "))
-	}
-
-	return nil
+	return allErrs
 }
 
 // validateFeeds checks if the feeds specified in the HotNews resource exist.

@@ -32,7 +32,7 @@ var _ = Describe("HotNews Validation", func() {
 					},
 				}
 				err := hotNews.validateHotNews()
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).To(HaveLen(0))
 			})
 
 			It("should not validate with empty keywords", func() {
@@ -44,8 +44,10 @@ var _ = Describe("HotNews Validation", func() {
 					},
 				}
 				err := hotNews.validateHotNews()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("keywords must be provided"))
+				Expect(err).To(HaveLen(1))
+				Expect(err[0].Type.String()).To(Equal("Required value"))
+				Expect(err[0].Field).To(Equal("spec.keywords"))
+				Expect(err[0].Detail).To(Equal("keywords must be provided"))
 			})
 
 			It("should not validate when dateEnd is before dateStart", func() {
@@ -57,8 +59,10 @@ var _ = Describe("HotNews Validation", func() {
 					},
 				}
 				err := hotNews.validateHotNews()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("dateEnd must be after dateStart"))
+				Expect(err).To(HaveLen(1))
+				Expect(err[0].Type.String()).To(Equal("Invalid value"))
+				Expect(err[0].Field).To(Equal("spec.dateEnd"))
+				Expect(err[0].Detail).To(Equal("dateEnd must be after dateStart"))
 			})
 
 			It("should not validate when dateStart is specified without dateEnd", func() {
@@ -69,8 +73,10 @@ var _ = Describe("HotNews Validation", func() {
 					},
 				}
 				err := hotNews.validateHotNews()
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("both dateStart and dateEnd must be provided"))
+				Expect(err).To(HaveLen(1))
+				Expect(err[0].Type.String()).To(Equal("Required value"))
+				Expect(err[0].Field).To(Equal("spec.dateEnd"))
+				Expect(err[0].Detail).To(Equal("dateEnd must be provided"))
 			})
 		})
 	})
