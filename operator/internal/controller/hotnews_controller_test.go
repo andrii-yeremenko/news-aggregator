@@ -321,6 +321,86 @@ var _ = Describe("HotNews Controller", func() {
 				Expect(fakeClient.Get(context.TODO(), types.NamespacedName{Namespace: "default", Name: "test-feed"}, feed)).To(Succeed())
 				Expect(feed.OwnerReferences).To(HaveLen(0))
 			})
+
+			It("Should remove Owner References for the Feed when HotNews is deleting and leave other Owner References", func() {
+
+				secondaryOwner := &v1.HotNews{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test-hotnews-2",
+						Namespace: "default",
+					},
+					Spec: v1.HotNewsSpec{
+						Keywords:      []string{"test", "news"},
+						Feeds:         []string{"test-feed"},
+						DateStart:     &metav1.Time{Time: metav1.Now().AddDate(0, 0, -1)},
+						DateEnd:       &metav1.Time{Time: metav1.Now().AddDate(0, 0, 1)},
+						SummaryConfig: v1.SummaryConfig{TitlesCount: 5},
+					},
+				}
+
+				Expect(fakeClient.Create(context.TODO(), secondaryOwner)).To(Succeed())
+
+				feed := &v1.Feed{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test-feed",
+						Namespace: "default",
+					},
+					Spec: v1.FeedSpec{
+						Name: "test-feed",
+						Link: "http://localhost:8080",
+					},
+				}
+
+				Expect(fakeClient.Create(context.TODO(), feed)).To(Succeed())
+
+				hotNews.Spec.Feeds = []string{"test-feed"}
+
+				Expect(fakeClient.Create(context.TODO(), hotNews)).To(Succeed())
+
+				httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
+					StatusCode: 200,
+					Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"test title\"}]")),
+				}, nil)
+
+				_, err := reconcile.Reconcile(context.TODO(),
+					ctrl.Request{NamespacedName: types.NamespacedName{Namespace: "default", Name: "test-hotnews-2"}})
+
+				Expect(err).To(BeNil())
+
+				httpClient.EXPECT().Do(gomock.Any()).Return(&http.Response{
+					StatusCode: 200,
+					Body:       io.NopCloser(bytes.NewBufferString("[{\"title\": \"test title\"}]")),
+				}, nil)
+
+				_, err = reconcile.Reconcile(context.TODO(),
+					ctrl.Request{NamespacedName: types.NamespacedName{Namespace: "default", Name: "test-hotnews"}})
+
+				Expect(err).To(BeNil())
+
+				Expect(fakeClient.Get(context.TODO(), types.NamespacedName{Namespace: "default",
+					Name: "test-hotnews"}, hotNews)).
+					To(Succeed())
+
+				Expect(fakeClient.Get(context.TODO(), types.NamespacedName{Namespace: "default", Name: "test-feed"},
+					feed)).To(Succeed())
+				Expect(feed.OwnerReferences).To(HaveLen(2))
+				Expect(feed.OwnerReferences[1].Name).To(Equal(hotNews.Name))
+				Expect(feed.OwnerReferences[0].Name).To(Equal(secondaryOwner.Name))
+
+				Expect(fakeClient.Delete(context.TODO(), hotNews)).To(Succeed())
+
+				_, err = reconcile.Reconcile(context.TODO(),
+					ctrl.Request{NamespacedName: types.NamespacedName{Namespace: "default", Name: "test-hotnews"}})
+
+				Expect(err).To(BeNil())
+
+				Expect(fakeClient.Get(context.TODO(),
+					types.NamespacedName{Namespace: "default", Name: "test-feed"}, feed)).
+					To(Succeed())
+
+				Expect(feed.OwnerReferences).To(HaveLen(1))
+				Expect(feed.OwnerReferences[0].Name).To(Equal(secondaryOwner.Name))
+			})
 		})
 	})
 

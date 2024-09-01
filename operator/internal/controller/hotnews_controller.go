@@ -141,18 +141,13 @@ func (r *HotNewsReconciler) finalizeHotNews(ctx context.Context, hotNews *newsag
 // removeOwnerReferencesFromFeeds removes the owner references from all related Feed resources.
 func (r *HotNewsReconciler) removeOwnerReferencesFromFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
 
-	var feeds map[string][]string
-	var err error
+	allFeeds, err := r.getAllFeeds(ctx, hotNews.Spec)
 
-	if hotNews.Spec.FeedGroups != nil {
-		feeds, err = r.GetFeedSourcesFromConfig(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to get feed sources: %w", err)
-		}
+	if err != nil {
+		return fmt.Errorf("failed to get all feeds: %w", err)
 	}
 
-	uniqueSources := r.collectUniqueSources(hotNews.Spec, feeds)
-	for _, feedName := range uniqueSources {
+	for _, feedName := range allFeeds {
 		var feed newsaggregatorv1.Feed
 		if err := r.Get(ctx, client.ObjectKey{Name: feedName, Namespace: hotNews.Namespace}, &feed); err != nil {
 			if errors.IsNotFound(err) {
@@ -162,30 +157,37 @@ func (r *HotNewsReconciler) removeOwnerReferencesFromFeeds(ctx context.Context, 
 			return err
 		}
 
-		feed.SetOwnerReferences([]metav1.OwnerReference{})
+		currentOwnerRef := metav1.NewControllerRef(hotNews, newsaggregatorv1.GroupVersion.WithKind("HotNews"))
+
+		allOwnerRefs := feed.GetOwnerReferences()
+		var newOwnerRefs []metav1.OwnerReference
+
+		for _, ownerRef := range allOwnerRefs {
+			if ownerRef.Name != currentOwnerRef.Name {
+				newOwnerRefs = append(newOwnerRefs, ownerRef)
+			}
+		}
+
+		feed.SetOwnerReferences(newOwnerRefs)
 
 		if err := r.Update(ctx, &feed); err != nil {
 			return fmt.Errorf("failed to remove owner reference from Feed: %w", err)
 		}
 	}
+
 	return nil
 }
 
 // addOwnerReferencesOnFeeds sets the owner reference on all related Feed resources
 func (r *HotNewsReconciler) addOwnerReferencesOnFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
 
-	var feeds map[string][]string
-	var err error
+	allFeeds, err := r.getAllFeeds(context.Background(), hotNews.Spec)
 
-	if hotNews.Spec.FeedGroups != nil {
-		feeds, err = r.GetFeedSourcesFromConfig(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to get feed sources: %w", err)
-		}
+	if err != nil {
+		return fmt.Errorf("failed to get all feeds: %w", err)
 	}
 
-	uniqueSources := r.collectUniqueSources(hotNews.Spec, feeds)
-	for _, feedName := range uniqueSources {
+	for _, feedName := range allFeeds {
 		var feed newsaggregatorv1.Feed
 		if err := r.Get(ctx, client.ObjectKey{Name: feedName, Namespace: hotNews.Namespace}, &feed); err != nil {
 			if errors.IsNotFound(err) {
@@ -195,8 +197,12 @@ func (r *HotNewsReconciler) addOwnerReferencesOnFeeds(ctx context.Context, hotNe
 			return err
 		}
 
+		allOwnerRefs := feed.GetOwnerReferences()
 		ownerRef := metav1.NewControllerRef(hotNews, newsaggregatorv1.GroupVersion.WithKind("HotNews"))
-		feed.SetOwnerReferences([]metav1.OwnerReference{*ownerRef})
+
+		allOwnerRefs = append(allOwnerRefs, *ownerRef)
+
+		feed.SetOwnerReferences(allOwnerRefs)
 
 		if err := r.Update(ctx, &feed); err != nil {
 			return fmt.Errorf("failed to update Feed with owner reference: %w", err)
@@ -210,24 +216,18 @@ func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (
 
 	baseURL := fmt.Sprintf("%s%s", r.NewsAggregatorURL, newsEndpoint)
 
-	var sources map[string][]string
-	var err error
+	allFeeds, err := r.getAllFeeds(context.Background(), spec)
 
-	if spec.FeedGroups != nil {
-		sources, err = r.GetFeedSourcesFromConfig(context.Background())
-		if err != nil {
-			return "", fmt.Errorf("failed to get feed sources: %w", err)
-		}
+	if err != nil {
+		return "", fmt.Errorf("failed to get all feeds: %w", err)
 	}
-
-	uniqueSources := r.collectUniqueSources(spec, sources)
 
 	var params []string
 	if len(spec.Keywords) > 0 {
 		params = append(params, "keywords="+strings.Join(spec.Keywords, ","))
 	}
-	if len(uniqueSources) > 0 {
-		params = append(params, "sources="+strings.Join(uniqueSources, ","))
+	if len(allFeeds) > 0 {
+		params = append(params, "sources="+strings.Join(allFeeds, ","))
 	}
 	if spec.DateStart != nil {
 		params = append(params, "date-start="+formatDateForURL(spec.DateStart.Time))
@@ -239,6 +239,21 @@ func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (
 	url := fmt.Sprintf("%s?%s", baseURL, strings.Join(params, "&"))
 	log.Log.Info("Built request URL", "URL", url)
 	return url, nil
+}
+
+// getAllFeeds returns all feed sources from the HotNews spec and feed groups.
+func (r *HotNewsReconciler) getAllFeeds(ctx context.Context, hotNews newsaggregatorv1.HotNewsSpec) ([]string, error) {
+
+	if hotNews.FeedGroups != nil {
+		feeds, err := r.GetFeedSourcesFromConfigMap(ctx)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get feed sources: %w", err)
+		}
+
+		return r.collectUniqueSources(hotNews, feeds), nil
+	}
+
+	return hotNews.Feeds, nil
 }
 
 // collectUniqueSources collects unique sources from the HotNews spec and feed groups.
@@ -324,7 +339,7 @@ func (r *HotNewsReconciler) updateHotNewsStatus(ctx context.Context, hotNews *ne
 	return nil
 }
 
-func (r *HotNewsReconciler) GetFeedSourcesFromConfig(ctx context.Context) (map[string][]string, error) {
+func (r *HotNewsReconciler) GetFeedSourcesFromConfigMap(ctx context.Context) (map[string][]string, error) {
 	var configMap v1.ConfigMap
 	if err := r.Get(ctx, client.ObjectKey{
 		Name:      r.ConfigMapName,
