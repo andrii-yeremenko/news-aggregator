@@ -10,7 +10,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-var _ = Describe("HotNews Validation", func() {
+var _ = Describe("HotNews Resource Validation", func() {
+	var hotNews HotNews
+
 	BeforeEach(func() {
 		k8sClient = fake.NewClientBuilder().WithObjects(&v1.ConfigMap{
 			Data: map[string]string{
@@ -20,11 +22,10 @@ var _ = Describe("HotNews Validation", func() {
 		}).Build()
 	})
 
-	Describe("ValidateHotNews", func() {
-		Context("when validating HotNews", func() {
-
-			It("should validate a valid HotNews", func() {
-				hotNews := HotNews{
+	Describe("Spec Validation", func() {
+		Context("when validating Spec fields", func() {
+			It("should pass with valid Spec", func() {
+				hotNews = HotNews{
 					Spec: HotNewsSpec{
 						Keywords:  []string{"news", "update"},
 						DateStart: &metav1.Time{Time: time.Now()},
@@ -35,8 +36,8 @@ var _ = Describe("HotNews Validation", func() {
 				Expect(err).To(HaveLen(0))
 			})
 
-			It("should not validate with empty keywords", func() {
-				hotNews := HotNews{
+			It("should fail when Keywords are empty", func() {
+				hotNews = HotNews{
 					Spec: HotNewsSpec{
 						Keywords:  []string{},
 						DateStart: &metav1.Time{Time: time.Now()},
@@ -50,8 +51,8 @@ var _ = Describe("HotNews Validation", func() {
 				Expect(err[0].Detail).To(Equal("keywords must be provided"))
 			})
 
-			It("should not validate when dateEnd is before dateStart", func() {
-				hotNews := HotNews{
+			It("should fail when DateEnd is before DateStart", func() {
+				hotNews = HotNews{
 					Spec: HotNewsSpec{
 						Keywords:  []string{"news"},
 						DateStart: &metav1.Time{Time: time.Now()},
@@ -65,8 +66,8 @@ var _ = Describe("HotNews Validation", func() {
 				Expect(err[0].Detail).To(Equal("dateEnd must be after dateStart"))
 			})
 
-			It("should not validate when dateStart is specified without dateEnd", func() {
-				hotNews := HotNews{
+			It("should fail when DateStart is set without DateEnd", func() {
+				hotNews = HotNews{
 					Spec: HotNewsSpec{
 						Keywords:  []string{"news"},
 						DateStart: &metav1.Time{Time: time.Now()},
@@ -81,11 +82,10 @@ var _ = Describe("HotNews Validation", func() {
 		})
 	})
 
-	Describe("ValidateFeedGroups", func() {
-		Context("when validating feed groups", func() {
-
-			It("should validate valid feed groups", func() {
-				hotNews := HotNews{
+	Describe("FeedGroups Validation", func() {
+		Context("when validating FeedGroups", func() {
+			It("should pass with existing FeedGroups", func() {
+				hotNews = HotNews{
 					Spec: HotNewsSpec{
 						FeedGroups: []string{"group1", "group2"},
 					},
@@ -94,8 +94,8 @@ var _ = Describe("HotNews Validation", func() {
 				Expect(err).ToNot(HaveOccurred())
 			})
 
-			It("should not validate with non-existent feed groups", func() {
-				hotNews := HotNews{
+			It("should fail with non-existent FeedGroups", func() {
+				hotNews = HotNews{
 					Spec: HotNewsSpec{
 						FeedGroups: []string{"group1", "group3"},
 					},
@@ -107,9 +107,7 @@ var _ = Describe("HotNews Validation", func() {
 		})
 	})
 
-	Describe("Validation Operations", func() {
-		var hotNews HotNews
-
+	Describe("CRUD Operations Validation", func() {
 		BeforeEach(func() {
 			hotNews = HotNews{
 				Spec: HotNewsSpec{
@@ -120,22 +118,28 @@ var _ = Describe("HotNews Validation", func() {
 			}
 		})
 
-		It("should validate creation of HotNews", func() {
-			warnings, err := hotNews.ValidateCreate()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(warnings).To(BeNil())
+		Context("when creating HotNews", func() {
+			It("should pass the creation validation", func() {
+				warnings, err := hotNews.ValidateCreate()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(warnings).To(BeNil())
+			})
 		})
 
-		It("should validate update of HotNews", func() {
-			warnings, err := hotNews.ValidateUpdate(nil)
-			Expect(err).ToNot(HaveOccurred())
-			Expect(warnings).To(BeNil())
+		Context("when updating HotNews", func() {
+			It("should pass the update validation", func() {
+				warnings, err := hotNews.ValidateUpdate(nil)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(warnings).To(BeNil())
+			})
 		})
 
-		It("should validate deletion of HotNews", func() {
-			warnings, err := hotNews.ValidateDelete()
-			Expect(err).ToNot(HaveOccurred())
-			Expect(warnings).To(BeNil())
+		Context("when deleting HotNews", func() {
+			It("should pass the deletion validation", func() {
+				warnings, err := hotNews.ValidateDelete()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(warnings).To(BeNil())
+			})
 		})
 	})
 })
