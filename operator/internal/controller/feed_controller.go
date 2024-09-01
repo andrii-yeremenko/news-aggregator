@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	newsaggregatorv1 "com.teamdev/news-aggregator/api/v1"
@@ -43,24 +42,34 @@ type FeedReconcile struct {
 
 // Reconcile performs the reconciliation logic for Feed objects.
 func (r *FeedReconcile) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	l := ctrl.LoggerFrom(ctx)
+
 	var feed newsaggregatorv1.Feed
 
 	if err := r.Client.Get(ctx, req.NamespacedName, &feed); err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
-	}
-
-	if err := r.processFeed(&feed); err != nil {
+		if client.IgnoreNotFound(err) == nil {
+			l.Info("Feed resource not found. It might have been deleted.", "name", req.NamespacedName)
+			return ctrl.Result{}, nil
+		}
+		l.Error(err, "Failed to get Feed resource", "name", req.NamespacedName)
 		return ctrl.Result{}, err
 	}
+
+	if err := r.processFeed(&feed, ctx); err != nil {
+		l.Error(err, "Failed to process Feed", "name", req.NamespacedName)
+		return ctrl.Result{}, err
+	}
+
+	l.Info("Successfully reconciled Feed", "name", req.NamespacedName)
 
 	return ctrl.Result{}, nil
 }
 
-// processFeed handles the main reconciliation logic based on the Feed's state.
-func (r *FeedReconcile) processFeed(feed *newsaggregatorv1.Feed) error {
+// processFeed handles the logic for the Feed object based on its state.
+func (r *FeedReconcile) processFeed(feed *newsaggregatorv1.Feed, ctx context.Context) error {
 
 	if feed.ObjectMeta.DeletionTimestamp.IsZero() {
-		err := r.ensureFinalizer(feed)
+		err := r.ensureFinalizer(feed, ctx)
 		if err != nil {
 			return err
 		}
@@ -87,10 +96,10 @@ func (r *FeedReconcile) processFeed(feed *newsaggregatorv1.Feed) error {
 }
 
 // ensureFinalizer ensures that the finalizer is added to the Feed if not already present.
-func (r *FeedReconcile) ensureFinalizer(feed *newsaggregatorv1.Feed) error {
+func (r *FeedReconcile) ensureFinalizer(feed *newsaggregatorv1.Feed, ctx context.Context) error {
 	if !containsFinalizer(feed.Finalizers, r.Finalizer) {
 		feed.Finalizers = append(feed.Finalizers, r.Finalizer)
-		if err := r.Client.Update(context.Background(), feed); err != nil {
+		if err := r.Client.Update(ctx, feed); err != nil {
 			return err
 		}
 		log.Log.Info("Added finalizer", "name", feed.Spec.Name)
@@ -102,7 +111,11 @@ func (r *FeedReconcile) ensureFinalizer(feed *newsaggregatorv1.Feed) error {
 func (r *FeedReconcile) handleFeedCreation(feed *newsaggregatorv1.Feed) error {
 	err := r.addSource(feed)
 	if err != nil {
-		return r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
+		statusErr := r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
+		if statusErr != nil {
+			return fmt.Errorf("failed to update status: %w", err)
+		}
+		return err
 	}
 	return r.updateStatus(feed, newsaggregatorv1.ConditionAdded, true, "Feed added successfully")
 }
@@ -110,7 +123,11 @@ func (r *FeedReconcile) handleFeedCreation(feed *newsaggregatorv1.Feed) error {
 // handleFeedUpdation handles the logic for when a Feed is updated.
 func (r *FeedReconcile) handleFeedUpdation(feed *newsaggregatorv1.Feed) error {
 	if err := r.updateSource(feed); err != nil {
-		return r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
+		statusErr := r.updateStatus(feed, newsaggregatorv1.ConditionFailed, false, err.Error())
+		if statusErr != nil {
+			return fmt.Errorf("failed to update status: %w", err)
+		}
+		return err
 	}
 	return r.updateStatus(feed, newsaggregatorv1.ConditionUpdated, true, "Feed updated successfully")
 }
@@ -175,7 +192,7 @@ func (r *FeedReconcile) prepareSourceData(feed *newsaggregatorv1.Feed) ([]byte, 
 	data := map[string]string{
 		"name":   feed.Spec.Name,
 		"url":    feed.Spec.Link,
-		"format": "RSS",
+		"format": "RSS", // By default, the format is set to RSS
 	}
 
 	return json.Marshal(data)
@@ -297,16 +314,6 @@ func removeFinalizer(finalizers []string, finalizer string) []string {
 func (r *FeedReconcile) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&newsaggregatorv1.Feed{}).
-		WithEventFilter(predicate.Funcs{
-			CreateFunc: func(e event.CreateEvent) bool {
-				return true
-			},
-			DeleteFunc: func(e event.DeleteEvent) bool {
-				return !e.DeleteStateUnknown
-			},
-			UpdateFunc: func(e event.UpdateEvent) bool {
-				return e.ObjectNew.GetGeneration() != e.ObjectOld.GetGeneration()
-			},
-		}).
+		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
 }
