@@ -1,9 +1,11 @@
 version: '3'
 
 env:
-  DOCKER_IMAGE_NAME: "ayeremenko/news-updater"
+  DOCKER_IMAGE_NAME: "andrii-news-updater"
   DOCKERFILE_PATH: "Dockerfile"
   DOCKER_TAG: "1.0.0"
+  AWS_ACCOUNT_ID: "406477933661"
+  AWS_REGION: "us-east-1"
 
 output:
   group:
@@ -11,6 +13,11 @@ output:
     end: '::endgroup::'
 
 tasks:
+  aws-auth-docker:
+    desc: "Authenticate Docker with AWS ECR"
+    cmds:
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
   download:
     desc: "Download all dependencies"
     cmd: |
@@ -52,3 +59,13 @@ tasks:
     desc: "Build the Docker image"
     cmd: |
       docker build -t $DOCKER_IMAGE_NAME:$DOCKER_TAG -f $DOCKERFILE_PATH .
+
+  docker-push-aws:
+    desc: "Push the Docker image to AWS ECR"
+    deps:
+      - aws-auth-docker
+      - docker-build
+    cmd: |
+      aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      docker tag $DOCKER_IMAGE_NAME:$DOCKER_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_IMAGE_NAME:$DOCKER_TAG
+      docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$DOCKER_IMAGE_NAME:$DOCKER_TAG

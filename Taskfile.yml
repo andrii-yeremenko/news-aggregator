@@ -11,6 +11,8 @@ env:
   K8S_TEMPLATES_PATH: "./templates"
   LOCAL_PORT: "8888"
   SERVICE_PORT: "443"
+  AWS_ACCOUNT_ID: "406477933661"
+  AWS_REGION: "us-east-1"
 
 output:
   group:
@@ -24,6 +26,17 @@ includes:
     taskfile: ./cmd/cli/Taskfile.yml
 
 tasks:
+
+  aws-auth-helm:
+    desc: "Authenticate Helm with AWS ECR"
+    cmds:
+      - aws ecr get-login-password --region $AWS_REGION | helm registry login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
+  aws-auth-docker:
+    desc: "Authenticate Docker with AWS ECR"
+    cmds:
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
   download:
     desc: "Download all dependencies"
     cmd: |
@@ -96,6 +109,15 @@ tasks:
       - docker-build
     cmd: |
       docker push ayeremenko/news-aggregator:$DOCKER_TAG
+
+  docker-push-aws:
+    desc: "Push the Docker image to the AWS ECR"
+    deps:
+      - aws-auth-docker
+      - docker-build
+    cmd: |
+      docker tag ayeremenko/news-aggregator:$DOCKER_TAG 406477933661.dkr.ecr.us-east-1.amazonaws.com/andrii-news-aggregator-server:$DOCKER_TAG
+      docker push 406477933661.dkr.ecr.us-east-1.amazonaws.com/andrii-news-aggregator-server:$DOCKER_TAG
 
   clean:
     desc: Clean build artifacts and remove all 'mocks' directories
@@ -226,12 +248,21 @@ tasks:
     deps:
       - createChart
     cmds:
-      - helm install news-aggregator ./charts/news-aggregator-*.tgz --namespace news-aggregator-namespace --create-namespace --set metrics-server.args[0]="--kubelet-insecure-tls" --set metrics-server.args[1]="--kubelet-preferred-address-types=InternalIP"
+      - helm install news-aggregator ./charts/andrii-news-aggregator-*.tgz --namespace news-aggregator-namespace --create-namespace --set metrics-server.args[0]="--kubelet-insecure-tls" --set metrics-server.args[1]="--kubelet-preferred-address-types=InternalIP"
     silent: true
 
   uninstallChart:
     desc: "Uninstalls chart from Kubernetes cluster and deletes namespace"
     cmds:
-      - helm uninstall news-aggregator --namespace news-aggregator-namespace
+      - helm uninstall andrii-news-aggregator --namespace news-aggregator-namespace
       - kubectl delete namespace news-aggregator-namespace --ignore-not-found --wait=false
+    silent: true
+
+  pushChart:
+    desc: "Pushes chart to the Helm repository"
+    deps:
+      - aws-auth-helm
+      - createChart
+    cmds:
+      - helm push charts/andrii-news-aggregator-*.tgz oci://$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
     silent: true

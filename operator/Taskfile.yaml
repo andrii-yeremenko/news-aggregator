@@ -1,20 +1,27 @@
 version: '3'
 
-vars:
-  IMG_NAME: "ayeremenko/feed-operator"
-  IMG_TAG: "v1"
+env:
+  AWS_ACCOUNT_ID: "406477933661"
+  AWS_REGION: "us-east-1"
 
+vars:
+  IMG_NAME: "andrii-news-operator"
+  IMG_TAG: "v1"
   KUBECTL: "kubectl"
   LOCALBIN: "$(pwd)/bin"
   CONTROLLER_GEN: "{{.LOCALBIN}}/controller-gen"
   KUSTOMIZE: "{{.LOCALBIN}}/kustomize"
-
   KUSTOMIZE_VERSION: "v5.4.2"
   CONTROLLER_TOOLS_VERSION: "v0.15.0"
-
   IGNORE_NOT_FOUND: "false"
+  REGISTRY: "ayeremenko"
+
 
 tasks:
+  aws-auth-docker:
+    desc: "Authenticate Docker with AWS ECR"
+    cmd: |
+      aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
   kustomize:
     desc: "Download kustomize locally if necessary"
@@ -84,7 +91,18 @@ tasks:
 
   docker-push:
     desc: "Push the Docker image to the registry"
-    cmd: docker push {{.IMG_NAME}}:{{.IMG_TAG}}
+    cmd: |
+      docker tag {{.IMG_NAME}}:{{.IMG_TAG}} {{.REGISTRY}}/{{.IMG_NAME}}:{{.IMG_TAG}}
+      docker push {{.REGISTRY}}/{{.IMG_NAME}}:{{.IMG_TAG}}
+
+  docker-push-aws:
+    desc: "Push the Docker image to AWS ECR"
+    deps:
+      - aws-auth-docker
+      - docker-build
+    cmd: |
+        docker tag {{.IMG_NAME}}:{{.IMG_TAG}} {{.AWS_ACCOUNT_ID}}.dkr.ecr.{{.AWS_REGION}}.amazonaws.com/{{.IMG_NAME}}:{{.IMG_TAG}}
+        docker push {{.AWS_ACCOUNT_ID}}.dkr.ecr.{{.AWS_REGION}}.amazonaws.com/{{.IMG_NAME}}:{{.IMG_TAG}}
 
   install:
     desc: "Install CRDs into the K8s cluster specified in ~/.kube/config."
