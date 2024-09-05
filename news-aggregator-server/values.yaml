@@ -3,9 +3,23 @@
 # The number of pod replicas to run. Adjust this value for scaling the application.
 replicaCount: 1
 
+aws:
+  # The AWS private access key for accessing the ECR repository. Setup on installation.
+  privateAccessKey: ""
+  # The AWS public access key for accessing the ECR repository. Setup on installation.
+  accessKey: ""
+  # The region where the ECR repository is located.
+  region: us-east-1
+  # The name of the secret that stores the AWS credentials.
+  pullSecretName: aws-credentials
+  # The name of the secret that stores the AWS keys (private and public access keys).
+  keysSecretName: aws-keys
+  # The name of the ECR repository for the News Aggregator application.
+  schedule: "0 0 * * *"
+
 image:
   # The Docker image repository for the News Aggregator application.
-  repository: ayeremenko/news-aggregator
+  repository: 406477933661.dkr.ecr.us-east-1.amazonaws.com/andrii-news-aggregator-server
   # The specific tag/version of the image to use.
   tag: 1.0.0
   # The pull policy for the image. IfNotPresent avoids pulling the image if it is already available locally.
@@ -15,7 +29,7 @@ image:
 cronJob:
   schedule: "0 0 * * *"  # Schedule for the cron job
   image:
-    repository: ayeremenko/news-updater  # Image repository for the news-updater
+    repository: 406477933661.dkr.ecr.us-east-1.amazonaws.com/andrii-news-updater  # Image repository for the news-updater
     tag: 1.0.0                           # Tag of the image to use
   successfulJobsHistoryLimit: 3           # Number of successful jobs to keep
   failedJobsHistoryLimit: 1               # Number of failed jobs to keep

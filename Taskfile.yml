@@ -248,13 +248,24 @@ tasks:
     deps:
       - createChart
     cmds:
-      - helm install news-aggregator ./charts/andrii-news-aggregator-*.tgz --namespace news-aggregator-namespace --create-namespace --set metrics-server.args[0]="--kubelet-insecure-tls" --set metrics-server.args[1]="--kubelet-preferred-address-types=InternalIP"
+      - |
+        helm install news-aggregator ./charts/andrii-news-aggregator-*.tgz \
+        --namespace news-aggregator-namespace \
+        --create-namespace \
+        --set metrics-server.args[0]="--kubelet-insecure-tls" \
+        --set metrics-server.args[1]="--kubelet-preferred-address-types=InternalIP" \
+        --set aws.accessKey="AKIAV5I7ZBRO2BXUY2V6" \
+        --set aws.privateAccessKey="IasJXLRWFKEs2RxO3EvAY0R5R5JM1LEN1KfhPeuq" \
+        --set aws.region="us-east-1" \
+        --set aws.pullSecretName="aws-credentials" \
+        --set aws.keysSecretName="aws-keys" \
+        --set schedule="0 0 * * *"
     silent: true
 
   uninstallChart:
     desc: "Uninstalls chart from Kubernetes cluster and deletes namespace"
     cmds:
-      - helm uninstall andrii-news-aggregator --namespace news-aggregator-namespace
+      - helm uninstall news-aggregator --namespace news-aggregator-namespace
       - kubectl delete namespace news-aggregator-namespace --ignore-not-found --wait=false
     silent: true
 

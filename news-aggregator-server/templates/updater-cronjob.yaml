@@ -18,6 +18,8 @@ spec:
                   - name: resources-volume
                     mountPath: /resources
           restartPolicy: OnFailure
+          imagePullSecrets:
+            - name: {{ .Values.aws.pullSecretName }}
           volumes:
             - name: config-volume
               persistentVolumeClaim:
