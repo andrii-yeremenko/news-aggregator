@@ -4,18 +4,8 @@
 replicaCount: 1
 
 aws:
-  # The AWS private access key for accessing the ECR repository. Setup on installation.
-  privateAccessKey: ""
-  # The AWS public access key for accessing the ECR repository. Setup on installation.
-  accessKey: ""
-  # The region where the ECR repository is located.
-  region: us-east-1
   # The name of the secret that stores the AWS credentials.
-  pullSecretName: aws-credentials
-  # The name of the secret that stores the AWS keys (private and public access keys).
-  keysSecretName: aws-keys
-  # The name of the ECR repository for the News Aggregator application.
-  schedule: "0 0 * * *"
+  pullSecretName: regcred
 
 image:
   # The Docker image repository for the News Aggregator application.
