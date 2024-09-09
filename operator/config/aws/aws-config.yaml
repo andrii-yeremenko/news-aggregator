@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: ecr-registry-helper-cm
-  namespace: news-aggregator-namespace
+  namespace: operator-system
 data:
   AWS_REGION: "us-east-1"
-  DOCKER_SECRET_NAME: regcred
+  DOCKER_SECRET_NAME: operator-regcred

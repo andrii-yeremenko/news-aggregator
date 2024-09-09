@@ -2,7 +2,7 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: aws-update-cronjob
-  namespace: news-aggregator-namespace
+  namespace: operator-system
 spec:
   schedule: "0 0 * * *"
   jobTemplate:
@@ -24,7 +24,7 @@ spec:
                 - -c
                 - |-
                   ECR_TOKEN=`aws ecr get-login-password --region ${AWS_REGION}`
-                  NAMESPACE_NAME=news-aggregator-namespace
+                  NAMESPACE_NAME=operator-system
                   kubectl delete secret --ignore-not-found $DOCKER_SECRET_NAME -n $NAMESPACE_NAME
                   kubectl create secret docker-registry $DOCKER_SECRET_NAME \
                   --docker-server=https://${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com \

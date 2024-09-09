@@ -253,7 +253,9 @@ tasks:
         --namespace news-aggregator-namespace \
         --create-namespace \
         --set metrics-server.args[0]="--kubelet-insecure-tls" \
-        --set metrics-server.args[1]="--kubelet-preferred-address-types=InternalIP"
+        --set metrics-server.args[1]="--kubelet-preferred-address-types=InternalIP" \
+        --set aws.accessKey="AKIAV5I7ZBRO2BXUY2V6" \
+        --set aws.secretKey="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"
     silent: true
 
   uninstallChart:

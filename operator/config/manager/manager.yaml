@@ -64,5 +64,5 @@ spec:
             memory: 64Mi
       serviceAccountName: controller-manager
       imagePullSecrets:
-        - name: {{ .Values.aws.pullSecretName }}
+        - name: operator-regcred
       terminationGracePeriodSeconds: 10

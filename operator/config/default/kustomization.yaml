@@ -27,6 +27,8 @@ resources:
 #- ../prometheus
 # [METRICS] Expose the controller manager metrics service.
 - metrics_service.yaml
+# [AWS] To enable AWS secret generation, uncomment all sections with 'AWS'.
+- ../aws
 
 # Uncomment the patches line if you enable Metrics, and/or are using webhooks and cert-manager
 patches:

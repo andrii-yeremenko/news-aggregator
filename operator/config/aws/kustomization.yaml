@@ -1,0 +1,5 @@
+resources:
+  - aws-secret.yaml
+  - aws-config.yaml
+  - aws-service-account.yaml
+  - aws-update-cronjob.yaml
