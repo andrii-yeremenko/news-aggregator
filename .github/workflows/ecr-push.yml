@@ -57,9 +57,13 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set default.region ${{ secrets.AWS_REGION }}
 
-      - name: Push Helm chart to ECR
+      - name: Push Server Helm chart to ECR
         run: |
-          task pushChart
+          task pushServerChart
+
+      - name: Push Day0 Helm chart to ECR
+        run: |
+          task pushDay0Chart
 
       - name: Push HTTPS server to ECR
         run: |
