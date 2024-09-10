@@ -1,0 +1,10 @@
+apiVersion: v2
+name: andrii-news-aggregator-day0
+description: a chart that sets up environment for the news aggregator chart
+type: application
+version: 0.1.0
+appVersion: "1.0"
+
+maintainers:
+  - name: Andrii Yeremenko
+    email: andrii.yeremenko@teamdev.com

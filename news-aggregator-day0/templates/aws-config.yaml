@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.ecrConfigName }}
+  namespace: {{ .Values.namespace }}
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": before-hook-creation
+data:
+  AWS_REGION: "{{ .Values.region }}"
+  DOCKER_SECRET_NAME: "{{ .Values.pullSecretName }}"

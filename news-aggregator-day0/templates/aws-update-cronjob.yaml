@@ -2,12 +2,12 @@ apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: {{ .Release.Name }}-aws-cronjob
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ .Values.namespace }}
   annotations:
-    "helm.sh/hook": pre-install
+    "helm.sh/hook": post-install
     "helm.sh/hook-delete-policy": before-hook-creation
 spec:
-  schedule: "0 0 * * *"
+  schedule: {{ .Values.cronJobSchedule }}
   jobTemplate:
     spec:
       template:
@@ -19,15 +19,15 @@ spec:
               imagePullPolicy: IfNotPresent
               envFrom:
                 - secretRef:
-                    name: {{ .Values.aws.ecrSecretName }}
+                    name: {{ .Values.ecrSecretName }}
                 - configMapRef:
-                    name: {{ .Values.aws.ecrConfigName }}
+                    name: {{ .Values.ecrConfigName }}
               command:
                 - /bin/sh
                 - -c
                 - |-
                   ECR_TOKEN=`aws ecr get-login-password --region ${AWS_REGION}`
-                  NAMESPACE_NAME={{ .Values.namespace.name }}
+                  NAMESPACE_NAME={{ .Values.namespace }}
                   kubectl delete secret --ignore-not-found $DOCKER_SECRET_NAME -n $NAMESPACE_NAME
                   kubectl create secret docker-registry $DOCKER_SECRET_NAME \
                   --docker-server=https://${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com \
@@ -36,5 +36,5 @@ spec:
                   --namespace=$NAMESPACE_NAME
                   echo "Secret was successfully updated at $(date)"
           restartPolicy: OnFailure
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 2

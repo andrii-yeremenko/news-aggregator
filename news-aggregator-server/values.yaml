@@ -3,21 +3,10 @@
 # The number of pod replicas to run. Adjust this value for scaling the application.
 replicaCount: 1
 
+# The AWS secret that stores the credentials for pulling images from the ECR registry.
 aws:
-  # The AWS account ID where the resources are located.
-  account: 406477933661
-  # The AWS KEY ID for the account.
-  accessKey: ""
-  # The AWS KEY Secret for the account.
-  secretKey: ""
-  # Region where the AWS resources are located.
-  region: us-east-1
-  # The name of the secret that stores the AWS credentials.
+  # The AWS secret name
   pullSecretName: newsaggregator-regcred
-  # The name of the secret that stores the AWS credentials for the ECR registry helper.
-  ecrSecretName: ecr-registry-helper-secrets
-  # The name of the ConfigMap that stores the AWS configuration for the ECR registry helper.
-  ecrConfigName: ecr-registry-helper-cm
 
 image:
   # The Docker image repository for the News Aggregator application.
