@@ -35,7 +35,7 @@ spec:
               name: tls-certs
               readOnly: true
       imagePullSecrets:
-        - name: {{ .Values.aws.pullSecretName }}
+        - name: "{{ .Values.aws.pullSecretName }}"
       volumes:
         - name: {{ .Values.resourcesStorage.name }}
           persistentVolumeClaim:
