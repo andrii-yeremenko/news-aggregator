@@ -3,9 +3,6 @@ kind: CronJob
 metadata:
   name: {{ .Release.Name }}-aws-cronjob
   namespace: {{ .Values.namespace }}
-  annotations:
-    "helm.sh/hook": post-install
-    "helm.sh/hook-delete-policy": before-hook-creation
 spec:
   schedule: {{ .Values.cronJobSchedule }}
   jobTemplate:
