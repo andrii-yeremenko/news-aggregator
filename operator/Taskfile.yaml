@@ -124,7 +124,7 @@ tasks:
       - install-all-tools
     cmd: |
       KUSTOMIZE=$(pwd)/bin/kustomize
-      cd config/manager && $KUSTOMIZE edit set image controller={{.IMG_NAME}}:{{.IMG_TAG}}
+      cd config/manager && $KUSTOMIZE edit set image controller={{.AWS_ACCOUNT_ID}}.dkr.ecr.{{.AWS_REGION}}.amazonaws.com/{{.IMG_NAME}}:{{.IMG_TAG}}
       cd - 
       $KUSTOMIZE build config/default | {{.KUBECTL}} apply -f -
 
