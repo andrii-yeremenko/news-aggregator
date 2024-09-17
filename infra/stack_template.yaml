@@ -1,0 +1,321 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'This template creates an EKS cluster for news-aggregator app. All resources are created in a new VPC with three subnets in different Availability Zones.'
+
+Parameters:
+  PrefixName:
+    Type: String
+    Default: andrii
+    Description: 'Prefix name to identify resources'
+
+  VpcCidr:
+    Type: String
+    Default: '10.0.0.0/16'
+    Description: 'CIDR block for the VPC'
+
+  SubnetCidrA:
+    Type: String
+    Default: '10.0.1.0/24'
+    Description: 'CIDR block for Subnet in AZ A'
+
+  SubnetCidrB:
+    Type: String
+    Default: '10.0.2.0/24'
+    Description: 'CIDR block for Subnet in AZ B'
+
+  SubnetCidrC:
+    Type: String
+    Default: '10.0.3.0/24'
+    Description: 'CIDR block for Subnet in AZ C'
+
+  EKSClusterName:
+    Type: String
+    Default: 'news-aggregator-cluster'
+    Description: 'EKS Cluster Name'
+
+  NodeInstanceType:
+    Type: String
+    Default: 't3.medium'
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t3.medium
+    Description: 'Instance type for EKS worker nodes'
+
+  Ec2SshKey:
+    Type: String
+    Default: 'Main'
+    Description: 'Name of the EC2 SSH Key Pair for Remote Access'
+
+  VpcCniAddonVersion:
+    Type: String
+    Default: 'v1.18.1-eksbuild.3'
+    Description: 'Version of the Amazon VPC CNI add-on (Replace with latest)'
+
+  KubeProxyAddonVersion:
+    Type: String
+    Default: 'v1.30.0-eksbuild.3'
+    Description: 'Version of the kube-proxy add-on (Replace with latest)'
+
+  CoreDnsAddonVersion:
+    Type: String
+    Default: 'v1.11.1-eksbuild.8'
+    Description: 'Version of the CoreDNS add-on'
+
+  PodIdentityAddonVersion:
+    Type: String
+    Default: 'v1.3.2-eksbuild.2'
+    Description: 'Version of the Amazon EKS Pod Identity Webhook add-on (Replace with latest)'
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-VPC'
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-InternetGateway'
+
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  RouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-RouteTable'
+
+  PublicRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTable
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+
+  SubnetA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetCidrA
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ''
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-SubnetA'
+
+  SubnetB:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetCidrB
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ''
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-SubnetB'
+
+  SubnetC:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetCidrC
+      AvailabilityZone:
+        Fn::Select:
+          - 2
+          - Fn::GetAZs: ''
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-SubnetC'
+
+  SubnetARouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref SubnetA
+      RouteTableId: !Ref RouteTable
+
+  SubnetBRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref SubnetB
+      RouteTableId: !Ref RouteTable
+
+  SubnetCRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref SubnetC
+      RouteTableId: !Ref RouteTable
+
+  EKSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Allow access to EKS Cluster'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-EKS-SG'
+
+  EKSRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-EKSRole'
+
+  EKSCluster:
+    Type: 'AWS::EKS::Cluster'
+    Properties:
+      Name: !Ref EKSClusterName
+      ResourcesVpcConfig:
+        SubnetIds:
+          - !Ref SubnetA
+          - !Ref SubnetB
+          - !Ref SubnetC
+        SecurityGroupIds:
+          - !Ref EKSSecurityGroup
+      RoleArn: !GetAtt EKSRole.Arn
+
+  NodeGroupRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-NodeGroupRole'
+
+  VpcCniAddon:
+    Type: 'AWS::EKS::Addon'
+    Properties:
+      AddonName: vpc-cni
+      ClusterName: !Ref EKSCluster
+      AddonVersion: !Ref VpcCniAddonVersion
+      ResolveConflicts: OVERWRITE
+
+  CoreDnsAddon:
+    Type: 'AWS::EKS::Addon'
+    Properties:
+      AddonName: coredns
+      ClusterName: !Ref EKSCluster
+      AddonVersion: !Ref CoreDnsAddonVersion
+      ResolveConflicts: OVERWRITE
+
+  KubeProxyAddon:
+    Type: 'AWS::EKS::Addon'
+    Properties:
+      AddonName: kube-proxy
+      ClusterName: !Ref EKSCluster
+      AddonVersion: !Ref KubeProxyAddonVersion
+      ResolveConflicts: OVERWRITE
+
+  PodIdentityAddon:
+    Type: 'AWS::EKS::Addon'
+    Properties:
+      AddonName: eks-pod-identity-agent
+      ClusterName: !Ref EKSCluster
+      AddonVersion: !Ref PodIdentityAddonVersion
+      ResolveConflicts: OVERWRITE
+
+  NodeGroup:
+    Type: 'AWS::EKS::Nodegroup'
+    DependsOn:
+      - VpcCniAddon
+      - CoreDnsAddon
+      - KubeProxyAddon
+      - PodIdentityAddon
+    Properties:
+      ClusterName: !Ref EKSCluster
+      NodeRole: !GetAtt NodeGroupRole.Arn
+      Subnets:
+        - !Ref SubnetA
+        - !Ref SubnetB
+        - !Ref SubnetC
+      ScalingConfig:
+        MinSize: 1
+        MaxSize: 3
+        DesiredSize: 2
+      AmiType: AL2_x86_64
+      RemoteAccess:
+        Ec2SshKey: !Ref Ec2SshKey
+      InstanceTypes:
+        - !Ref NodeInstanceType
+
+Outputs:
+  ClusterName:
+    Description: 'EKS Cluster Name'
+    Value: !Ref EKSCluster
+    Export:
+      Name: !Sub '${PrefixName}-ClusterName'
+
+  VPCId:
+    Description: 'VPC ID'
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${PrefixName}-VPCId'
+
+  SubnetAId:
+    Description: 'Subnet A ID'
+    Value: !Ref SubnetA
+    Export:
+      Name: !Sub '${PrefixName}-SubnetAId'
+
+  SubnetBId:
+    Description: 'Subnet B ID'
+    Value: !Ref SubnetB
+    Export:
+      Name: !Sub '${PrefixName}-SubnetBId'
+
+  SubnetCId:
+    Description: 'Subnet C ID'
+    Value: !Ref SubnetC
+    Export:
+      Name: !Sub '${PrefixName}-SubnetCId'
+
+  NodeGroupRoleArn:
+    Description: 'ARN of the NodeGroup Role'
+    Value: !GetAtt NodeGroupRole.Arn
+    Export:
+      Name: !Sub '${PrefixName}-NodeGroupRoleArn'
