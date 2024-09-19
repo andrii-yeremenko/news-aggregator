@@ -98,7 +98,6 @@ Resources:
     Properties:
       CidrBlock: !Ref VpcCidr
       EnableDnsSupport: true
-      EnableDnsHostnames: true
       Tags:
         - Key: Name
           Value: !Sub '${PrefixName}-VPC'
@@ -171,7 +170,7 @@ Resources:
         Fn::Select:
           - 1
           - Fn::GetAZs: ''
-      MapPublicIpOnLaunch: false
+      MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: !Sub '${PrefixName}-SubnetB'
