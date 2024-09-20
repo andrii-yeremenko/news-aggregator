@@ -25,25 +25,19 @@ const (
 	diskSizeDefault          = 20
 )
 
-var addonVersions = map[string]map[string]string{
-	"1.28": {
-		"VpcCniAddonVersion":      "v1.18.3-eksbuild.3",
-		"KubeProxyAddonVersion":   "v1.28.12-eksbuild.5",
-		"CoreDnsAddonVersion":     "v1.10.1-eksbuild.13",
-		"PodIdentityAddonVersion": "v1.2.0-eksbuild.1",
-	},
-	"1.29": {
-		"VpcCniAddonVersion":      "v1.18.3-eksbuild.3",
-		"KubeProxyAddonVersion":   "v1.29.7-eksbuild.5",
-		"CoreDnsAddonVersion":     "v1.11.3-eksbuild.1",
-		"PodIdentityAddonVersion": "v1.3.2-eksbuild.2",
-	},
-	"1.30": {
-		"VpcCniAddonVersion":      "v1.18.3-eksbuild.3",
-		"KubeProxyAddonVersion":   "v1.30.3-eksbuild.5",
-		"CoreDnsAddonVersion":     "v1.11.3-eksbuild.1",
-		"PodIdentityAddonVersion": "v1.3.2-eksbuild.2",
-	},
+var addonVersions = map[string]string{
+	"1.28:VpcCniAddonVersion":      "v1.18.3-eksbuild.3",
+	"1.28:KubeProxyAddonVersion":   "v1.28.12-eksbuild.5",
+	"1.28:CoreDnsAddonVersion":     "v1.10.1-eksbuild.13",
+	"1.28:PodIdentityAddonVersion": "v1.2.0-eksbuild.1",
+	"1.29:VpcCniAddonVersion":      "v1.18.3-eksbuild.3",
+	"1.29:KubeProxyAddonVersion":   "v1.29.7-eksbuild.5",
+	"1.29:CoreDnsAddonVersion":     "v1.11.3-eksbuild.1",
+	"1.29:PodIdentityAddonVersion": "v1.3.2-eksbuild.2",
+	"1.30:VpcCniAddonVersion":      "v1.18.3-eksbuild.3",
+	"1.30:KubeProxyAddonVersion":   "v1.30.3-eksbuild.5",
+	"1.30:CoreDnsAddonVersion":     "v1.11.3-eksbuild.1",
+	"1.30:PodIdentityAddonVersion": "v1.3.2-eksbuild.2",
 }
 
 var (
@@ -218,16 +212,19 @@ func addOutput(stack awscdk.Stack, desc string, displayName string, value *strin
 }
 
 func getAddonVersion(k8sVersion string, addonName string) string {
-	if versions, ok := addonVersions[k8sVersion]; ok {
-		if version, ok := versions[addonName]; ok {
-			return version
-		}
+	key := k8sVersion + ":" + addonName
+	if version, ok := addonVersions[key]; ok {
+		return version
 	}
 
 	availableK8sVersions := make([]string, 0, len(addonVersions))
-	err := "Addon version compatible for this kubernetes version not found! Available versions: "
-	for k := range availableK8sVersions {
-		err += string(rune(k)) + " "
+	for k := range addonVersions {
+		availableK8sVersions = append(availableK8sVersions, k)
+	}
+
+	err := "Addon version compatible for this Kubernetes version not found! Available versions: "
+	for _, v := range availableK8sVersions {
+		err += v + " "
 	}
 
 	panic(err)
