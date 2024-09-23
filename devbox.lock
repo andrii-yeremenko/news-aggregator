@@ -50,8 +50,8 @@
       }
     },
     "go-task@3.38.0": {
-      "last_modified": "2024-07-12T10:50:49Z",
-      "resolved": "github:NixOS/nixpkgs/8b5a3d5a1d951344d683b442c0739010b80039db#go-task",
+      "last_modified": "2024-09-10T15:01:03Z",
+      "resolved": "github:NixOS/nixpkgs/5ed627539ac84809c78b2dd6d26a5cebeb5ae269#go-task",
       "source": "devbox-search",
       "version": "3.38.0",
       "systems": {
@@ -59,41 +59,41 @@
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/4clgrxd19h07x7sy45fb5mj3qkshmvy1-go-task-3.38.0",
+              "path": "/nix/store/6fnjga1f6y9yw0xfa7bqq48mk4wnwj60-go-task-3.38.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/4clgrxd19h07x7sy45fb5mj3qkshmvy1-go-task-3.38.0"
+          "store_path": "/nix/store/6fnjga1f6y9yw0xfa7bqq48mk4wnwj60-go-task-3.38.0"
         },
         "aarch64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/0icfyvbmfwnbfw1v9s5gv7l6fl1mc5g8-go-task-3.38.0",
+              "path": "/nix/store/y00rivpjziw0zpzacdxjmrs5i28d7grf-go-task-3.38.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/0icfyvbmfwnbfw1v9s5gv7l6fl1mc5g8-go-task-3.38.0"
+          "store_path": "/nix/store/y00rivpjziw0zpzacdxjmrs5i28d7grf-go-task-3.38.0"
         },
         "x86_64-darwin": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/dw1h8gzlpsq0yxhvbi8fmks2j4sbljni-go-task-3.38.0",
+              "path": "/nix/store/kc0zm9kgsraznqyns5jqv0dixfgk6fm7-go-task-3.38.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/dw1h8gzlpsq0yxhvbi8fmks2j4sbljni-go-task-3.38.0"
+          "store_path": "/nix/store/kc0zm9kgsraznqyns5jqv0dixfgk6fm7-go-task-3.38.0"
         },
         "x86_64-linux": {
           "outputs": [
             {
               "name": "out",
-              "path": "/nix/store/6yg91y9vy4i0lxx24vn8f4gwp1vkiz1r-go-task-3.38.0",
+              "path": "/nix/store/6fya93gcf8sla6npxp99rnbvyj6pmnr5-go-task-3.38.0",
               "default": true
             }
           ],
-          "store_path": "/nix/store/6yg91y9vy4i0lxx24vn8f4gwp1vkiz1r-go-task-3.38.0"
+          "store_path": "/nix/store/6fya93gcf8sla6npxp99rnbvyj6pmnr5-go-task-3.38.0"
         }
       }
     },
@@ -274,6 +274,54 @@
             }
           ],
           "store_path": "/nix/store/xiznwi415zwc8ahkiyivaii32vlg80cv-kubectl-1.30.1"
+        }
+      }
+    },
+    "kubernetes-controller-tools@0.14.0": {
+      "last_modified": "2024-08-31T10:12:23Z",
+      "resolved": "github:NixOS/nixpkgs/5629520edecb69630a3f4d17d3d33fc96c13f6fe#kubernetes-controller-tools",
+      "source": "devbox-search",
+      "version": "0.14.0",
+      "systems": {
+        "aarch64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/6a67y39l8qkwppkhfzrjvf72j5gkdhkb-controller-tools-0.14.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/6a67y39l8qkwppkhfzrjvf72j5gkdhkb-controller-tools-0.14.0"
+        },
+        "aarch64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/mbjdgnzpjkmhmjr0jibzm0kmsy81bqmp-controller-tools-0.14.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/mbjdgnzpjkmhmjr0jibzm0kmsy81bqmp-controller-tools-0.14.0"
+        },
+        "x86_64-darwin": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/pih2lpk4j4rapybbjsnd5r4msrmq0a47-controller-tools-0.14.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/pih2lpk4j4rapybbjsnd5r4msrmq0a47-controller-tools-0.14.0"
+        },
+        "x86_64-linux": {
+          "outputs": [
+            {
+              "name": "out",
+              "path": "/nix/store/rsncshh9xwfy0hwkad1m2rfjiv3pvr5y-controller-tools-0.14.0",
+              "default": true
+            }
+          ],
+          "store_path": "/nix/store/rsncshh9xwfy0hwkad1m2rfjiv3pvr5y-controller-tools-0.14.0"
         }
       }
     },
