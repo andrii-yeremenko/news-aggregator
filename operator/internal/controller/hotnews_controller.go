@@ -40,10 +40,12 @@ type HotNewsReconciler struct {
 	ConfigMapNamespace string
 }
 
+// Article represents a news article.
 type Article struct {
 	Title string `json:"title"`
 }
 
+// ArticlesResponse represents a response from the News Aggregator HTTPS server.
 type ArticlesResponse []Article
 
 // +kubebuilder:rbac:groups=news-aggregator.com.teamdev,resources=hotnews,verbs=get;list;watch;create;update;patch;delete
@@ -53,6 +55,8 @@ type ArticlesResponse []Article
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 
 // Reconcile reconciles the HotNews object.
+// It fetches news articles from the News Aggregator service based on the HotNews spec input,
+// and updates the HotNews status with the fetched articles.
 func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	logger.Info("Starting reconciliation", "HotNews", req.NamespacedName)
@@ -63,7 +67,6 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 			logger.Info("HotNews resource not found. Ignoring since object must be deleted")
 			return ctrl.Result{}, nil
 		}
-		logger.Error(err, "Failed to get HotNews resource")
 		return ctrl.Result{}, err
 	}
 
