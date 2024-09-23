@@ -104,10 +104,37 @@ tasks:
       - task cli:clean
       - find . -type d -name mocks -exec rm -rf {} +
 
-  deploy:
-    desc: "Deploy the news-aggregator app on the Kubernetes cluster"
+  create-namespace:
+    desc: "Create a namespace for the news-aggregator app"
     cmds:
       - kubectl apply -f $K8S_TEMPLATES_PATH/namespace
+      - echo "Namespace created"
+
+  delete-namespace:
+    desc: "Delete the namespace for the news-aggregator app"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace
+      - echo "Namespace deleted"
+
+  create-volumes:
+    desc: "Create a PersistentVolume and PersistentVolumeClaim"
+    deps:
+      - create-namespace
+    cmds:
+      - kubectl apply -f $K8S_TEMPLATES_PATH/volume
+      - echo "Volumes created"
+
+  delete-volumes:
+    desc: "Delete the PersistentVolume and PersistentVolumeClaim"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/volume
+      - echo "Volumes deleted"
+
+  deploy:
+    desc: "Deploy the news-aggregator app on the Kubernetes cluster"
+    deps:
+      - create-namespace
+    cmds:
       - kubectl apply -f $K8S_TEMPLATES_PATH/app
       - kubectl apply -f $K8S_TEMPLATES_PATH/rbac
       - echo "The news-aggregator app has been deployed"
@@ -117,7 +144,6 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/app -n news-aggregator-namespace
       - kubectl delete -f $K8S_TEMPLATES_PATH/rbac -n news-aggregator-namespace
-      - kubectl delete -f $K8S_TEMPLATES_PATH/namespace
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
 
   port-forward:
