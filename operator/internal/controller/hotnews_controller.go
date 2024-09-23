@@ -396,7 +396,7 @@ func (r *HotNewsReconciler) reconcileAllHotNews(context.Context, client.Object) 
 
 	log.Log.Info("Reconciling all HotNews resources")
 
-	if err := r.List(context.TODO(), &hotNewsList); err != nil {
+	if err := r.Client.List(context.TODO(), &hotNewsList, client.InNamespace(r.Namespace)); err != nil {
 		log.Log.Error(err, "Failed to list HotNews resources")
 		return nil
 	}
