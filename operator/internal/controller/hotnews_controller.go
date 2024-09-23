@@ -378,12 +378,7 @@ func (r *HotNewsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&newsaggregatorv1.HotNews{}).
-		Owns(&newsaggregatorv1.Feed{}).
-		Watches(
-			&newsaggregatorv1.Feed{},
-			handler.EnqueueRequestsFromMapFunc(r.reconcileAllHotNews),
-			builder.WithPredicates(feedPredicate),
-		).
+		Owns(&newsaggregatorv1.Feed{}, builder.WithPredicates(feedPredicate)).
 		Watches(
 			&v1.ConfigMap{},
 			handler.EnqueueRequestsFromMapFunc(r.reconcileAllHotNews),
