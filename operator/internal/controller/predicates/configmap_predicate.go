@@ -5,6 +5,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
+// NewConfigMapPredicate returns a new predicate that filters events for a specific ConfigMap in a specific namespace.
 func NewConfigMapPredicate(namespace, name string) predicate.Predicate {
 	return predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {

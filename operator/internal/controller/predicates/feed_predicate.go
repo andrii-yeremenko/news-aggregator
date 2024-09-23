@@ -5,6 +5,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
+// NewFeedPredicate returns a new predicate that filters events for a specific Feed in a specific namespace.
 func NewFeedPredicate(namespace string) predicate.Predicate {
 	return predicate.Funcs{
 		UpdateFunc: func(e event.UpdateEvent) bool {
