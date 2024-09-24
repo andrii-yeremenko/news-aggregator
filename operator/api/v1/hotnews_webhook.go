@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"strings"
+	"time"
 )
 
 // log is for logging in this package.
@@ -96,9 +97,15 @@ func (r *HotNews) validateFeeds() error {
 
 	var notFoundFeeds []string
 
+	contextWithTimeout, ok := context.WithTimeout(context.TODO(), 10*time.Second)
+
+	if ok != nil {
+		return fmt.Errorf("failed to create context with timeout")
+	}
+
 	for _, feed := range r.Spec.Feeds {
 		var f Feed
-		if err := k8sClient.Get(context.TODO(), client.ObjectKey{
+		if err := k8sClient.Get(contextWithTimeout, client.ObjectKey{
 			Namespace: r.Namespace,
 			Name:      feed,
 		}, &f); err != nil {
@@ -116,9 +123,15 @@ func (r *HotNews) validateFeeds() error {
 
 // validateFeedGroups checks if the feed groups specified in the HotNews resource exist in the ConfigMap.
 func (r *HotNews) validateFeedGroups() error {
-
 	var cm v1.ConfigMap
-	if err := k8sClient.Get(context.TODO(), client.ObjectKey{
+
+	contextWithTimeout, ok := context.WithTimeout(context.TODO(), 10*time.Second)
+
+	if ok != nil {
+		return fmt.Errorf("failed to create context with timeout")
+	}
+
+	if err := k8sClient.Get(contextWithTimeout, client.ObjectKey{
 		Namespace: r.Namespace,
 		Name:      configMapName,
 	}, &cm); err != nil {

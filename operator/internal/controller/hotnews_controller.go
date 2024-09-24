@@ -184,7 +184,13 @@ func (r *HotNewsReconciler) removeOwnerReferencesFromFeeds(ctx context.Context, 
 // addOwnerReferencesOnFeeds sets the owner reference on all related Feed resources
 func (r *HotNewsReconciler) addOwnerReferencesOnFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
 
-	allFeeds, err := r.getAllFeeds(context.Background(), hotNews.Spec)
+	contextWithTimeout, ok := context.WithTimeout(ctx, 10*time.Second)
+
+	if ok != nil {
+		return fmt.Errorf("failed to create context with timeout")
+	}
+
+	allFeeds, err := r.getAllFeeds(contextWithTimeout, hotNews.Spec)
 
 	if err != nil {
 		return fmt.Errorf("failed to get all feeds: %w", err)
@@ -219,7 +225,13 @@ func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (
 
 	baseURL := fmt.Sprintf("%s%s", r.NewsAggregatorURL, newsEndpoint)
 
-	allFeeds, err := r.getAllFeeds(context.Background(), spec)
+	contextWithTimeout, ok := context.WithTimeout(context.Background(), 10*time.Second)
+
+	if ok != nil {
+		return "", fmt.Errorf("failed to create context with timeout")
+	}
+
+	allFeeds, err := r.getAllFeeds(contextWithTimeout, spec)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to get all feeds: %w", err)
