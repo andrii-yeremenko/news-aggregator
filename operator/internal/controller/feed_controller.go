@@ -10,6 +10,7 @@ import (
 	"net/url"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"time"
 
 	newsaggregatorv1 "com.teamdev/news-aggregator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -141,7 +142,14 @@ func (r *FeedReconcile) handleFeedDeletion(feed *newsaggregatorv1.Feed) error {
 		}
 
 		feed.Finalizers = removeFinalizer(feed.Finalizers, r.Finalizer)
-		if err := r.Client.Update(context.Background(), feed); err != nil {
+
+		contextWithTimeout, ok := context.WithTimeout(context.TODO(), 10*time.Second)
+
+		if ok != nil {
+			return fmt.Errorf("failed to create context with timeout")
+		}
+
+		if err := r.Client.Update(contextWithTimeout, feed); err != nil {
 			return err
 		}
 		log.Log.Info("Removed finalizer", "name", feed.Spec.Name)
@@ -160,7 +168,14 @@ func (r *FeedReconcile) updateStatus(feed *newsaggregatorv1.Feed, conditionType 
 	}
 
 	feed.Status.Conditions = append(feed.Status.Conditions, condition)
-	return r.Client.Status().Update(context.Background(), feed)
+
+	contextWithTimeout, ok := context.WithTimeout(context.TODO(), 10*time.Second)
+
+	if ok != nil {
+		return fmt.Errorf("failed to create context with timeout")
+	}
+
+	return r.Client.Status().Update(contextWithTimeout, feed)
 }
 
 // addSource sends a POST request to add a source.
