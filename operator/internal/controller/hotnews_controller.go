@@ -85,13 +85,11 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if err := r.addOwnerReferencesOnFeeds(ctx, &hotNews); err != nil {
-		logger.Error(err, "Failed to set owner references on related feeds")
 		return ctrl.Result{}, err
 	}
 
 	url, err := r.buildRequestURL(hotNews.Spec)
 	if err != nil {
-		logger.Error(err, "Failed to build request URL")
 		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
 		if statusErr != nil {
 			logger.Error(statusErr, "Failed to update HotNews status")
@@ -101,7 +99,6 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	titles, err := r.fetchNews(url)
 	if err != nil {
-		logger.Error(err, "Failed to fetch news")
 		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
 		if statusErr != nil {
 			logger.Error(statusErr, "Failed to update HotNews status")
@@ -110,7 +107,6 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if err := r.updateHotNewsArticles(ctx, &hotNews, titles, url); err != nil {
-		logger.Error(err, "Failed to update HotNews status")
 		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
 		if statusErr != nil {
 			logger.Error(statusErr, "Failed to update HotNews status")
@@ -133,7 +129,6 @@ func (r *HotNewsReconciler) finalizeHotNews(ctx context.Context, hotNews *newsag
 
 	controllerutil.RemoveFinalizer(hotNews, r.Finalizer)
 	if err := r.Update(ctx, hotNews); err != nil {
-		logger.Error(err, "Failed to remove finalizer from HotNews")
 		return err
 	}
 
