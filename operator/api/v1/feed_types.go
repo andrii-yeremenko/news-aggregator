@@ -5,11 +5,16 @@ import (
 )
 
 type Condition struct {
-	Type           ConditionType `json:"type"`
-	Status         bool          `json:"status"`
-	Reason         string        `json:"reason,omitempty"`
-	Message        string        `json:"message,omitempty"`
-	LastUpdateTime metav1.Time   `json:"lastUpdateTime,omitempty"`
+	// Type of the condition (Added, Updated, Deleted, Failed)
+	Type ConditionType `json:"type"`
+	// Status of the condition (True or False)
+	Status bool `json:"status"`
+	// Reason is a brief readable explanation for the condition's last transition
+	Reason string `json:"reason,omitempty"`
+	// Message is a human-readable message indicating details about the last transition
+	Message string `json:"message,omitempty"`
+	// LastUpdateTime is the last time the condition was updated
+	LastUpdateTime metav1.Time `json:"lastUpdateTime,omitempty"`
 }
 
 // FeedSpec defines the desired state of Feed
