@@ -90,7 +90,7 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	url, err := r.buildRequestURL(hotNews.Spec)
 	if err != nil {
-		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
+		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed, false, err.Error())
 		if statusErr != nil {
 			logger.Error(statusErr, "Failed to update HotNews status")
 		}
@@ -99,7 +99,7 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	titles, err := r.fetchNews(url)
 	if err != nil {
-		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
+		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed, false, err.Error())
 		if statusErr != nil {
 			logger.Error(statusErr, "Failed to update HotNews status")
 		}
@@ -107,7 +107,7 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if err := r.updateHotNewsArticles(ctx, &hotNews, titles, url); err != nil {
-		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
+		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed, false, err.Error())
 		if statusErr != nil {
 			logger.Error(statusErr, "Failed to update HotNews status")
 		}
@@ -116,7 +116,7 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	logger.Info("Successfully reconciled HotNews", "HotNews", hotNews.Name, "ArticlesCount",
 		hotNews.Status.ArticlesCount)
-	return ctrl.Result{}, r.updateStatus(&hotNews, newsaggregatorv1.ConditionUpdated)
+	return ctrl.Result{}, r.updateStatus(&hotNews, newsaggregatorv1.ConditionUpdated, true, "")
 }
 
 // finalizeHotNews handles the finalizer logic for the HotNews resource.
@@ -367,13 +367,21 @@ func (r *HotNewsReconciler) getFeedSourcesFromConfigMap(ctx context.Context) (ma
 }
 
 // updateStatus updates the status of the HotNews object.
-func (r *HotNewsReconciler) updateStatus(hotnews *newsaggregatorv1.HotNews, conditionType newsaggregatorv1.ConditionType) error {
+func (r *HotNewsReconciler) updateStatus(hotnews *newsaggregatorv1.HotNews, conditionType newsaggregatorv1.ConditionType,
+	status bool, message string) error {
 
 	if hotnews.DeletionTimestamp != nil {
 		return nil
 	}
 
-	hotnews.Status.Conditions = append(hotnews.Status.Conditions, conditionType)
+	c := newsaggregatorv1.Condition{
+		Type:           conditionType,
+		Status:         status,
+		Message:        message,
+		LastUpdateTime: metav1.Now(),
+	}
+
+	hotnews.Status.Conditions = append(hotnews.Status.Conditions, c)
 	return r.Client.Status().Update(context.Background(), hotnews)
 }
 
