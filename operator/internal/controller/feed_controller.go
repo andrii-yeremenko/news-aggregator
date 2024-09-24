@@ -48,12 +48,10 @@ func (r *FeedReconcile) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			l.Info("Feed resource not found. It might have been deleted.", "name", req.NamespacedName)
 			return ctrl.Result{}, nil
 		}
-		l.Error(err, "Failed to get Feed resource", "name", req.NamespacedName)
 		return ctrl.Result{}, err
 	}
 
 	if err := r.processFeed(&feed, ctx); err != nil {
-		l.Error(err, "Failed to process Feed", "name", req.NamespacedName)
 		return ctrl.Result{}, err
 	}
 
