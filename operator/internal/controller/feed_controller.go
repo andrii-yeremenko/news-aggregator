@@ -141,11 +141,8 @@ func (r *FeedReconcile) handleFeedDeletion(feed *newsaggregatorv1.Feed) error {
 
 		feed.Finalizers = removeFinalizer(feed.Finalizers, r.Finalizer)
 
-		contextWithTimeout, ok := context.WithTimeout(context.TODO(), 10*time.Second)
-
-		if ok != nil {
-			return fmt.Errorf("failed to create context with timeout")
-		}
+		contextWithTimeout, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+		defer cancel()
 
 		if err := r.Client.Update(contextWithTimeout, feed); err != nil {
 			return err
@@ -167,11 +164,8 @@ func (r *FeedReconcile) updateStatus(feed *newsaggregatorv1.Feed, conditionType 
 
 	feed.Status.Conditions = append(feed.Status.Conditions, condition)
 
-	contextWithTimeout, ok := context.WithTimeout(context.TODO(), 10*time.Second)
-
-	if ok != nil {
-		return fmt.Errorf("failed to create context with timeout")
-	}
+	contextWithTimeout, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
 
 	return r.Client.Status().Update(contextWithTimeout, feed)
 }
