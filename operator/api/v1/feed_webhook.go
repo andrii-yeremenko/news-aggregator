@@ -140,11 +140,8 @@ func checkNameUniqueness(feed *Feed) error {
 	feedList := &FeedList{}
 	listOpts := client.ListOptions{Namespace: feed.Namespace}
 
-	contextWithTimeout, ok := context.WithTimeout(context.TODO(), 10*time.Second)
-
-	if ok != nil {
-		return fmt.Errorf("failed to create context with timeout")
-	}
+	contextWithTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	err := k8sClient.List(contextWithTimeout, feedList, &listOpts)
 	if err != nil {
