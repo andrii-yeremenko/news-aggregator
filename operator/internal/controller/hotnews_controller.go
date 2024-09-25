@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"com.teamdev/news-aggregator/internal/controller/handlers"
 	"com.teamdev/news-aggregator/internal/controller/predicates"
 	"context"
 	"encoding/json"
@@ -396,61 +397,11 @@ func (r *HotNewsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Owns(&newsaggregatorv1.Feed{}, builder.WithPredicates(feedPredicate)).
 		Watches(
 			&v1.ConfigMap{},
-			handler.EnqueueRequestsFromMapFunc(r.reconcileAllHotNews),
+			handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
+				return handlers.ReconcileAllHotNews(ctx, obj, r.Client, r.Namespace, r.ConfigMapName, r.ConfigMapNamespace)
+			}),
 			builder.WithPredicates(configMapPredicate),
 		).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
-}
-
-// reconcileAllHotNews reconciles all HotNews resources.
-func (r *HotNewsReconciler) reconcileAllHotNews(ctx context.Context, obj client.Object) []reconcile.Request {
-	var hotNewsList newsaggregatorv1.HotNewsList
-
-	configMap, ok := obj.(*v1.ConfigMap)
-	if !ok {
-		log.Log.Error(fmt.Errorf("ConfigMap object is not of type v1.ConfigMap"), "Failed to reconcile all HotNews resources")
-		return nil
-	}
-
-	if configMap.Name != r.ConfigMapName || configMap.Namespace != r.ConfigMapNamespace {
-		log.Log.Info("ConfigMap does not match the expected ConfigMap. Skipping reconciliation of HotNews resources")
-		return nil
-	}
-
-	timeoutCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
-
-	log.Log.Info("Reconciling all HotNews resources")
-
-	if err := r.Client.List(timeoutCtx, &hotNewsList, client.InNamespace(r.Namespace)); err != nil {
-		log.Log.Error(err, "Failed to list HotNews resources")
-		return nil
-	}
-
-	var requests []ctrl.Request
-	for _, hotNews := range hotNewsList.Items {
-		if hotnewsUsingConfigMap(&hotNews) {
-			requests = append(requests, r.enqueueHotNewsResource(&hotNews))
-		}
-	}
-
-	return requests
-}
-
-// hotnewsUsingConfigMap checks if the HotNews resource is using FeedGroups.
-func hotnewsUsingConfigMap(hotNews *newsaggregatorv1.HotNews) bool {
-	return hotNews.Spec.FeedGroups != nil
-}
-
-// enqueueHotNewsResource enqueues the HotNews resource for reconciliation.
-func (r *HotNewsReconciler) enqueueHotNewsResource(hotNews *newsaggregatorv1.HotNews) ctrl.Request {
-	log.Log.Info("Enqueueing HotNews resource", "HotNews", hotNews.Name)
-
-	return reconcile.Request{
-		NamespacedName: client.ObjectKey{
-			Name:      hotNews.Name,
-			Namespace: hotNews.Namespace,
-		},
-	}
 }
