@@ -120,7 +120,6 @@ spec:
             required:
             - articlesCount
             - articlesTitles
-            - conditions
             - newsLink
             type: object
         type: object
