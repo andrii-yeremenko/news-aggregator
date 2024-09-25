@@ -9,9 +9,6 @@ vars:
   CONTROLLER_GEN: "{{.LOCALBIN}}/controller-gen"
   KUSTOMIZE: "{{.LOCALBIN}}/kustomize"
 
-  KUSTOMIZE_VERSION: "v5.4.2"
-  CONTROLLER_TOOLS_VERSION: "v0.15.0"
-
   IGNORE_NOT_FOUND: "false"
 
 tasks:
