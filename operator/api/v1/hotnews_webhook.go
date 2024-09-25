@@ -97,11 +97,9 @@ func (r *HotNews) validateFeeds() error {
 
 	var notFoundFeeds []string
 
-	contextWithTimeout, ok := context.WithTimeout(context.TODO(), 10*time.Second)
+	contextWithTimeout, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
 
-	if ok != nil {
-		return fmt.Errorf("failed to create context with timeout")
-	}
+	defer cancel()
 
 	for _, feed := range r.Spec.Feeds {
 		var f Feed
@@ -130,11 +128,8 @@ func (r *HotNews) validateFeedGroups() error {
 
 	var cm v1.ConfigMap
 
-	contextWithTimeout, ok := context.WithTimeout(context.TODO(), 10*time.Second)
-
-	if ok != nil {
-		return fmt.Errorf("failed to create context with timeout")
-	}
+	contextWithTimeout, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
 
 	if err := k8sClient.Get(contextWithTimeout, client.ObjectKey{
 		Namespace: r.Namespace,

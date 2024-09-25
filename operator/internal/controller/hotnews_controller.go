@@ -180,11 +180,8 @@ func (r *HotNewsReconciler) removeOwnerReferencesFromFeeds(ctx context.Context, 
 // addOwnerReferencesOnFeeds sets the owner reference on all related Feed resources
 func (r *HotNewsReconciler) addOwnerReferencesOnFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
 
-	contextWithTimeout, ok := context.WithTimeout(ctx, 10*time.Second)
-
-	if ok != nil {
-		return fmt.Errorf("failed to create context with timeout")
-	}
+	contextWithTimeout, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 
 	allFeeds, err := r.getAllFeeds(contextWithTimeout, hotNews.Spec)
 
@@ -221,11 +218,8 @@ func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (
 
 	baseURL := fmt.Sprintf("%s%s", r.NewsAggregatorURL, newsEndpoint)
 
-	contextWithTimeout, ok := context.WithTimeout(context.Background(), 10*time.Second)
-
-	if ok != nil {
-		return "", fmt.Errorf("failed to create context with timeout")
-	}
+	contextWithTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
 	allFeeds, err := r.getAllFeeds(contextWithTimeout, spec)
 
