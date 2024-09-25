@@ -15,47 +15,12 @@ vars:
   IGNORE_NOT_FOUND: "false"
 
 tasks:
-
-  kustomize:
-    desc: "Download kustomize locally if necessary"
-    cmds:
-      - mkdir -p {{.LOCALBIN}}
-      - |
-        if [ ! -f {{.LOCALBIN}}/kustomize ]; then
-          echo "Installing kustomize..."
-          GOBIN={{.LOCALBIN}} go install sigs.k8s.io/kustomize/kustomize/v5@{{.KUSTOMIZE_VERSION}}
-        else
-          echo "kustomize already installed"
-        fi
-
-  controller-gen:
-    desc: "Download controller-gen locally if necessary"
-    cmds:
-      - mkdir -p {{.LOCALBIN}}
-      - |
-        if [ ! -f {{.LOCALBIN}}/controller-gen ]; then
-          echo "Installing controller-gen..."
-          GOBIN={{.LOCALBIN}} go install sigs.k8s.io/controller-tools/cmd/controller-gen@{{.CONTROLLER_TOOLS_VERSION}}
-        else
-          echo "controller-gen already installed"
-        fi
-
-  install-all-tools:
-    desc: "Install tools"
-    deps:
-      - kustomize
-      - controller-gen
-
   manifests:
     desc: "Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects."
-    deps:
-      - controller-gen
     cmd: '{{.CONTROLLER_GEN}} rbac:roleName=manager-role crd webhook paths=./... output:crd:artifacts:config=config/crd/bases'
 
   generate:
     desc: "Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations."
-    deps:
-      - controller-gen
     cmd: '{{.CONTROLLER_GEN}} object:headerFile="hack/boilerplate.go.txt" paths="./..."'
 
   fmt:
@@ -88,22 +53,16 @@ tasks:
 
   install:
     desc: "Install CRDs into the K8s cluster specified in ~/.kube/config."
-    deps:
-      - install-all-tools
     cmd: |
       {{.KUSTOMIZE}} build config/crd | {{.KUBECTL}} apply -f -
 
   uninstall:
     desc: "Uninstall CRDs from the K8s cluster specified in ~/.kube/config."
-    deps:
-      - kustomize
     cmd: |
       {{.KUSTOMIZE}} build config/crd | {{.KUBECTL}} delete --ignore-not-found={{.IGNORE_NOT_FOUND}} -f -
 
   deploy:
     desc: "Deploy controller to the K8s cluster specified in ~/.kube/config."
-    deps:
-      - install-all-tools
     cmd: |
       KUSTOMIZE=$(pwd)/bin/kustomize
       cd config/manager && $KUSTOMIZE edit set image controller={{.IMG_NAME}}:{{.IMG_TAG}}
@@ -112,8 +71,6 @@ tasks:
 
   undeploy:
     desc: "Undeploy controller from the K8s cluster specified in ~/.kube/config."
-    deps:
-      - kustomize
     cmd: |
       {{.KUSTOMIZE}} build config/default | {{.KUBECTL}} delete --ignore-not-found={{.IGNORE_NOT_FOUND}} -f -
 
