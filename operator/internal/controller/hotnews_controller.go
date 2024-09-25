@@ -65,7 +65,7 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	var hotNews newsaggregatorv1.HotNews
 	if err := r.Get(ctx, req.NamespacedName, &hotNews); err != nil {
 		if errors.IsNotFound(err) {
-			logger.Info("HotNews resource not found. Ignoring since object must be deleted")
+			logger.Info("HotNews resource not found. Ignoring.")
 			return ctrl.Result{}, nil
 		}
 		return ctrl.Result{}, err
