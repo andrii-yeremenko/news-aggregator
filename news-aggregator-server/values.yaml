@@ -133,4 +133,4 @@ hpa:
   minReplicas: 1
   maxReplicas: 10
   # Target average CPU utilization for the Horizontal Pod Autoscaler.
-  cpuUtilizationTarget: 50
+  cpuUtilizationTarget: 30

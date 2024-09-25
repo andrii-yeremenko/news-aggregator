@@ -3,6 +3,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: {{ .Release.Name }}-hpa
+  namespace: {{ .Values.namespace.name }}
   labels:
     app: {{ .Release.Name }}
 spec:
@@ -11,13 +12,13 @@ spec:
     kind: Deployment
     name: {{ .Release.Name }}-deployment
     namespace: {{ .Values.namespace.name }}
-  minReplicas: 1
-  maxReplicas: 10
+  minReplicas: {{ .Values.hpa.minReplicas }}
+  maxReplicas: {{ .Values.hpa.maxReplicas }}
   metrics:
     - type: Resource
       resource:
         name: cpu
         target:
           type: Utilization
-          averageUtilization: 30
+          averageUtilization: {{ .Values.hpa.cpuUtilizationTarget }}
 {{- end }}

@@ -10,3 +10,7 @@ spec:
     kind: Issuer
   commonName: news-aggregator
   dnsNames:
+    - news-aggregator
+    - news-aggregator.{{ .Values.namespace.name }}
+    - news-aggregator.{{ .Values.namespace.name }}.svc
+    - news-aggregator.{{ .Values.namespace.name }}.svc.cluster.local
