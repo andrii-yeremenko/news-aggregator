@@ -321,10 +321,6 @@ tasks:
       - task docker-push-aws
       - task pushServerChart
       - task pushDay0Chart
-      - cd operator
       - task operator:operator-push-aws
-      - cd ..
-      - cd updater
       - task updater:updater-push-aws
-      - cd ..
     silent: true
