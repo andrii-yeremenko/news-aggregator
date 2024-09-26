@@ -2,7 +2,7 @@ apiVersion: v2
 name: news-aggregator-server
 description: a chart that deploys a news aggregator https server
 type: application
-version: 0.1.0
+version: 1.0.0
 appVersion: "2.0"
 
 dependencies:
