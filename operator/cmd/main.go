@@ -3,7 +3,9 @@ package main
 import (
 	"crypto/tls"
 	"flag"
+	corev1 "k8s.io/api/core/v1"
 	"os"
+	"sigs.k8s.io/controller-runtime/pkg/builder"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -25,8 +27,11 @@ import (
 )
 
 const (
-	defaultServiceURL = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
-	defaultFinalizer  = "feed.finalizer.news-aggregator.teamdev.com"
+	defaultServiceURL       = "https://news-aggregator.news-aggregator-namespace.svc.cluster.local:443"
+	defaultFeedFinalizer    = "news-aggregator.teamdev.com/feeds-finalizer"
+	defaultHotNewsFinalizer = "news-aggregator.teamdev.com/hotnews-finalizer"
+	defaultConfigMapName    = "hotnews-feeds-group"
+	defaultNamespace        = "news-aggregator-namespace"
 )
 
 var (
@@ -49,13 +54,19 @@ func main() {
 	var enableHTTP2 bool
 	var tlsOpts []func(*tls.Config)
 	var serviceURL string
-	var finalizer string
+	var feedFinalizer string
+	var hotNewsFinalizer string
+	var configMapName string
+	var namespace string
 
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
 		"Use :8443 for HTTPS or :8080 for HTTP, or leave as 0 to disable the metrics service.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.StringVar(&serviceURL, "service-url", defaultServiceURL, "The URL of the service to send HTTP requests to.")
-	flag.StringVar(&finalizer, "finalizer", defaultFinalizer, "The finalizer to add to Feed objects.")
+	flag.StringVar(&feedFinalizer, "feedFinalizer", defaultFeedFinalizer, "The feedFinalizer to add to Feed objects.")
+	flag.StringVar(&hotNewsFinalizer, "hotNewsFinalizer", defaultHotNewsFinalizer, "The hotNewsFinalizer to add to HotNews objects.")
+	flag.StringVar(&configMapName, "config-map-name", defaultConfigMapName, "The name of the ConfigMap to read HotNews keywords from.")
+	flag.StringVar(&namespace, "config-map-namespace", defaultNamespace, "The namespace")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
@@ -132,7 +143,7 @@ func main() {
 		Scheme:     mgr.GetScheme(),
 		HTTPClient: controller.NewDefaultHTTPClient(),
 		ServiceURL: serviceURL,
-		Finalizer:  finalizer,
+		Finalizer:  feedFinalizer,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Feed")
 		os.Exit(1)
@@ -143,6 +154,40 @@ func main() {
 			os.Exit(1)
 		}
 	}
+	if err = (&controller.HotNewsReconciler{
+		Client:             mgr.GetClient(),
+		Scheme:             mgr.GetScheme(),
+		HTTPClient:         controller.NewDefaultHTTPClient(),
+		NewsAggregatorURL:  serviceURL,
+		Namespace:          namespace,
+		Finalizer:          hotNewsFinalizer,
+		ConfigMapName:      configMapName,
+		ConfigMapNamespace: namespace,
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "HotNews")
+		os.Exit(1)
+	}
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		if err = (&newsaggregatorv1.HotNews{}).SetupWebhookWithManager(mgr, configMapName); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "HotNews")
+			os.Exit(1)
+		}
+
+		if err := builder.WebhookManagedBy(mgr).
+			For(&corev1.ConfigMap{}).
+			WithValidator(&newsaggregatorv1.ConfigMapWebhook{
+				Client:             mgr.GetClient(),
+				ConfigMapName:      configMapName,
+				ConfigMapNamespace: namespace,
+			}).
+			Complete(); err != nil {
+			setupLog.Error(err, "unable to create webhook", "webhook", "Pod")
+			os.Exit(1)
+		}
+
+		setupLog.Info("HotNews webhooks enabled")
+	}
+
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

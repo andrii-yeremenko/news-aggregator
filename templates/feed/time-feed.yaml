@@ -1,9 +1,9 @@
 apiVersion: news-aggregator.com.teamdev/v1
 kind: Feed
 metadata:
-  name: bbc-world
+  name: time-politics
   namespace: news-aggregator-namespace
 spec:
-  name: bbc-world
-  link: "https://feeds.bbci.co.uk/news/rss.xml"
+  name: time-politics
+  link: "http://time.com/feed"
 status:

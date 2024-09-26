@@ -186,3 +186,27 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/feed
       - echo "Feeds deleted"
+
+  add-hotnews:
+    desc: "Add a new HotNews object"
+    cmds:
+      - kubectl apply -f $K8S_TEMPLATES_PATH/hotnews
+      - echo "HotNews object added"
+
+  remove-hotnews:
+    desc: "Remove the HotNews object"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/hotnews
+      - echo "HotNews object removed"
+
+  configure-feeds-map:
+    desc: "Configure the feeds map"
+    cmds:
+      - kubectl apply -f $K8S_TEMPLATES_PATH/configmap/feeds-group.yaml
+      - echo "Feeds map configured"
+
+  unconfigure-feeds-map:
+    desc: "Unconfigure the feeds map"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/configmap/feeds-group.yaml
+      - echo "Feeds map unconfigured"

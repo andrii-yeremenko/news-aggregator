@@ -59,7 +59,30 @@ func (r *Feed) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
 func (r *Feed) ValidateDelete() (admission.Warnings, error) {
 	feedLog.Info("validate delete", "name", r.Name)
 
+	if err := ensureFeedUnused(r); err != nil {
+		return nil, err
+	}
+
 	return nil, nil
+}
+
+func ensureFeedUnused(r *Feed) error {
+	hotNewsList := &HotNewsList{}
+	listOpts := client.ListOptions{}
+	err := k8sClient.List(context.Background(), hotNewsList, &listOpts)
+	if err != nil {
+		return fmt.Errorf("failed to list HotNews objects: %v", err)
+	}
+
+	for _, hotNews := range hotNewsList.Items {
+		for _, feed := range hotNews.Spec.Feeds {
+			if feed == r.Spec.Name {
+				return fmt.Errorf("feed '%s' is used by HotNews object '%s'", r.Spec.Name, hotNews.Name)
+			}
+		}
+	}
+
+	return nil
 }
 
 // validateFeed performs the validation checks on the Feed object.

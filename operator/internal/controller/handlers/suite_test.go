@@ -1,4 +1,4 @@
-package v1
+package handlers
 
 import (
 	. "github.com/onsi/ginkgo/v2"
@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestWebhooks(t *testing.T) {
+func TestControllers(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Feed Validation")
+	RunSpecs(t, "HotNews Handler")
 }

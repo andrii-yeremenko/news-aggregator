@@ -1,0 +1,21 @@
+apiVersion: news-aggregator.com.teamdev/v1
+kind: HotNews
+metadata:
+  name: ukraine-war
+  namespace: news-aggregator-namespace
+spec:
+  keywords:
+    - ukraine
+    - russia
+    - putin
+    - zelensky
+    - kyiv
+    - kremlin
+  dateStart: "2024-06-01T00:00:00Z"
+  dateEnd: "2024-12-05T00:00:00Z"
+  feeds:
+  feedGroups:
+    - ukraine
+  summaryConfig:
+    titlesCount: 5
+status:

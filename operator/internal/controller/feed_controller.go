@@ -23,6 +23,10 @@ const (
 	sourcesEndpoint = "/sources"
 )
 
+// +kubebuilder:rbac:groups=news-aggregator.com.teamdev,resources=feeds,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=news-aggregator.com.teamdev,resources=feeds/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=news-aggregator.com.teamdev,resources=feeds/finalizers,verbs=update
+
 //go:generate mockgen -destination=mocks/mock_http_client.go -package=mocks com.teamdev/news-aggregator/internal/controller HTTPClient
 type HTTPClient interface {
 	Do(req *http.Request) (*http.Response, error)
