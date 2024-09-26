@@ -5,7 +5,7 @@ env:
   AWS_REGION: "us-east-1"
 
 vars:
-  IMG_NAME: "andrii-news-operator"
+  IMG_NAME: "news-operator"
   IMG_TAG: "v1"
   KUBECTL: "kubectl"
   LOCALBIN: "$(pwd)/bin"
