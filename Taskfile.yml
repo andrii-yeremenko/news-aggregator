@@ -210,3 +210,28 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/configmap/feeds-group.yaml
       - echo "Feeds map unconfigured"
+
+  createChart:
+    desc: "Creates a Helm chart with all needed resources for the news-aggregator"
+    cmds:
+      - helm dependency update ./news-aggregator-server
+      - helm lint ./news-aggregator-server
+      - helm package ./news-aggregator-server
+      - mkdir -p ./charts
+      - mv *.tgz ./charts/
+    silent: true
+
+  installChart:
+    desc: "Installs chart on Kubernetes cluster"
+    deps:
+      - createChart
+    cmds:
+      - helm install news-aggregator ./charts/news-aggregator-*.tgz --namespace news-aggregator-namespace --create-namespace --set metrics-server.args[0]="--kubelet-insecure-tls" --set metrics-server.args[1]="--kubelet-preferred-address-types=InternalIP"
+    silent: true
+
+  uninstallChart:
+    desc: "Uninstalls chart from Kubernetes cluster and deletes namespace"
+    cmds:
+      - helm uninstall news-aggregator --namespace news-aggregator-namespace
+      - kubectl delete namespace news-aggregator-namespace --ignore-not-found --wait=false
+    silent: true

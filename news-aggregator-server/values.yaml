@@ -28,7 +28,7 @@ resources:
   # Limits define the maximum amount of CPU and memory the container can use.
   limits:
     memory: "512Mi"
-    cpu: "500m"
+    cpu: "150m"
 
 # The name of the ServiceAccount to use for the News Aggregator application.
 serviceAccountName: news-aggregator-sa
@@ -106,3 +106,26 @@ rbac:
   roleBinding:
     # The name of the RoleBinding that associates the Role with a ServiceAccount.
     name: news-aggregator-rolebinding
+
+vpa:
+  # Enable Vertical Pod Autoscaler for the deployment.
+  enabled: true
+  # Update mode for the Vertical Pod Autoscaler. Can be "Auto" or "Initial".
+  updateMode: "Auto"
+  # Resource requirements for the Vertical Pod Autoscaler.
+  minAllowed:
+    cpu: 200m
+    memory: 256Mi
+  # The maximum CPU and memory limits for the Vertical Pod Autoscaler.
+  maxAllowed:
+    cpu: 2
+    memory: 2Gi
+
+hpa:
+  # Enable Horizontal Pod Autoscaler for the deployment.
+  enabled: true
+  # Minimum and maximum number of replicas for the Horizontal Pod Autoscaler.
+  minReplicas: 1
+  maxReplicas: 10
+  # Target average CPU utilization for the Horizontal Pod Autoscaler.
+  cpuUtilizationTarget: 30
