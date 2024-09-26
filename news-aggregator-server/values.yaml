@@ -10,7 +10,7 @@ aws:
 
 image:
   # The Docker image repository for the News Aggregator application.
-  repository: 406477933661.dkr.ecr.us-east-1.amazonaws.com/andrii-news-aggregator-server
+  repository: 406477933661.dkr.ecr.us-east-1.amazonaws.com/news-aggregator-server
   # The specific tag/version of the image to use.
   tag: 1.0.0
   # The pull policy for the image. IfNotPresent avoids pulling the image if it is already available locally.
@@ -20,7 +20,7 @@ image:
 cronJob:
   schedule: "0 0 * * *"  # Schedule for the cron job
   image:
-    repository: 406477933661.dkr.ecr.us-east-1.amazonaws.com/andrii-news-updater  # Image repository for the news-updater
+    repository: 406477933661.dkr.ecr.us-east-1.amazonaws.com/news-updater  # Image repository for the news-updater
     tag: 1.0.0                           # Tag of the image to use
   successfulJobsHistoryLimit: 3           # Number of successful jobs to keep
   failedJobsHistoryLimit: 1               # Number of failed jobs to keep
