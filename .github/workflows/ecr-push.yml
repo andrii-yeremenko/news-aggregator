@@ -2,8 +2,6 @@ name: Push to ECR
 
 on:
   push:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
@@ -59,24 +57,4 @@ jobs:
 
       - name: Push Server Helm chart to ECR
         run: |
-          task pushServerChart
-
-      - name: Push Day0 Helm chart to ECR
-        run: |
-          task pushDay0Chart
-
-      - name: Push HTTPS server to ECR
-        run: |
-          task docker-push-aws
-
-      - name: Push Cron job to ECR
-        run: |
-          cd updater
-          task docker-push-aws
-          cd ..
-
-      - name: Push Operator to ECR
-        run: |
-          cd operator
-          task docker-push-aws
-          cd ..
+          task pushAllToECR
