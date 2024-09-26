@@ -1,0 +1,54 @@
+version: '3'
+
+env:
+  DOCKER_IMAGE_NAME: "ayeremenko/news-updater"
+  DOCKERFILE_PATH: "Dockerfile"
+  DOCKER_TAG: "1.0.0"
+
+output:
+  group:
+    begin: '::group::{{.TASK}}'
+    end: '::endgroup::'
+
+tasks:
+  download:
+    desc: "Download all dependencies"
+    cmd: |
+      go mod download
+
+  tidy:
+    desc: "Tidies the Go module dependencies"
+    cmd: |
+      go mod tidy
+
+  generate:
+    desc: Generate all mocks
+    cmds:
+      - go install github.com/golang/mock/mockgen@v1.6.0
+      - go generate ./...
+
+  test:
+    desc: "Run all tests"
+    deps:
+      - generate
+    cmd: |
+      go test ./...
+
+  fmt:
+    desc: "Run go fmt on all Go files"
+    cmd: |
+      go fmt ./...
+
+  build:
+    desc: "Build the updater"
+    cmd: |
+      go build -o news-updater main.go
+  run:
+    desc: "Run the updater"
+    cmd: |
+      go run main.go    
+
+  docker-build:
+    desc: "Build the Docker image"
+    cmd: |
+      docker build -t $DOCKER_IMAGE_NAME:$DOCKER_TAG -f $DOCKERFILE_PATH .

@@ -165,10 +165,11 @@ Also docker image provides the following environment variables to configure the 
     }
     ```
 
-4. **Update Feed**: Fetch articles from the internet and update the database.
-    - **URL**: `/update`
-    - **Method**: `GET`
-    - **Response**: `200 Ok` if the feed was updated successfully.
+### News updating
+This project allows you to update the sources using our **`news-updater`** tool.
+This tool is a command-line application that updates the sources in the system. 
+It fetches the latest articles from the sources and stores them in the database.
+Read the [README.md](news-updater/README.md) documentation for more information.
 
 # Contribution
 

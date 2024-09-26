@@ -137,6 +137,7 @@ tasks:
     cmds:
       - kubectl apply -f $K8S_TEMPLATES_PATH/app
       - kubectl apply -f $K8S_TEMPLATES_PATH/rbac
+      - kubectl apply -f $K8S_TEMPLATES_PATH/cronjob
       - echo "The news-aggregator app has been deployed"
 
   undeploy:
@@ -144,6 +145,7 @@ tasks:
     cmds:
       - kubectl delete -f $K8S_TEMPLATES_PATH/app -n news-aggregator-namespace
       - kubectl delete -f $K8S_TEMPLATES_PATH/rbac -n news-aggregator-namespace
+      - kubectl delete -f $K8S_TEMPLATES_PATH/cronjob -n news-aggregator-namespace
       - echo "The news-aggregator app has been removed from the Kubernetes cluster"
 
   port-forward:
@@ -158,3 +160,29 @@ tasks:
       - pkill -f 'kubectl port-forward'
       - rm port-forward.log
       - echo "Stopped port-forwarding."
+
+  setup-feeds:
+    desc: "Setup the news feeds"
+    cmds:
+      - |
+        if ! kubectl get crd feeds.news-aggregator.com.teamdev >/dev/null 2>&1; then
+          echo "Error: Feed CRD is not installed. Cannot proceed with feed setup."
+          exit 1
+        else
+          echo "Feed CRD is installed."
+        fi
+      - |
+        if ! kubectl get deployment operator-controller-manager -n operator-system >/dev/null 2>&1; then
+          echo "Error: Operator Feed operator is not installed. Cannot proceed with feed setup."
+          exit 1
+        else
+          echo "Operator is installed."
+        fi
+      - kubectl apply -f $K8S_TEMPLATES_PATH/feed
+      - echo "Feeds setup"
+
+  teardown-feeds:
+    desc: "Delete the news feeds"
+    cmds:
+      - kubectl delete -f $K8S_TEMPLATES_PATH/feed
+      - echo "Feeds deleted"

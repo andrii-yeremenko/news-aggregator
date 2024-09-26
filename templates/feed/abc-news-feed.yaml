@@ -1,0 +1,8 @@
+apiVersion: news-aggregator.com.teamdev/v1
+kind: Feed
+metadata:
+  name: abc-news
+spec:
+  name: abc-news
+  link: "https://feeds.abcnews.com/abcnews/internationalheadlines"
+status:

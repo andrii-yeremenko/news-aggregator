@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: news-updater-cronjob
+  namespace: news-aggregator-namespace
+spec:
+  schedule: "0 0 * * *" # Runs once a day at midnight (UTC)
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: news-updater
+              image: ayeremenko/news-updater:1.0.0 # Replace with latest image
+              volumeMounts:
+                - name: config-volume
+                  mountPath: /config
+                - name: resources-volume
+                  mountPath: /resources
+          restartPolicy: OnFailure
+          volumes:
+            - name: config-volume
+              persistentVolumeClaim:
+                claimName: news-aggregator-config-pvc
+            - name: resources-volume
+              persistentVolumeClaim:
+                claimName: news-aggregator-resources-pvc
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 1

@@ -1,0 +1,17 @@
+[
+  {
+    "source": "abc-news",
+    "format": "RSS",
+    "link": "https://feeds.abcnews.com/abcnews/internationalheadlines"
+  },
+  {
+    "source": "washington-times",
+    "format": "RSS",
+    "link": "https://www.washingtontimes.com/rss/headlines/news/world/"
+  },
+  {
+    "source": "bbc-world",
+    "format": "RSS",
+    "link": "https://feeds.bbci.co.uk/news/rss.xml"
+  }
+]
