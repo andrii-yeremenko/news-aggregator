@@ -27,7 +27,7 @@ includes:
   cli:
     taskfile: ./cmd/cli/Taskfile.yml
   operator:
-    taskfile: ./operator/Taskfile.yml
+    taskfile: ./operator/Taskfile.yaml
   updater:
     taskfile: ./updater/Taskfile.yml
 
