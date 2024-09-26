@@ -134,3 +134,54 @@ func TestGetSelectedResources(t *testing.T) {
 		assert.Equal(t, resource.HTML, int(r.Format()))
 	}
 }
+
+func TestGetAvailableFeeds_SingleFeed(t *testing.T) {
+
+	file := "./testdata/empty.json"
+	_ = os.Remove(file)
+	_, _ = os.Create(file)
+
+	rm, err := manager.New(testStoragePath, "./testdata/empty.json")
+	assert.NoError(t, err)
+
+	_ = rm.RegisterSource("test", "http://test.com/test", resource.HTML)
+
+	feeds := rm.AvailableFeeds()
+
+	assert.Equal(t, "test", feeds)
+}
+
+func TestGetAvailableFeeds_MultipleFeeds(t *testing.T) {
+
+	file := "./testdata/empty.json"
+	_ = os.Remove(file)
+	_, _ = os.Create(file)
+
+	rm, err := manager.New(testStoragePath, "./testdata/empty.json")
+	assert.NoError(t, err)
+
+	_ = rm.RegisterSource("test", "http://test.com/test", resource.HTML)
+	_ = rm.RegisterSource("test2", "http://test.com/test2", resource.HTML)
+
+	feeds := rm.AvailableFeeds()
+
+	ok := feeds == "test,test2" || feeds == "test2,test"
+
+	assert.True(t, ok)
+}
+
+func TestGetAvailableFeeds_NoFeeds(t *testing.T) {
+
+	file := "./testdata/empty.json"
+	_ = os.Remove(file)
+	_, _ = os.Create(file)
+
+	rm, err := manager.New(testStoragePath, "./testdata/empty.json")
+
+	_ = rm.DeleteSource("supported_source")
+	_ = rm.DeleteSource("test")
+
+	assert.NoError(t, err)
+
+	assert.Equal(t, "no available feeds", rm.AvailableFeeds())
+}

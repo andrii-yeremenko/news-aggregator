@@ -118,6 +118,22 @@ func (rm *ResourceManager) AvailableSources() string {
 	return sourcesStr
 }
 
+// AvailableFeeds returns the available feeds registered in a system.
+func (rm *ResourceManager) AvailableFeeds() string {
+
+	if len(rm.feeds) == 0 {
+		return "no available feeds"
+	}
+
+	feeds := ""
+
+	for source := range rm.feeds {
+		feeds += string(source) + ","
+	}
+
+	return feeds[:len(feeds)-1]
+}
+
 // GetAllResources returns all known resource.Resource's from a file system.
 func (rm *ResourceManager) GetAllResources() ([]resource.Resource, error) {
 

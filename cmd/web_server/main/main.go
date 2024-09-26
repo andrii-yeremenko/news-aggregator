@@ -95,6 +95,7 @@ func startServer(port, certFilePath, keyFilePath string, m *manager.ResourceMana
 		SetPort(port).
 		AddHandler("/news", handler.NewNewsHandler(m).Handle).
 		AddHandler("/sources", handler.NewFeedsManagerHandler(m).Handle).
+		AddHandler("/availableFeeds", handler.NewAvailableFeedsHandler(m).Handle).
 		Build()
 
 	log.Println("Starting server on port " + port + " ...")

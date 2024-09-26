@@ -117,6 +117,11 @@ Also docker image provides the following environment variables to configure the 
         - `sort`: Sort articles by a specific field.
     - **Response**: Returns a JSON formatted text of articles that match the specified criteria.
 
+2. **Get available feeds in system**: Retrieve sources from the server.
+    - **URL**: `/availableFeeds`
+    - **Method**: `GET`
+    - **Response**: Returns a JSON formatted text with all available feeds.
+
 ### Admin API
 
 1. **Add Source**: Add a new source to the system.
