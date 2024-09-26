@@ -85,7 +85,7 @@ tasks:
     desc: "Run a controller from your host."
     cmd: go run ./cmd/main.go
 
-  docker-build:
+  operator-build:
     desc: "Build docker image with the manager."
     cmd: docker build -t {{.IMG_NAME}}:{{.IMG_TAG}} .
 
@@ -95,11 +95,11 @@ tasks:
       docker tag {{.IMG_NAME}}:{{.IMG_TAG}} {{.REGISTRY}}/{{.IMG_NAME}}:{{.IMG_TAG}}
       docker push {{.REGISTRY}}/{{.IMG_NAME}}:{{.IMG_TAG}}
 
-  docker-push-aws:
+  operator-push-aws:
     desc: "Push the Docker image to AWS ECR"
     deps:
       - aws-auth-docker
-      - docker-build
+      - operator-build
     cmd: |
         docker tag {{.IMG_NAME}}:{{.IMG_TAG}} {{.AWS_ACCOUNT_ID}}.dkr.ecr.{{.AWS_REGION}}.amazonaws.com/{{.IMG_NAME}}:{{.IMG_TAG}}
         docker push {{.AWS_ACCOUNT_ID}}.dkr.ecr.{{.AWS_REGION}}.amazonaws.com/{{.IMG_NAME}}:{{.IMG_TAG}}
@@ -139,6 +139,6 @@ tasks:
     desc: "Redeploy the controller to the K8s cluster specified in ~/.kube/config."
     deps:
       - undeploy
-      - docker-build
+      - operator-build
       - docker-push
       - deploy

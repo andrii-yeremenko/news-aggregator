@@ -98,6 +98,7 @@ tasks:
     desc: "Build the Docker image for web_server"
     silent: true
     cmd: |
+      echo "Building the Docker image"
       docker build -t $DOCKER_IMAGE_NAME:$DOCKER_TAG -f $DOCKERFILE_PATH .
 
   docker-run:
@@ -120,6 +121,7 @@ tasks:
       - aws-auth-docker
       - docker-build
     cmd: |
+      echo "Pushing the Docker image to AWS ECR"
       docker tag ayeremenko/news-aggregator:$DOCKER_TAG 406477933661.dkr.ecr.us-east-1.amazonaws.com/news-aggregator-server:$DOCKER_TAG
       docker push 406477933661.dkr.ecr.us-east-1.amazonaws.com/news-aggregator-server:$DOCKER_TAG
 
@@ -319,6 +321,10 @@ tasks:
       - task docker-push-aws
       - task pushServerChart
       - task pushDay0Chart
-      - task operator:docker-push-aws
-      - task updater:docker-push-aws
+      - cd operator
+      - task operator:operator-push-aws
+      - cd ..
+      - cd updater
+      - task updater:updater-push-aws
+      - cd ..
     silent: true
