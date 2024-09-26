@@ -97,8 +97,6 @@ tasks:
   docker-build:
     desc: "Build the Docker image for web_server"
     silent: true
-    deps:
-      - test
     cmd: |
       docker build -t $DOCKER_IMAGE_NAME:$DOCKER_TAG -f $DOCKERFILE_PATH .
 
