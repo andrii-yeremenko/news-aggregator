@@ -1,5 +1,18 @@
 # Changelog
 
+## [4.0.0](https://github.com/andrii-yeremenko/news-aggregator/compare/news-aggregator@v3.0.0...news-aggregator@v4.0.0) (2024-09-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* update news-aggregator server's helm chart version from `0.1.0` to `1.0.0`.
+* update https news-aggregator server's image version from `1.0.0` to `2.0.0`.
+
+### Miscellaneous Chores
+
+* update https news-aggregator server's image version from `1.0.0` to `2.0.0`. ([73002bf](https://github.com/andrii-yeremenko/news-aggregator/commit/73002bf221db5cd6a42f3b3e88033067e99e99cb))
+* update news-aggregator server's helm chart version from `0.1.0` to `1.0.0`. ([61f8b93](https://github.com/andrii-yeremenko/news-aggregator/commit/61f8b93ea04fd1b64c1fd3127db4cd6c1ae358ec))
+
 ## [3.0.0](https://github.com/andrii-yeremenko/news-aggregator/compare/news-aggregator@v2.0.0...news-aggregator@v3.0.0) (2024-09-26)
 
 
