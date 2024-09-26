@@ -31,6 +31,9 @@ spec:
               name: {{ .Values.resourcesStorage.name }}
             - mountPath: "/config"
               name: {{ .Values.configStorage.name }}
+            - mountPath: "/etc/tls"
+              name: tls-certs
+              readOnly: true
       volumes:
         - name: {{ .Values.resourcesStorage.name }}
           persistentVolumeClaim:
@@ -38,3 +41,6 @@ spec:
         - name: {{ .Values.configStorage.name }}
           persistentVolumeClaim:
             claimName: {{ .Values.configStorage.persistentVolumeClaim }}
+        - name: tls-certs
+          secret:
+            secretName: news-aggregator-tls-secret

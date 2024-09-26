@@ -2,8 +2,13 @@ apiVersion: v2
 name: news-aggregator-server
 description: a chart that deploys a news aggregator https server
 type: application
-version: 0.1.0
+version: 1.0.0
 appVersion: "2.0"
+
+dependencies:
+  - name: cert-manager
+    version: 1.15.3
+    repository: https://charts.jetstack.io
 
 maintainers:
   - name: Andrii Yeremenko

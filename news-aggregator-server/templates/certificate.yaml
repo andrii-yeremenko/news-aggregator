@@ -1,0 +1,16 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: news-aggregator-tls
+  namespace: {{ .Values.namespace.name }}
+spec:
+  secretName: news-aggregator-tls-secret
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+  commonName: news-aggregator
+  dnsNames:
+    - news-aggregator
+    - news-aggregator.{{ .Values.namespace.name }}
+    - news-aggregator.{{ .Values.namespace.name }}.svc
+    - news-aggregator.{{ .Values.namespace.name }}.svc.cluster.local
