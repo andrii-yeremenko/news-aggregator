@@ -2,6 +2,8 @@ name: Push to ECR
 
 on:
   push:
+    branches:
+      - master
   workflow_dispatch:
 
 concurrency:
