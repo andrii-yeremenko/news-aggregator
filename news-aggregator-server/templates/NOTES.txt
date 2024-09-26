@@ -1,0 +1,43 @@
+Congratulations! Your News Aggregator application has been deployed successfully.
+
+Accessing the Application
+
+•	Namespace: {{ .Release.Namespace }}
+•	Service: news-aggregator
+•	Type: {{ .Values.service.type }}
+•	Port: {{ .Values.service.port }}
+•	Target Port: {{ .Values.service.targetPort }}
+•	URL: You can access the News Aggregator at http://<service-ip>:{{ .Values.service.port }}.
+
+Persistent Volumes
+
+The following PersistentVolumes (PVs) and PersistentVolumeClaims (PVCs) have been created:
+
+Persistent Volume Claim for Config:
+
+•	Name: {{ .Values.persistentVolumeClaims.config.name }}
+•	Storage: {{ .Values.persistentVolumeClaims.config.storage }}
+•	Access Mode: {{ .Values.persistentVolumeClaims.config.accessMode }}
+•	Host Path: {{ .Values.persistentVolumes.config.hostPath }}
+
+Persistent Volume Claim for Resources:
+
+•	Name: {{ .Values.persistentVolumeClaims.resources.name }}
+•	Storage: {{ .Values.persistentVolumeClaims.resources.storage }}
+•	Access Mode: {{ .Values.persistentVolumeClaims.resources.accessMode }}
+•	Host Path: {{ .Values.persistentVolumes.resources.hostPath }}
+
+Service Account and RBAC
+
+•	Service Account: {{ .Values.serviceAccountName }}
+•	Role: {{ .Values.rbac.role.name }}
+•	RoleBinding: {{ .Values.rbac.roleBinding.name }}
+
+CronJob
+
+•	Schedule: {{ .Values.cronJob.schedule }}
+
+Next Steps
+
+1.	Verify Deployment: Check the status of your deployment with:
+kubectl get all -n {{ .Release.Namespace }}

@@ -1,0 +1,108 @@
+# Configurations for the news-aggregator-server Helm chart
+
+# The number of pod replicas to run. Adjust this value for scaling the application.
+replicaCount: 1
+
+image:
+  # The Docker image repository for the News Aggregator application.
+  repository: ayeremenko/news-aggregator
+  # The specific tag/version of the image to use.
+  tag: 1.0.0
+  # The pull policy for the image. IfNotPresent avoids pulling the image if it is already available locally.
+  pullPolicy: IfNotPresent
+
+# CronJob configuration for the news-updater
+cronJob:
+  schedule: "0 0 * * *"  # Schedule for the cron job
+  image:
+    repository: ayeremenko/news-updater  # Image repository for the news-updater
+    tag: 1.0.0                           # Tag of the image to use
+  successfulJobsHistoryLimit: 3           # Number of successful jobs to keep
+  failedJobsHistoryLimit: 1               # Number of failed jobs to keep
+
+resources:
+  # Requests define the minimum amount of CPU and memory the container needs.
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+  # Limits define the maximum amount of CPU and memory the container can use.
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+# The name of the ServiceAccount to use for the News Aggregator application.
+serviceAccountName: news-aggregator-sa
+
+resourcesStorage:
+  # The name of the storage for the resource files.
+  name: news-aggregator-resources-storage
+  # The PersistentVolumeClaim to use for resource storage.
+  persistentVolumeClaim: news-aggregator-resources-pvc
+
+configStorage:
+  # The name of the storage for configuration files.
+  name: news-aggregator-config-storage
+  # The PersistentVolumeClaim to use for configuration storage.
+  persistentVolumeClaim: news-aggregator-config-pvc
+
+# The Kubernetes namespace where the resources will be deployed.
+namespace:
+  name: news-aggregator-namespace
+
+service:
+  # The type of service to expose the application.
+  type: ClusterIP
+  # The port on which the service is exposed.
+  port: 443
+  # The port on the container to which the service will forward traffic.
+  targetPort: 8443
+
+persistentVolumeClaims:
+  # Configuration for the PersistentVolumeClaim used for storing configuration files.
+  config:
+    # Name of the PVC for configuration storage.
+    name: news-aggregator-config-pvc
+    # Access mode for the PVC. ReadWriteOnce means it can be mounted as read-write by a single node.
+    accessMode: ReadWriteOnce
+    # The amount of storage requested for configuration data.
+    storage: 1Gi
+  # Configuration for the PersistentVolumeClaim used for storing resource files.
+  resources:
+    # Name of the PVC for resource storage.
+    name: news-aggregator-resources-pvc
+    # Access mode for the PVC. ReadWriteOnce means it can be mounted as read-write by a single node.
+    accessMode: ReadWriteOnce
+    # The amount of storage requested for resource data.
+    storage: 1Gi
+
+persistentVolumes:
+  # Configuration for the PersistentVolume used for configuration files.
+  config:
+    # Name of the PV for configuration storage.
+    name: news-aggregator-config-pv
+    # The amount of storage allocated for configuration data.
+    storage: 1Gi
+    # Access mode for the PV. ReadWriteOnce means it can be mounted as read-write by a single node.
+    accessMode: ReadWriteOnce
+    # The host path on the node where configuration data will be stored.
+    hostPath: "/mnt/data/news-aggregator/config"
+
+  # Configuration for the PersistentVolume used for resource files.
+  resources:
+    # Name of the PV for resource storage.
+    name: news-aggregator-resources-pv
+    # The amount of storage allocated for resource data.
+    storage: 1Gi
+    # Access mode for the PV. ReadWriteOnce means it can be mounted as read-write by a single node.
+    accessMode: ReadWriteOnce
+    # The host path on the node where resource data will be stored.
+    hostPath: "/mnt/data/news-aggregator/resources"
+
+rbac:
+  role:
+    # The name of the Role that grants permissions within the namespace.
+    name: news-aggregator-role
+
+  roleBinding:
+    # The name of the RoleBinding that associates the Role with a ServiceAccount.
+    name: news-aggregator-rolebinding
