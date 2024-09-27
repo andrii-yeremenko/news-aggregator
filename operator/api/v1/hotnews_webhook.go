@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"strings"
+	"time"
 )
 
 // log is for logging in this package.
@@ -96,9 +97,13 @@ func (r *HotNews) validateFeeds() error {
 
 	var notFoundFeeds []string
 
+	contextWithTimeout, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+
+	defer cancel()
+
 	for _, feed := range r.Spec.Feeds {
 		var f Feed
-		if err := k8sClient.Get(context.TODO(), client.ObjectKey{
+		if err := k8sClient.Get(contextWithTimeout, client.ObjectKey{
 			Namespace: r.Namespace,
 			Name:      feed,
 		}, &f); err != nil {
@@ -117,16 +122,20 @@ func (r *HotNews) validateFeeds() error {
 // validateFeedGroups checks if the feed groups specified in the HotNews resource exist in the ConfigMap.
 func (r *HotNews) validateFeedGroups() error {
 
+	if r.Spec.FeedGroups == nil {
+		return nil
+	}
+
 	var cm v1.ConfigMap
-	if err := k8sClient.Get(context.TODO(), client.ObjectKey{
+
+	contextWithTimeout, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
+
+	if err := k8sClient.Get(contextWithTimeout, client.ObjectKey{
 		Namespace: r.Namespace,
 		Name:      configMapName,
 	}, &cm); err != nil {
 		return fmt.Errorf("failed to retrieve ConfigMap %s/%s: %v", r.Namespace, configMapName, err)
-	}
-
-	if r.Spec.FeedGroups == nil {
-		return nil
 	}
 
 	for _, group := range r.Spec.FeedGroups {

@@ -40,7 +40,12 @@ func main() {
 	}
 
 	if *resource == "" {
-		u.UpdateAllFeeds()
+		errs := u.UpdateAllFeeds()
+		if len(errs) > 0 {
+			for _, e := range errs {
+				log.Printf("Error of resource updation: %v", e)
+			}
+		}
 	} else {
 		err := u.UpdateFeed(*resource)
 		if err != nil {

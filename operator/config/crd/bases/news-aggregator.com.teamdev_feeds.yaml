@@ -57,18 +57,27 @@ spec:
                 description: Conditions represent the latest available observations
                   of an object's state.
                 items:
+                  description: Condition is current state of the resource
                   properties:
                     lastUpdateTime:
+                      description: LastUpdateTime is the last time the condition was
+                        updated
                       format: date-time
                       type: string
                     message:
+                      description: Message is a human-readable message indicating
+                        details about the last transition
                       type: string
                     reason:
+                      description: Reason is a brief readable explanation for the
+                        condition's last transition
                       type: string
                     status:
+                      description: Status of the condition (True or False)
                       type: boolean
                     type:
-                      description: ConditionType defines the type of the condition
+                      description: Type of the condition (Added, Updated, Deleted,
+                        Failed)
                       type: string
                   required:
                   - status

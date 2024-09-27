@@ -10,6 +10,7 @@ import (
 	"net/url"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
+	"time"
 
 	newsaggregatorv1 "com.teamdev/news-aggregator/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -51,12 +52,10 @@ func (r *FeedReconcile) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			l.Info("Feed resource not found. It might have been deleted.", "name", req.NamespacedName)
 			return ctrl.Result{}, nil
 		}
-		l.Error(err, "Failed to get Feed resource", "name", req.NamespacedName)
 		return ctrl.Result{}, err
 	}
 
 	if err := r.processFeed(&feed, ctx); err != nil {
-		l.Error(err, "Failed to process Feed", "name", req.NamespacedName)
 		return ctrl.Result{}, err
 	}
 
@@ -145,7 +144,11 @@ func (r *FeedReconcile) handleFeedDeletion(feed *newsaggregatorv1.Feed) error {
 		}
 
 		feed.Finalizers = removeFinalizer(feed.Finalizers, r.Finalizer)
-		if err := r.Client.Update(context.Background(), feed); err != nil {
+
+		contextWithTimeout, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+		defer cancel()
+
+		if err := r.Client.Update(contextWithTimeout, feed); err != nil {
 			return err
 		}
 		log.Log.Info("Removed finalizer", "name", feed.Spec.Name)
@@ -164,7 +167,11 @@ func (r *FeedReconcile) updateStatus(feed *newsaggregatorv1.Feed, conditionType 
 	}
 
 	feed.Status.Conditions = append(feed.Status.Conditions, condition)
-	return r.Client.Status().Update(context.Background(), feed)
+
+	contextWithTimeout, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+	defer cancel()
+
+	return r.Client.Status().Update(contextWithTimeout, feed)
 }
 
 // addSource sends a POST request to add a source.

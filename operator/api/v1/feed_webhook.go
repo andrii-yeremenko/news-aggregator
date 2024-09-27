@@ -12,6 +12,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 	"sigs.k8s.io/controller-runtime/pkg/webhook/admission"
 	"strings"
+	"time"
 )
 
 // log is for logging in this package.
@@ -138,7 +139,11 @@ func validateURL(link string) error {
 func checkNameUniqueness(feed *Feed) error {
 	feedList := &FeedList{}
 	listOpts := client.ListOptions{Namespace: feed.Namespace}
-	err := k8sClient.List(context.Background(), feedList, &listOpts)
+
+	contextWithTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	err := k8sClient.List(contextWithTimeout, feedList, &listOpts)
 	if err != nil {
 		return fmt.Errorf("failed to list feeds: %v", err)
 	}

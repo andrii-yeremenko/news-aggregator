@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"com.teamdev/news-aggregator/internal/controller/handlers"
 	"com.teamdev/news-aggregator/internal/controller/predicates"
 	"context"
 	"encoding/json"
@@ -40,10 +41,12 @@ type HotNewsReconciler struct {
 	ConfigMapNamespace string
 }
 
+// Article represents a news article.
 type Article struct {
 	Title string `json:"title"`
 }
 
+// ArticlesResponse represents a response from the News Aggregator HTTPS server.
 type ArticlesResponse []Article
 
 // +kubebuilder:rbac:groups=news-aggregator.com.teamdev,resources=hotnews,verbs=get;list;watch;create;update;patch;delete
@@ -53,6 +56,8 @@ type ArticlesResponse []Article
 // +kubebuilder:rbac:groups="",resources=configmaps,verbs=get;list;watch
 
 // Reconcile reconciles the HotNews object.
+// It fetches news articles from the News Aggregator service based on the HotNews spec input,
+// and updates the HotNews status with the fetched articles.
 func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger := log.FromContext(ctx)
 	logger.Info("Starting reconciliation", "HotNews", req.NamespacedName)
@@ -60,10 +65,9 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	var hotNews newsaggregatorv1.HotNews
 	if err := r.Get(ctx, req.NamespacedName, &hotNews); err != nil {
 		if errors.IsNotFound(err) {
-			logger.Info("HotNews resource not found. Ignoring since object must be deleted")
+			logger.Info("HotNews resource not found. Ignoring.")
 			return ctrl.Result{}, nil
 		}
-		logger.Error(err, "Failed to get HotNews resource")
 		return ctrl.Result{}, err
 	}
 
@@ -82,14 +86,12 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if err := r.addOwnerReferencesOnFeeds(ctx, &hotNews); err != nil {
-		logger.Error(err, "Failed to set owner references on related feeds")
 		return ctrl.Result{}, err
 	}
 
 	url, err := r.buildRequestURL(hotNews.Spec)
 	if err != nil {
-		logger.Error(err, "Failed to build request URL")
-		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
+		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed, false, err.Error())
 		if statusErr != nil {
 			logger.Error(statusErr, "Failed to update HotNews status")
 		}
@@ -98,8 +100,7 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	titles, err := r.fetchNews(url)
 	if err != nil {
-		logger.Error(err, "Failed to fetch news")
-		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
+		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed, false, err.Error())
 		if statusErr != nil {
 			logger.Error(statusErr, "Failed to update HotNews status")
 		}
@@ -107,8 +108,7 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	}
 
 	if err := r.updateHotNewsArticles(ctx, &hotNews, titles, url); err != nil {
-		logger.Error(err, "Failed to update HotNews status")
-		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed)
+		statusErr := r.updateStatus(&hotNews, newsaggregatorv1.ConditionFailed, false, err.Error())
 		if statusErr != nil {
 			logger.Error(statusErr, "Failed to update HotNews status")
 		}
@@ -117,7 +117,7 @@ func (r *HotNewsReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	logger.Info("Successfully reconciled HotNews", "HotNews", hotNews.Name, "ArticlesCount",
 		hotNews.Status.ArticlesCount)
-	return ctrl.Result{}, r.updateStatus(&hotNews, newsaggregatorv1.ConditionUpdated)
+	return ctrl.Result{}, r.updateStatus(&hotNews, newsaggregatorv1.ConditionUpdated, true, "")
 }
 
 // finalizeHotNews handles the finalizer logic for the HotNews resource.
@@ -130,7 +130,6 @@ func (r *HotNewsReconciler) finalizeHotNews(ctx context.Context, hotNews *newsag
 
 	controllerutil.RemoveFinalizer(hotNews, r.Finalizer)
 	if err := r.Update(ctx, hotNews); err != nil {
-		logger.Error(err, "Failed to remove finalizer from HotNews")
 		return err
 	}
 
@@ -181,7 +180,10 @@ func (r *HotNewsReconciler) removeOwnerReferencesFromFeeds(ctx context.Context, 
 // addOwnerReferencesOnFeeds sets the owner reference on all related Feed resources
 func (r *HotNewsReconciler) addOwnerReferencesOnFeeds(ctx context.Context, hotNews *newsaggregatorv1.HotNews) error {
 
-	allFeeds, err := r.getAllFeeds(context.Background(), hotNews.Spec)
+	contextWithTimeout, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	allFeeds, err := r.getAllFeeds(contextWithTimeout, hotNews.Spec)
 
 	if err != nil {
 		return fmt.Errorf("failed to get all feeds: %w", err)
@@ -216,7 +218,10 @@ func (r *HotNewsReconciler) buildRequestURL(spec newsaggregatorv1.HotNewsSpec) (
 
 	baseURL := fmt.Sprintf("%s%s", r.NewsAggregatorURL, newsEndpoint)
 
-	allFeeds, err := r.getAllFeeds(context.Background(), spec)
+	contextWithTimeout, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	allFeeds, err := r.getAllFeeds(contextWithTimeout, spec)
 
 	if err != nil {
 		return "", fmt.Errorf("failed to get all feeds: %w", err)
@@ -357,13 +362,21 @@ func (r *HotNewsReconciler) getFeedSourcesFromConfigMap(ctx context.Context) (ma
 }
 
 // updateStatus updates the status of the HotNews object.
-func (r *HotNewsReconciler) updateStatus(hotnews *newsaggregatorv1.HotNews, conditionType newsaggregatorv1.ConditionType) error {
+func (r *HotNewsReconciler) updateStatus(hotnews *newsaggregatorv1.HotNews, conditionType newsaggregatorv1.ConditionType,
+	status bool, message string) error {
 
 	if hotnews.DeletionTimestamp != nil {
 		return nil
 	}
 
-	hotnews.Status.Conditions = append(hotnews.Status.Conditions, conditionType)
+	c := newsaggregatorv1.Condition{
+		Type:           conditionType,
+		Status:         status,
+		Message:        message,
+		LastUpdateTime: metav1.Now(),
+	}
+
+	hotnews.Status.Conditions = append(hotnews.Status.Conditions, c)
 	return r.Client.Status().Update(context.Background(), hotnews)
 }
 
@@ -375,44 +388,14 @@ func (r *HotNewsReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&newsaggregatorv1.HotNews{}).
-		Owns(&newsaggregatorv1.Feed{}).
-		Watches(
-			&newsaggregatorv1.Feed{},
-			handler.EnqueueRequestsFromMapFunc(r.reconcileAllHotNews),
-			builder.WithPredicates(feedPredicate),
-		).
+		Owns(&newsaggregatorv1.Feed{}, builder.WithPredicates(feedPredicate)).
 		Watches(
 			&v1.ConfigMap{},
-			handler.EnqueueRequestsFromMapFunc(r.reconcileAllHotNews),
+			handler.EnqueueRequestsFromMapFunc(func(ctx context.Context, obj client.Object) []reconcile.Request {
+				return handlers.ReconcileAllHotNews(ctx, obj, r.Client, r.Namespace, r.ConfigMapName, r.ConfigMapNamespace)
+			}),
 			builder.WithPredicates(configMapPredicate),
 		).
 		WithEventFilter(predicate.GenerationChangedPredicate{}).
 		Complete(r)
-}
-
-// reconcileAllHotNews reconciles all HotNews resources.
-func (r *HotNewsReconciler) reconcileAllHotNews(context.Context, client.Object) []reconcile.Request {
-	var hotNewsList newsaggregatorv1.HotNewsList
-
-	log.Log.Info("Reconciling all HotNews resources")
-
-	if err := r.List(context.TODO(), &hotNewsList); err != nil {
-		log.Log.Error(err, "Failed to list HotNews resources")
-		return nil
-	}
-
-	var requests []ctrl.Request
-	for _, hotNews := range hotNewsList.Items {
-
-		log.Log.Info("Enqueueing HotNews resource", "HotNews", hotNews.Name)
-
-		requests = append(requests, ctrl.Request{
-			NamespacedName: client.ObjectKey{
-				Name:      hotNews.Name,
-				Namespace: hotNews.Namespace,
-			},
-		})
-	}
-
-	return requests
 }

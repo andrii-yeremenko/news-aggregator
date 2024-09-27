@@ -20,9 +20,9 @@ spec:
           ports:
             - containerPort: 8443
           volumeMounts:
-            - mountPath: "/resources"
+            - mountPath: "/resources" # This directory used to store all fetched resources.
               name: news-aggregator-resources-storage
-            - mountPath: "/config"
+            - mountPath: "/config" # This directory stores a configuration file, with the list of all registered feeds.
               name: news-aggregator-config-storage
       volumes:
         - name: news-aggregator-resources-storage
