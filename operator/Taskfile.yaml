@@ -18,6 +18,12 @@ vars:
 
 
 tasks:
+
+  aws-auth-docker:
+    desc: "Authenticate Docker with AWS ECR"
+    cmds:
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
   manifests:
     desc: "Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects."
     cmd: '{{.CONTROLLER_GEN}} rbac:roleName=manager-role crd webhook paths=./... output:crd:artifacts:config=config/crd/bases'

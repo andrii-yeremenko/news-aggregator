@@ -13,6 +13,7 @@ output:
     end: '::endgroup::'
 
 tasks:
+
   aws-auth-docker:
     desc: "Authenticate Docker with AWS ECR"
     cmds:
