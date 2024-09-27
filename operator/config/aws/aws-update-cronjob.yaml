@@ -23,15 +23,55 @@ spec:
                 - /bin/sh
                 - -c
                 - |-
-                  ECR_TOKEN=`aws ecr get-login-password --region ${AWS_REGION}`
+                  set -e
+
+                  ECR_TOKEN=$(aws ecr get-login-password --region ${AWS_REGION})
                   NAMESPACE_NAME=operator-system
-                  kubectl delete secret --ignore-not-found $DOCKER_SECRET_NAME -n $NAMESPACE_NAME
-                  kubectl create secret docker-registry $DOCKER_SECRET_NAME \
-                  --docker-server=https://${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com \
-                  --docker-username=AWS \
-                  --docker-password="${ECR_TOKEN}" \
-                  --namespace=$NAMESPACE_NAME
-                  echo "Secret was successfully updated at $(date)"
+                  SECRET_NAME=$DOCKER_SECRET_NAME
+
+                  DOCKER_CONFIG_JSON=$(echo -n "{\"auths\":{\"${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com\":{\"username\":\"AWS\",\"password\":\"${ECR_TOKEN}\"}}}")
+                  PATCH_JSON=$(echo -n $DOCKER_CONFIG_JSON | base64 | tr -d '\n')
+
+                  PATCH_PAYLOAD=$(cat <<EOF
+                  [
+                    {
+                      "op": "replace",
+                      "path": "/data/.dockerconfigjson",
+                      "value": "$PATCH_JSON"
+                    }
+                  ]
+                  EOF
+                  )
+
+                  if kubectl get secret $SECRET_NAME -n $NAMESPACE_NAME > /dev/null 2>&1; then
+                    echo "Secret $SECRET_NAME exists. Attempting to patch..."
+
+                    if kubectl patch secret $SECRET_NAME --type='json' -p="${PATCH_PAYLOAD}" -n $NAMESPACE_NAME; then
+                      echo "Secret $SECRET_NAME successfully patched."
+                    else
+                      echo "Patching failed, deleting and recreating the secret..."
+                      kubectl delete secret $SECRET_NAME -n $NAMESPACE_NAME
+
+                      kubectl create secret docker-registry $SECRET_NAME \
+                        --docker-server=https://${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com \
+                        --docker-username=AWS \
+                        --docker-password="${ECR_TOKEN}" \
+                        --namespace=$NAMESPACE_NAME
+
+                      echo "Secret $SECRET_NAME was recreated."
+                    fi
+                  else
+                    echo "Secret $SECRET_NAME does not exist. Creating a new secret..."
+                    kubectl create secret docker-registry $SECRET_NAME \
+                      --docker-server=https://${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com \
+                      --docker-username=AWS \
+                      --docker-password="${ECR_TOKEN}" \
+                      --namespace=$NAMESPACE_NAME
+
+                    echo "Secret $SECRET_NAME was successfully created."
+                  fi
+
+                  echo "Secret update process completed at $(date)"
           restartPolicy: OnFailure
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
