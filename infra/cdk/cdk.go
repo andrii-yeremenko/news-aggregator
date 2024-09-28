@@ -11,20 +11,42 @@ import (
 	"os"
 )
 
+// To run this CDK application, first define environment variables in cdk.json file.
+// Otherwise, the application will use default values for the parameters.
+// The following default values for the parameters are:
 const (
-	userNameDefault          = "andrii"
-	vpcCidrDefault           = "10.0.0.0/16"
-	subnetsMaskDefault       = 24
-	eksClusterNameDefault    = "news-aggregator-cluster"
+	// Default username that will be used for the resource prefix
+	userNameDefault = "andrii"
+	// Default CIDR block for the VPC.
+	// This is the IP address range that will be used for the VPC.
+	// As a default, it is class A network.
+	vpcCidrDefault = "10.0.0.0/16"
+	// Default mask for the subnets.
+	// This will affect the number of available IP addresses in the subnet.
+	// Recommend you to use it at least /26 for the subnets.
+	// The default value is /24.
+	subnetsMaskDefault = 24
+	// Default name for the EKS cluster. This is the name of the EKS cluster that will be created.
+	eksClusterNameDefault = "news-aggregator-cluster"
+	// Default Kubernetes version. Check CDK README for the list of available versions.
 	kubernetesVersionDefault = "1.30"
-	nodeInstanceTypeDefault  = "t3.medium"
-	minNodeSizeDefault       = 1
-	maxNodeSizeDefault       = 3
-	desiredNodeSizeDefault   = 2
-	ec2SshKeyDefault         = "Main"
-	diskSizeDefault          = 20
+	// Default instance type for the nodes. This is the type of EC2 instances that will be created for the nodes.
+	nodeInstanceTypeDefault = "t3.medium"
+	// Default minimum number of nodes. This is the minimum number of nodes that can be created.
+	minNodeSizeDefault = 1
+	// Default maximum number of nodes. This is the maximum number of nodes that can be created.
+	maxNodeSizeDefault = 3
+	// Default desired number of nodes. This is the number of nodes that will be created at the beginning.
+	desiredNodeSizeDefault = 2
+	// Default EC2 SSH key that will be used for the instances to access them in the future.
+	ec2SshKeyDefault = "Main"
+	// Default disk size for the nodes
+	diskSizeDefault = 20
 )
 
+// This is a map of add-on versions for different Kubernetes versions.
+// The key is a combination of Kubernetes version and add-on name, and the value is the version of the add-on.
+// Update this map if you want to use a different version of the add-on for a specific Kubernetes version.
 var addonVersions = map[string]string{
 	"1.28:VpcCniAddonVersion":      "v1.18.3-eksbuild.3",
 	"1.28:KubeProxyAddonVersion":   "v1.28.12-eksbuild.5",
@@ -40,6 +62,8 @@ var addonVersions = map[string]string{
 	"1.30:PodIdentityAddonVersion": "v1.3.2-eksbuild.2",
 }
 
+// Parameters for the stack
+// See the CDK context in the cdk.json file for the default values
 var (
 	userName          string
 	vpcCidr           string
@@ -54,10 +78,12 @@ var (
 	diskSize          float64
 )
 
+// CdkStackProps defines the properties for the stack
 type CdkStackProps struct {
 	awscdk.StackProps
 }
 
+// NewCdkStack creates a new CDK stack
 func NewCdkStack(scope constructs.Construct, id string, props *CdkStackProps) awscdk.Stack {
 	var sprops awscdk.StackProps
 
@@ -171,6 +197,7 @@ func NewCdkStack(scope constructs.Construct, id string, props *CdkStackProps) aw
 	return stack
 }
 
+// fetchParams fetches the parameters from the CDK context
 func fetchParams(stack awscdk.Stack) {
 	getString := func(key string, defaultValue string) string {
 		if value := stack.Node().TryGetContext(jsii.String(key)); value != nil {
@@ -203,6 +230,7 @@ func fetchParams(stack awscdk.Stack) {
 	diskSize = getFloat64("diskSize", float64(diskSizeDefault))
 }
 
+// addOutput adds a single output to the stack
 func addOutput(stack awscdk.Stack, desc string, displayName string, value *string) {
 	awscdk.NewCfnOutput(stack, jsii.String(desc), &awscdk.CfnOutputProps{
 		Description: jsii.String(desc),
@@ -211,6 +239,7 @@ func addOutput(stack awscdk.Stack, desc string, displayName string, value *strin
 	})
 }
 
+// getAddonVersion returns the version of the add-on compatible with the Kubernetes version
 func getAddonVersion(k8sVersion string, addonName string) string {
 	key := k8sVersion + ":" + addonName
 	if version, ok := addonVersions[key]; ok {
@@ -230,6 +259,7 @@ func getAddonVersion(k8sVersion string, addonName string) string {
 	panic(err)
 }
 
+// getPrefixedName returns a name with a prefix, for example "<prefix>-<resource-name>"
 func getPrefixedName(name string) string {
 	return userName + "-" + name
 }
@@ -250,6 +280,7 @@ func main() {
 	app.Synth(nil)
 }
 
+// env returns the environment for the stack
 func env() *awscdk.Environment {
 	return &awscdk.Environment{
 		Account: jsii.String(os.Getenv("CDK_DEFAULT_ACCOUNT")),
