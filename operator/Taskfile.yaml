@@ -16,7 +16,6 @@ vars:
   IGNORE_NOT_FOUND: "false"
   REGISTRY: "ayeremenko"
 
-
 tasks:
 
   aws-auth-docker:
@@ -85,8 +84,18 @@ tasks:
     desc: "Deploy controller to the K8s cluster specified in ~/.kube/config."
     cmd: |
       KUSTOMIZE=$(pwd)/bin/kustomize
+
+      AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
+      AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
+      AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+      echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > config/aws/aws-credentials.env
+      echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> config/aws/aws-credentials.env
+      echo "AWS_ACCOUNT=$AWS_ACCOUNT_ID" >> config/aws/aws-credentials.env
+
       cd config/manager && $KUSTOMIZE edit set image controller={{.AWS_ACCOUNT_ID}}.dkr.ecr.{{.AWS_REGION}}.amazonaws.com/{{.IMG_NAME}}:{{.IMG_TAG}}
       cd - 
+
       $KUSTOMIZE build config/default | {{.KUBECTL}} apply -f -
 
   undeploy:

@@ -292,11 +292,18 @@ tasks:
       - createDay0Chart
     cmds:
       - |
-        helm install news-aggregator-day0 ./charts/news-aggregator-day0-$DAY0_CHART_VERSION.tgz \
-        --namespace news-aggregator-namespace \
-        --create-namespace \
-        --set accessKey="AKIAV5I7ZBRO2BXUY2V6" \
-        --set secretKey="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"
+        if aws sts get-caller-identity > /dev/null 2>&1; then
+          echo "AWS authentication successful."
+
+          helm install news-aggregator-day0 ./charts/news-aggregator-day0-$DAY0_CHART_VERSION.tgz \
+          --namespace news-aggregator-namespace \
+          --create-namespace \
+          --set accessKey=$(aws configure get aws_access_key_id) \
+          --set secretKey=$(aws configure get aws_secret_access_key)
+        else
+          echo "AWS authentication failed. Please configure your AWS credentials."
+          exit 1
+        fi
     silent: true
 
   uninstallDay0Chart:
