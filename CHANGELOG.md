@@ -1,5 +1,20 @@
 # Changelog
 
+## [4.1.0](https://github.com/andrii-yeremenko/news-aggregator/compare/news-aggregator@v4.0.0...news-aggregator@v4.1.0) (2024-09-29)
+
+
+### Features
+
+* add helm check if AWS `secretKey` and `accessKey` are provided. ([3dc8ac0](https://github.com/andrii-yeremenko/news-aggregator/commit/3dc8ac0b95cf63bfb307e69853d5e52df872de14))
+* inject all secret keys on start of operator and chart. ([e2d31fc](https://github.com/andrii-yeremenko/news-aggregator/commit/e2d31fcadd893db686eff4b56e824e9c5a60b72b))
+
+
+### Bug Fixes
+
+* nested Taskfile variables conflict. ([348f7e0](https://github.com/andrii-yeremenko/news-aggregator/commit/348f7e0cd9c1fd06e3e1e52b13815614241362e5))
+* operator and updater Taskfiles path problem. ([2498699](https://github.com/andrii-yeremenko/news-aggregator/commit/2498699403ba27126080c918e6c190aa9d7ad7ad))
+* operator and updater Taskfiles path problem. ([4398753](https://github.com/andrii-yeremenko/news-aggregator/commit/43987533d06a170ca78959d48b6b4e889a1a62c0))
+
 ## [4.0.0](https://github.com/andrii-yeremenko/news-aggregator/compare/news-aggregator@v3.0.0...news-aggregator@v4.0.0) (2024-09-26)
 
 
