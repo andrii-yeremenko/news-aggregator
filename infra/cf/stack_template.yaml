@@ -1,0 +1,335 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'This template creates an EKS cluster for news-aggregator app. All resources are created in a new VPC with three subnets in different Availability Zones.'
+
+Mappings:
+  KubernetesAddonVersions:
+    '1.28':
+      VpcCniAddonVersion: 'v1.18.3-eksbuild.3'
+      KubeProxyAddonVersion: 'v1.28.12-eksbuild.5'
+      CoreDnsAddonVersion: 'v1.10.1-eksbuild.13'
+      PodIdentityAddonVersion: 'v1.2.0-eksbuild.1'
+    '1.29':
+      VpcCniAddonVersion: 'v1.18.3-eksbuild.3'
+      KubeProxyAddonVersion: 'v1.29.7-eksbuild.5'
+      CoreDnsAddonVersion: 'v1.11.3-eksbuild.1'
+      PodIdentityAddonVersion: 'v1.3.2-eksbuild.2'
+    '1.30':
+      VpcCniAddonVersion: 'v1.18.3-eksbuild.3'
+      KubeProxyAddonVersion: 'v1.30.3-eksbuild.5'
+      CoreDnsAddonVersion: 'v1.11.3-eksbuild.1'
+      PodIdentityAddonVersion: 'v1.3.2-eksbuild.2'
+
+Parameters:
+  PrefixName:
+    Type: String
+    Default: andrii
+    Description: 'Prefix name to identify resources'
+
+  VpcCidr:
+    Type: String
+    Default: '10.0.0.0/16'
+    Description: 'CIDR block for the VPC'
+
+  SubnetCidrA:
+    Type: String
+    Default: '10.0.1.0/24'
+    Description: 'CIDR block for Subnet in AZ A'
+
+  SubnetCidrB:
+    Type: String
+    Default: '10.0.2.0/24'
+    Description: 'CIDR block for Subnet in AZ B'
+
+  EKSClusterName:
+    Type: String
+    Default: 'news-aggregator-cluster'
+    Description: 'EKS Cluster Name'
+
+  KubernetesVersion:
+    Type: String
+    Default: '1.30'
+    AllowedValues:
+      - '1.28'
+      - '1.29'
+      - '1.30'
+    Description: 'Version of Kubernetes to use for the EKS cluster'
+
+  NodeInstanceType:
+    Type: String
+    Default: 't3.medium'
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t3.medium
+    Description: 'Instance type for EKS worker nodes'
+
+  AmiType:
+    Type: String
+    Default: 'AL2_x86_64'
+    AllowedValues:
+      - AL2_x86_64
+      - AL2_x86_64_GPU
+      - AL2_ARM_64
+    Description: 'AMI type for the EKS worker nodes'
+
+  MinNodeSize:
+    Type: Number
+    Default: 1
+    Description: 'Minimum number of nodes in the EKS NodeGroup'
+
+  MaxNodeSize:
+    Type: Number
+    Default: 3
+    Description: 'Maximum number of nodes in the EKS NodeGroup'
+
+  DesiredNodeSize:
+    Type: Number
+    Default: 2
+    Description: 'Desired number of nodes in the EKS NodeGroup'
+
+  Ec2SshKey:
+    Type: String
+    Default: 'Main'
+    Description: 'Name of the EC2 SSH Key Pair for Remote Access'
+
+Resources:
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-VPC'
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-InternetGateway'
+
+  AttachGateway:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  RouteTableA:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-PublicRouteTableA'
+
+  PublicRouteA:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTableA
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+
+  RouteTableB:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-PrivateRouteTableB'
+
+  PublicRouteB:
+    Type: 'AWS::EC2::Route'
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId: !Ref RouteTableB
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+
+  SubnetA:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetCidrA
+      AvailabilityZone:
+        Fn::Select:
+          - 0
+          - Fn::GetAZs: ''
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-SubnetA'
+
+  SubnetB:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Ref SubnetCidrB
+      AvailabilityZone:
+        Fn::Select:
+          - 1
+          - Fn::GetAZs: ''
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-SubnetB'
+
+  SubnetARouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref SubnetA
+      RouteTableId: !Ref RouteTableA
+
+  SubnetBRouteTableAssociation:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref SubnetB
+      RouteTableId: !Ref RouteTableB
+
+  EKSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: 'Allow access to EKS Cluster'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: '0.0.0.0/0'
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-EKS-SG'
+
+  EKSRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: eks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-EKSRole'
+
+  EKSCluster:
+    Type: 'AWS::EKS::Cluster'
+    Properties:
+      Name: !Ref EKSClusterName
+      Version: !Ref KubernetesVersion
+      ResourcesVpcConfig:
+        SubnetIds:
+          - !Ref SubnetA
+          - !Ref SubnetB
+        SecurityGroupIds:
+          - !Ref EKSSecurityGroup
+      RoleArn: !GetAtt EKSRole.Arn
+
+  NodeGroupRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonEC2FullAccess
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+      Tags:
+        - Key: Name
+          Value: !Sub '${PrefixName}-NodeGroupRole'
+
+  VpcCniAddon:
+    Type: 'AWS::EKS::Addon'
+    Properties:
+      AddonName: vpc-cni
+      ClusterName: !Ref EKSCluster
+      AddonVersion: !FindInMap [ KubernetesAddonVersions, !Ref KubernetesVersion, VpcCniAddonVersion ]
+      ResolveConflicts: OVERWRITE
+
+  CoreDnsAddon:
+    Type: 'AWS::EKS::Addon'
+    Properties:
+      AddonName: coredns
+      ClusterName: !Ref EKSCluster
+      AddonVersion: !FindInMap [ KubernetesAddonVersions, !Ref KubernetesVersion, CoreDnsAddonVersion ]
+      ResolveConflicts: OVERWRITE
+
+  KubeProxyAddon:
+    Type: 'AWS::EKS::Addon'
+    Properties:
+      AddonName: kube-proxy
+      ClusterName: !Ref EKSCluster
+      AddonVersion: !FindInMap [ KubernetesAddonVersions, !Ref KubernetesVersion, KubeProxyAddonVersion ]
+      ResolveConflicts: OVERWRITE
+
+  PodIdentityAddon:
+    Type: 'AWS::EKS::Addon'
+    Properties:
+      AddonName: eks-pod-identity-agent
+      ClusterName: !Ref EKSCluster
+      AddonVersion: !FindInMap [ KubernetesAddonVersions, !Ref KubernetesVersion, PodIdentityAddonVersion ]
+      ResolveConflicts: OVERWRITE
+
+  NodeGroup:
+    Type: 'AWS::EKS::Nodegroup'
+    DependsOn:
+      - VpcCniAddon
+      - CoreDnsAddon
+      - KubeProxyAddon
+      - PodIdentityAddon
+    Properties:
+      ClusterName: !Ref EKSCluster
+      NodeRole: !GetAtt NodeGroupRole.Arn
+      Subnets:
+        - !Ref SubnetA
+        - !Ref SubnetB
+      ScalingConfig:
+        MinSize: !Ref MinNodeSize
+        MaxSize: !Ref MaxNodeSize
+        DesiredSize: !Ref DesiredNodeSize
+      AmiType: !Ref AmiType
+      RemoteAccess:
+        Ec2SshKey: !Ref Ec2SshKey
+      InstanceTypes:
+        - !Ref NodeInstanceType
+
+Outputs:
+  ClusterName:
+    Description: 'EKS Cluster Name'
+    Value: !Ref EKSCluster
+    Export:
+      Name: !Sub '${PrefixName}-ClusterName'
+
+  VPCId:
+    Description: 'VPC ID'
+    Value: !Ref VPC
+    Export:
+      Name: !Sub '${PrefixName}-VPCId'
+
+  SubnetAId:
+    Description: 'Subnet A ID'
+    Value: !Ref SubnetA
+    Export:
+      Name: !Sub '${PrefixName}-SubnetAId'
+
+  SubnetBId:
+    Description: 'Subnet B ID'
+    Value: !Ref SubnetB
+    Export:
+      Name: !Sub '${PrefixName}-SubnetBId'
+
+  NodeGroupRoleArn:
+    Description: 'ARN of the NodeGroup Role'
+    Value: !GetAtt NodeGroupRole.Arn
+    Export:
+      Name: !Sub '${PrefixName}-NodeGroupRoleArn'
