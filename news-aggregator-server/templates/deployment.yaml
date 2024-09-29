@@ -18,7 +18,7 @@ spec:
         - name: {{ .Release.Name }}-deployment
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
           ports:
-              - containerPort: {{ .Values.service.port }}
+            - containerPort: {{ .Values.service.port }}
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory }}
@@ -34,6 +34,8 @@ spec:
             - mountPath: "/etc/tls"
               name: tls-certs
               readOnly: true
+      imagePullSecrets:
+        - name: "{{ .Values.aws.pullSecretName }}"
       volumes:
         - name: {{ .Values.resourcesStorage.name }}
           persistentVolumeClaim:

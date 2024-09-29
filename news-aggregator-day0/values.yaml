@@ -1,0 +1,21 @@
+# Configurations for the news-aggregator-day0 Helm chart
+
+# The namespace where the resources will be deployed.
+namespace: news-aggregator-namespace
+
+# The AWS account ID where the resources are located.
+account: "406477933661"
+# The AWS KEY ID for the account.
+accessKey: ""
+# The AWS KEY Secret for the account.
+secretKey: ""
+# Region where the AWS resources are located.
+region: "us-east-1"
+# The name of the secret that stores the AWS credentials.
+pullSecretName: newsaggregator-regcred
+# The name of the secret that stores the AWS credentials for the ECR registry helper.
+ecrSecretName: ecr-registry-helper-secrets
+# The name of the ConfigMap that stores the AWS configuration for the ECR registry helper.
+ecrConfigName: ecr-registry-helper-cm
+# The period for the cron job to update the ECR registry secret.
+cronJobSchedule: "0 0 * * *"

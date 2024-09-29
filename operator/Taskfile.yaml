@@ -1,17 +1,28 @@
 version: '3'
 
-vars:
-  IMG_NAME: "ayeremenko/feed-operator"
-  IMG_TAG: "v1"
+env:
+  AWS_ACCOUNT_ID: "406477933661"
+  AWS_REGION: "us-east-1"
 
+vars:
+  IMG_NAME: "news-operator"
+  IMG_TAG: "v1"
   KUBECTL: "kubectl"
   LOCALBIN: "$(pwd)/bin"
   CONTROLLER_GEN: "{{.LOCALBIN}}/controller-gen"
   KUSTOMIZE: "{{.LOCALBIN}}/kustomize"
-
+  KUSTOMIZE_VERSION: "v5.4.2"
+  CONTROLLER_TOOLS_VERSION: "v0.15.0"
   IGNORE_NOT_FOUND: "false"
+  REGISTRY: "ayeremenko"
 
 tasks:
+
+  aws-auth-docker:
+    desc: "Authenticate Docker with AWS ECR"
+    cmds:
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+
   manifests:
     desc: "Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects."
     cmd: '{{.CONTROLLER_GEN}} rbac:roleName=manager-role crd webhook paths=./... output:crd:artifacts:config=config/crd/bases'
@@ -40,13 +51,24 @@ tasks:
     desc: "Run a controller from your host."
     cmd: go run ./cmd/main.go
 
-  docker-build:
+  operator-build:
     desc: "Build docker image with the manager."
     cmd: docker build -t {{.IMG_NAME}}:{{.IMG_TAG}} .
 
   docker-push:
     desc: "Push the Docker image to the registry"
-    cmd: docker push {{.IMG_NAME}}:{{.IMG_TAG}}
+    cmd: |
+      docker tag {{.IMG_NAME}}:{{.IMG_TAG}} {{.REGISTRY}}/{{.IMG_NAME}}:{{.IMG_TAG}}
+      docker push {{.REGISTRY}}/{{.IMG_NAME}}:{{.IMG_TAG}}
+
+  operator-push-aws:
+    desc: "Push the Docker image to AWS ECR"
+    deps:
+      - aws-auth-docker
+      - operator-build
+    cmd: |
+        docker tag {{.IMG_NAME}}:{{.IMG_TAG}} {{.AWS_ACCOUNT_ID}}.dkr.ecr.{{.AWS_REGION}}.amazonaws.com/{{.IMG_NAME}}:{{.IMG_TAG}}
+        docker push {{.AWS_ACCOUNT_ID}}.dkr.ecr.{{.AWS_REGION}}.amazonaws.com/{{.IMG_NAME}}:{{.IMG_TAG}}
 
   install:
     desc: "Install CRDs into the K8s cluster specified in ~/.kube/config."
@@ -62,8 +84,18 @@ tasks:
     desc: "Deploy controller to the K8s cluster specified in ~/.kube/config."
     cmd: |
       KUSTOMIZE=$(pwd)/bin/kustomize
-      cd config/manager && $KUSTOMIZE edit set image controller={{.IMG_NAME}}:{{.IMG_TAG}}
+
+      AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id)
+      AWS_SECRET_ACCESS_KEY=$(aws configure get aws_secret_access_key)
+      AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+      echo "AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID" > config/aws/aws-credentials.env
+      echo "AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY" >> config/aws/aws-credentials.env
+      echo "AWS_ACCOUNT=$AWS_ACCOUNT_ID" >> config/aws/aws-credentials.env
+
+      cd config/manager && $KUSTOMIZE edit set image controller={{.AWS_ACCOUNT_ID}}.dkr.ecr.{{.AWS_REGION}}.amazonaws.com/{{.IMG_NAME}}:{{.IMG_TAG}}
       cd - 
+
       $KUSTOMIZE build config/default | {{.KUBECTL}} apply -f -
 
   undeploy:
@@ -75,6 +107,6 @@ tasks:
     desc: "Redeploy the controller to the K8s cluster specified in ~/.kube/config."
     deps:
       - undeploy
-      - docker-build
+      - operator-build
       - docker-push
       - deploy
