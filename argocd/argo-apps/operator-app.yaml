@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: operator-app
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: news-aggregator
+  source:
+    repoURL: 'https://github.com/andrii-yeremenko/news-aggregator.git'
+    targetRevision: ci-cd/gitops
+    path: 'operator/config/default'
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: operator-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
