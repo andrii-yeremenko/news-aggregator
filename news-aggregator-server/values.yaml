@@ -128,7 +128,7 @@ vpa:
 
 hpa:
   # Enable Horizontal Pod Autoscaler for the deployment.
-  enabled: false
+  enabled: true
   # Minimum and maximum number of replicas for the Horizontal Pod Autoscaler.
   minReplicas: 1
   maxReplicas: 10
