@@ -114,7 +114,7 @@ rbac:
 
 vpa:
   # Enable Vertical Pod Autoscaler for the deployment.
-  enabled: false
+  enabled: true
   # Update mode for the Vertical Pod Autoscaler. Can be "Auto" or "Initial".
   updateMode: "Auto"
   # Resource requirements for the Vertical Pod Autoscaler.
