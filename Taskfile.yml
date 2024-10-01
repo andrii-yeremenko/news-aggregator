@@ -255,7 +255,7 @@ tasks:
       - createServerChart
     cmds:
       - |
-        helm install news-aggregator ./charts/news-aggregator-chart-$SERVER_CHART_VERSION.tgz \
+        helm install news-aggregator ./charts/andrii-news-aggregator-$SERVER_CHART_VERSION.tgz \
         --namespace news-aggregator-namespace \
         --set metrics-server.args[0]="--kubelet-insecure-tls" \
         --set metrics-server.args[1]="--kubelet-preferred-address-types=InternalIP" \
@@ -331,3 +331,39 @@ tasks:
       - cd operator && task operator-push-aws && cd ..
       - cd updater && task updater-push-aws && cd ..
     silent: true
+
+  deployArgoCDSecret:
+    desc: "Deploy ArgoCD on the Kubernetes cluster"
+    cmds:
+      - kubectl apply -f argocd/secret
+
+  undeployArgoCDSecret:
+    desc: "Remove ArgoCD from the Kubernetes cluster"
+    cmds:
+      - kubectl delete -f argocd/secret
+
+  deployArgoCDProject:
+    desc: "Deploy ArgoCD on the Kubernetes cluster"
+    deps:
+      - deployArgoCDSecret
+    cmds:
+      - kubectl apply -f argocd/argo-projects
+
+  undeployArgoCDProject:
+    desc: "Remove ArgoCD from the Kubernetes cluster"
+
+    cmds:
+      - kubectl delete -f argocd/argo-projects
+
+  deployArgoCDApps:
+    desc: "Deploy ArgoCD on the Kubernetes cluster"
+    deps:
+      - deployArgoCDProject
+    cmds:
+      - kubectl apply -f argocd/argo-apps
+
+  undeployArgoCDApps:
+    desc: "Remove ArgoCD from the Kubernetes cluster"
+    cmds:
+      - task: undeployArgoCDProject
+      - task: undeployArgoCDSecret
