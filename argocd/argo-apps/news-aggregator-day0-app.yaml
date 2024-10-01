@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: news-aggregator-day0
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  project: news-aggregator
+  source:
+    repoURL: 'https://github.com/andrii-yeremenko/news-aggregator.git'
+    targetRevision: ci-cd/gitops
+    path: 'news-aggregator-day0'
+    helm:
+      parameters:
+        - name: accessKey
+          value: "AKIAV5I7ZBRO2BXUY2V6t"
+        - name: secretKey
+          value: "IasJXLRWFKEs2RxO3EvAY0R5R5JM1LEN1KfhPeuq"
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: news-aggregator-namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: newsaggregator-regcred
+      namespace: news-aggregator-namespace
+      jsonPointers:
+        - "/data"
