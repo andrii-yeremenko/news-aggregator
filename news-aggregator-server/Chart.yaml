@@ -12,9 +12,7 @@ dependencies:
   - name: metrics-server
     version: 3.12.1
     repository: https://kubernetes-sigs.github.io/metrics-server/
-  - name: vertical-pod-autoscaler
-    version: 1.7.0
-    repository: https://stevehipwell.github.io/helm-charts/
+
 
 maintainers:
   - name: Andrii Yeremenko

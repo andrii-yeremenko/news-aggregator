@@ -114,7 +114,7 @@ rbac:
 
 vpa:
   # Enable Vertical Pod Autoscaler for the deployment.
-  enabled: true
+  enabled: false
   # Update mode for the Vertical Pod Autoscaler. Can be "Auto" or "Initial".
   updateMode: "Auto"
   # Resource requirements for the Vertical Pod Autoscaler.
@@ -128,7 +128,7 @@ vpa:
 
 hpa:
   # Enable Horizontal Pod Autoscaler for the deployment.
-  enabled: true
+  enabled: false
   # Minimum and maximum number of replicas for the Horizontal Pod Autoscaler.
   minReplicas: 1
   maxReplicas: 10
