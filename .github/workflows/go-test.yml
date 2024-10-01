@@ -64,6 +64,15 @@ jobs:
       - name: Format Go files
         run: task fmt
 
+      - name: Generate manifests
+        run: |
+          cd operator
+          mkdir -p $(pwd)/bin
+          GOBIN=$(pwd)/bin go install sigs.k8s.io/controller-tools/cmd/controller-gen@v0.15.0
+          $(pwd)/bin/controller-gen rbac:roleName=manager-role crd webhook paths=./... output:crd:artifacts:config=config/crd/bases
+          task manifests
+          cd ..
+
       - name: Check for unformatted files
         run: |
           if [ -n "$(git status --porcelain)" ]; then
