@@ -8,7 +8,9 @@ spec:
   sourceRepos:
     - https://github.com/andrii-yeremenko/news-aggregator.git
   destinations:
-    - namespace: '*'
+    - namespace: news-aggregator-namespace
+      server: https://kubernetes.default.svc
+    - namespace: operator-system
       server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: '*'
