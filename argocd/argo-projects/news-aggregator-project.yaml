@@ -12,6 +12,10 @@ spec:
       server: https://kubernetes.default.svc
     - namespace: operator-system
       server: https://kubernetes.default.svc
+    - namespace: kube-system
+      server: https://kubernetes.default.svc
+    - namespace: kube-public
+      server: https://kubernetes.default.svc
   clusterResourceWhitelist:
     - group: '*'
       kind: '*'
