@@ -1,5 +1,24 @@
 # Changelog
 
+## [4.2.0](https://github.com/andrii-yeremenko/news-aggregator/compare/news-aggregator@v4.1.0...news-aggregator@v4.2.0) (2024-10-04)
+
+
+### Features
+
+* add GitOps `news-aggregator` app. ([3d62eb6](https://github.com/andrii-yeremenko/news-aggregator/commit/3d62eb6bff1bbf400b18cc2739931787964ade08))
+
+
+### Bug Fixes
+
+* add to project destinations `kube-system` namespace. ([2c9198a](https://github.com/andrii-yeremenko/news-aggregator/commit/2c9198ac8b9849cf07b47ea993af9cb3a6c0e787))
+* add to project destinations `kube-system` namespace. ([3289e37](https://github.com/andrii-yeremenko/news-aggregator/commit/3289e375953a901fb332ced5526f3342ee158230))
+
+
+### Reverts
+
+* unnecessary changes. ([84f2092](https://github.com/andrii-yeremenko/news-aggregator/commit/84f209251c55cc8ba64530167d44a41a8c9a3f33))
+* unnecessary changes. ([3c0eb88](https://github.com/andrii-yeremenko/news-aggregator/commit/3c0eb88753072d2c54811bcfd636dcbaa8eb18e0))
+
 ## [4.1.0](https://github.com/andrii-yeremenko/news-aggregator/compare/news-aggregator@v4.0.0...news-aggregator@v4.1.0) (2024-09-29)
 
 
