@@ -331,3 +331,39 @@ tasks:
       - cd operator && task operator-push-aws && cd ..
       - cd updater && task updater-push-aws && cd ..
     silent: true
+
+  deployArgoCDSecret:
+    desc: "Deploy ArgoCD on the Kubernetes cluster"
+    cmds:
+      - kubectl apply -f argocd/secret
+
+  undeployArgoCDSecret:
+    desc: "Remove ArgoCD from the Kubernetes cluster"
+    cmds:
+      - kubectl delete -f argocd/secret
+
+  deployArgoCDProject:
+    desc: "Deploy ArgoCD on the Kubernetes cluster"
+    deps:
+      - deployArgoCDSecret
+    cmds:
+      - kubectl apply -f argocd/argo-projects
+
+  undeployArgoCDProject:
+    desc: "Remove ArgoCD from the Kubernetes cluster"
+
+    cmds:
+      - kubectl delete -f argocd/argo-projects
+
+  deployArgoCDApps:
+    desc: "Deploy ArgoCD on the Kubernetes cluster"
+    deps:
+      - deployArgoCDProject
+    cmds:
+      - kubectl apply -f argocd/argo-apps
+
+  undeployArgoCDApps:
+    desc: "Remove ArgoCD from the Kubernetes cluster"
+    cmds:
+      - task: undeployArgoCDProject
+      - task: undeployArgoCDSecret

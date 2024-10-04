@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: news-aggregator
+  namespace: argocd
+spec:
+  description: "A versatile tool for aggregating news from various sources"
+  sourceRepos:
+    - https://github.com/andrii-yeremenko/news-aggregator.git
+  destinations:
+    - namespace: news-aggregator-namespace
+      server: https://kubernetes.default.svc
+    - namespace: operator-system
+      server: https://kubernetes.default.svc
+    - namespace: kube-system
+      server: https://kubernetes.default.svc
+    - namespace: kube-public
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: '*'
+      kind: '*'

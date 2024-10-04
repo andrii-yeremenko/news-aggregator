@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: news-aggregator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: news-aggregator
+  source:
+    repoURL: 'https://github.com/andrii-yeremenko/news-aggregator.git'
+    targetRevision: master
+    path: 'news-aggregator-server'
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: news-aggregator-namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
