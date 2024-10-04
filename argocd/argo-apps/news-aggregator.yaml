@@ -9,7 +9,7 @@ spec:
   project: news-aggregator
   source:
     repoURL: 'https://github.com/andrii-yeremenko/news-aggregator.git'
-    targetRevision: ci-cd/gitops
+    targetRevision: master
     path: 'news-aggregator-server'
     helm:
       valueFiles:
